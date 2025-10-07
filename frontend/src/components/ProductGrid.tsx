@@ -1,6 +1,7 @@
 import { Star } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { RippleButton } from "./ui/shadcn-io/ripple-button";
 
 const products = [
   {
@@ -83,12 +84,12 @@ const ProductGrid = () => {
                 {product.price.toLocaleString("vi-VN")}đ
               </p>
               <div className="flex gap-2">
-                <Button size="sm" className="flex-1">
+                <RippleButton size="sm" className="flex-1">
                   Mua ngay
-                </Button>
-                <Button size="sm" variant="outline" className="flex-1">
+                </RippleButton>
+                <RippleButton size="sm" variant="outline" className="flex-1">
                   Chi tiết
-                </Button>
+                </RippleButton>
               </div>
             </div>
           </Card>

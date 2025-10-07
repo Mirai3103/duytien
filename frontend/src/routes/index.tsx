@@ -179,33 +179,15 @@ function Index() {
       <FlashSale />
       <ProductGrid />
       <BannerAds />
-      
-      {/* Category Product Sections */}
-      <CategoryProductSection 
-        title="Laptop Cao Cấp" 
-        categorySlug="laptop" 
-        products={laptopProducts}
-      />
-      
+
       <CategoryProductSection 
         title="Điện Thoại Hot" 
         categorySlug="dien-thoai" 
         products={phoneProducts}
         bgColor="bg-secondary"
       />
-      
-      <CategoryProductSection 
-        title="Tai Nghe & Loa" 
-        categorySlug="tai-nghe" 
-        products={audioProducts}
-      />
-      
-      <CategoryProductSection 
-        title="Đồng Hồ Thông Minh" 
-        categorySlug="dong-ho" 
-        products={watchProducts}
-        bgColor="bg-secondary"
-      />
+ 
+
       
       <BrandCarousel />
       <NewsSection />

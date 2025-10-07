@@ -12,23 +12,24 @@ const menuItems = [
 
 const Navbar = () => {
   return (
-    <nav className="bg-primary text-primary-foreground">
-      <div className="container mx-auto px-4">
-        <ul className="flex items-center justify-center gap-8 py-3">
-          {menuItems.map((item, index) => (
-            <li key={index}>
-              <Link
-                to="/search"
-                className="flex items-center gap-2 hover:text-primary-foreground/80 transition-colors"
-              >
-                <item.icon size={18} />
-                <span className="font-medium">{item.label}</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </nav>
+    null
+    // <nav className="bg-primary text-primary-foreground">
+    //   <div className="container mx-auto px-4">
+    //     <ul className="flex items-center justify-center gap-8 py-3">
+    //       {menuItems.map((item, index) => (
+    //         <li key={index}>
+    //           <Link
+    //             to="/search"
+    //             className="flex items-center gap-2 hover:text-primary-foreground/80 transition-colors"
+    //           >
+    //             <item.icon size={18} />
+    //             <span className="font-medium">{item.label}</span>
+    //           </Link>
+    //         </li>
+    //       ))}
+    //     </ul>
+    //   </div>
+    // </nav>
   );
 };
 

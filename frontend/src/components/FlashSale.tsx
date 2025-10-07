@@ -3,6 +3,7 @@ import { Clock, ChevronLeft, ChevronRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { RippleButton } from "./ui/shadcn-io/ripple-button";
 
 const flashProducts = [
   {
@@ -106,9 +107,9 @@ const FlashSale = () => {
                     {product.salePrice.toLocaleString("vi-VN")}đ
                   </p>
                 </div>
-                <Button size="sm" className="w-full">
+                <RippleButton size="sm" className="w-full">
                   Mua ngay
-                </Button>
+                </RippleButton>
               </div>
             </Card>
           ))}
