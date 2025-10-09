@@ -1,0 +1,1 @@
+ALTER TABLE "attribute_values" ADD COLUMN "metadata" jsonb;

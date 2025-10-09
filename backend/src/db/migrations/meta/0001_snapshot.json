@@ -1,6 +1,6 @@
 {
-  "id": "49d8bb6a-bd33-419a-8f62-75d685e77dcf",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "709806e3-01f7-4e70-8203-e36ab2ec2a53",
+  "prevId": "49d8bb6a-bd33-419a-8f62-75d685e77dcf",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -36,6 +36,12 @@
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true
+        },
+        "metadata": {
+          "name": "metadata",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},
