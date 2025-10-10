@@ -15,6 +15,34 @@
       "when": 1760032795743,
       "tag": "0001_awesome_newton_destine",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1760103197954,
+      "tag": "0002_furry_emma_frost",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1760103508367,
+      "tag": "0003_grey_morlocks",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1760104370724,
+      "tag": "0004_careful_the_watchers",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1760104822168,
+      "tag": "0005_lush_obadiah_stane",
+      "breakpoints": true
     }
   ]
 }

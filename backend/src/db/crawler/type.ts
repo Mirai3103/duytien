@@ -216,3 +216,75 @@ export interface Label {
   discountAmount: number;
   image: string;
 }
+
+
+export interface SpecResponse {
+  status: number
+  message: string
+  data: Data
+}
+
+export interface Data {
+  image: Image
+  attributeItem: AttributeItem[]
+}
+
+export interface Image {
+  primaryImage: PrimaryImage
+  slideImages: SlideImage[]
+  skuCode: string
+  productType: ProductType
+  brand: Brand
+  industry: Industry
+  skuType: string
+  refCode: string
+  productCondition: string
+  accessories: any[]
+  group: Group
+}
+
+export interface PrimaryImage {
+  url: string
+}
+
+export interface SlideImage {
+  url: string
+}
+
+export interface ProductType {
+  code: string
+  name: string
+}
+
+export interface Brand {
+  code: string
+  name: string
+}
+
+export interface Industry {
+  code: string
+  name: string
+}
+
+export interface Group {
+  code: string
+  name: string
+}
+
+export interface AttributeItem {
+  groupName: string
+  groupIcon: any
+  attributes: Attribute[]
+}
+
+export interface Attribute {
+  id: number
+  propertyName: string
+  displayName: string
+  isCompare: boolean
+  icon: any
+  unit?: string
+  hyperLink: string
+  type: string
+  value: any
+}

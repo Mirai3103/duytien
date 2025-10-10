@@ -10,6 +10,7 @@ import {
   primaryKey,
   pgEnum,
   jsonb,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
@@ -87,7 +88,7 @@ export const productVariants = pgTable("product_variants", {
   image: varchar("image", { length: 255 }),
   isDefault: boolean("is_default").default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  metadata: jsonb("metadata"),
+  metadata: jsonb("metadata").$type<any>(),
 });
 
 // ===== ATTRIBUTES =====
@@ -223,27 +224,46 @@ export const specKeys = pgTable("spec_keys", {
     .references(() => specGroups.id)
     .notNull(),
 });
-export const productSpecs = pgTable("product_specs", {
+export const specValues = pgTable("spec_values", {
   id: integer("id").primaryKey().notNull().generatedAlwaysAsIdentity(),
-  variantId: integer("variant_id")
-    .references(() => productVariants.id)
-    .notNull(),
   keyId: integer("key_id")
     .references(() => specKeys.id)
     .notNull(),
-  value: varchar("value", { length: 255 }).notNull(),
+  value: varchar("value", { length: 2000 }).notNull(),
 });
+// New API:
 
-export const productVariantSpecs = pgTable("product_variant_specs", {
+// export const users = pgTable("users", {
+//     id: integer(),
+// }, (t) => [
+//     index('custom_name').on(t.id)
+// ]);
+export const productSpecs = pgTable("product_specs", { // spec of spu
+  id: integer("id").primaryKey().notNull().generatedAlwaysAsIdentity(),
+  productId: integer("product_id")
+    .references(() => products.id)
+    .notNull(),
+  specValueId:  integer("spec_value_id")
+    .references(() => specValues.id)
+    .notNull(), 
+    },(table) => [
+      uniqueIndex("product_specs_unique").on(table.specValueId, table.productId),
+    ]);
+
+export const productVariantSpecs = pgTable("product_variant_specs", { // spec of sku
   id: integer("id").primaryKey().notNull().generatedAlwaysAsIdentity(),
   variantId: integer("variant_id")
     .references(() => productVariants.id)
     .notNull(),
-  specId: integer("spec_id")
-    .references(() => productSpecs.id)
-    .notNull(),
-});
-
+  specValueId:  integer("spec_value_id")
+    .references(() => specValues.id)
+    .notNull(), 
+},(table) => [
+  uniqueIndex("product_variant_specs_unique").on(table.specValueId, table.variantId),
+]);
+// unique constraint on specValueId and variantId
+// export const productVariantSpecsUnique = uniqueIndex("product_variant_specs_unique").on(productVariantSpecs.specValueId, productVariantSpecs.variantId);
+// export const productSpecsUnique = uniqueIndex("product_specs_unique").on(productSpecs.specValueId, productSpecs.productId);
 export default {
   users,
   brands,
@@ -256,4 +276,5 @@ export default {
   specKeys,
   productSpecs,
   productVariantSpecs,
+  specValues,
 };

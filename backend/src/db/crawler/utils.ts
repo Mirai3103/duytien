@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import db from "..";
-import { attributes, attributeValues, brands, categories } from "../schema";
+import { attributes, attributeValues, brands, categories, productSpecs, productVariantSpecs, specGroups, specKeys, specValues } from "../schema";
 
 async function upsertBrand(name: string): Promise<number> {
   const brand = await db.query.brands.findFirst({
@@ -73,5 +73,69 @@ async function upsertAttributeValue(
     .returning()
     .then((r) => r[0]!.id);
 }
+async function upsertSpecGroup(name: string): Promise<number> {
+  const specGroup = await db.query.specGroups.findFirst({
+    where: eq(specGroups.name, name),
+  });
+  if (specGroup) {
+    return specGroup.id;
+  }
+  return await db
+    .insert(specGroups)
+    .values({ name })
+    .returning()
+    .then((r) => r[0]!.id);
+}
+async function upsertSpecKey(name: string, groupId: number): Promise<number> {
+  const specKey = await db.query.specKeys.findFirst({
+    where: and(eq(specKeys.name, name), eq(specKeys.groupId, groupId)),
+  });
+  if (specKey) {
+    return specKey.id;
+  }
+  return await db
+    .insert(specKeys)
+    .values({ name, groupId })
+    .returning()
+    .then((r) => r[0]!.id);
+}
+async function upsertSpecValue(value: string,key:string,group:string): Promise<number> {
+  const groupId = await upsertSpecGroup(group);
+  const keyId = await upsertSpecKey(key, groupId);
+  const specValue = await db.query.specValues.findFirst({
+    where: and(eq(specValues.value, value), eq(specValues.keyId, keyId)),
+  });
+  if (specValue) {
+    console.log(`${value} ${key} ${group} already exists`);
+    return specValue.id;
+  }
+  return await db
+    .insert(specValues)
+    .values({ value, keyId })
+    .returning()
+    .then((r) => r[0]!.id);
+}
 
-export { upsertBrand, upsertCategory, upsertAttribute, upsertAttributeValue };
+async function insertSpecValueToProduct(key: string, value: string, productId: number,group: string): Promise<number> {
+  const specValueId = await upsertSpecValue(value, key, group);
+  return await db
+    .insert(productSpecs)
+    .values({ productId, specValueId })
+    .onConflictDoNothing()
+    .returning()
+    .then((r) => r[0]!.id); 
+}
+
+async function insertSpecValueToProductVariant(key: string, value: string, variantId: number,group: string): Promise<number> {
+  const specValueId = await upsertSpecValue(value, key, group);
+  return await db
+    .insert(productVariantSpecs)
+    .values({ variantId, specValueId })
+    .onConflictDoNothing()
+    .returning()
+    .then((r) => r[0]!.id);
+}
+
+
+
+export { upsertBrand, upsertCategory, upsertAttribute, upsertAttributeValue, upsertSpecGroup, upsertSpecKey, insertSpecValueToProduct, insertSpecValueToProductVariant };
