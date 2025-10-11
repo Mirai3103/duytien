@@ -9,6 +9,9 @@
     "drizzle-kit": "^0.31.5",
     "tsx": "^4.20.6"
   },
+  "scripts": {
+    "build:types": "tsc -p tsconfig.types.json "
+  },
   "peerDependencies": {
     "typescript": "^5"
   },

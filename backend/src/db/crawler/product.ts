@@ -54,6 +54,7 @@ for (let page = startPage; page <= endPage; page++) {
       currentPrice: product.currentPrice,
       discountPercentage: product.discountPercentage,
       endTimeDiscount: product.endTimeDiscount,
+      brandId,
     };
     const name = product.name || product.displayName;
     const price = product.price;
@@ -64,11 +65,12 @@ for (let page = startPage; page <= endPage; page++) {
       price: price.toString(),
       slug: slugify(name, { lower: true }),
       categoryId,
+      brandId,
       metadata: meta,
       status: "active",
       createdAt: new Date(),
       thumbnail: image,
-    });
+    }).returning();
     const skus = product.skus;
     for await (const sku of skus) {
       const skuDb = await db
@@ -76,12 +78,13 @@ for (let page = startPage; page <= endPage; page++) {
         .values({
           price: sku.originalPrice.toString(),
           sku: slugify(sku.name, { lower: true }) + "-" + sku.sku,
-          productId: productDb.id,
+          productId: productDb[0]!.id,
           createdAt: new Date(),
           stock: 0,
           name: sku.name,
           image: sku.image,
           isDefault: false,
+          
           metadata: {
             variants: sku.variants,
             reducedPrice: sku.currentPrice,

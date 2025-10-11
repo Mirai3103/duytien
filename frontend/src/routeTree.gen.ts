@@ -11,11 +11,17 @@
 import { createFileRoute } from '@tanstack/react-router'
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as StorefrontRouteImport } from './routes/_storefront'
 import { Route as StorefrontIndexRouteImport } from './routes/_storefront/index'
 import { Route as ProductIdRouteImport } from './routes/product/$id'
 import { Route as AdminAdminRouteImport } from './routes/admin/_admin'
 import { Route as StorefrontSearchRouteImport } from './routes/_storefront/search'
+import { Route as StorefrontCheckoutRouteImport } from './routes/_storefront/checkout'
+import { Route as StorefrontCartRouteImport } from './routes/_storefront/cart'
 import { Route as AdminAdminSkusRouteImport } from './routes/admin/_admin/skus'
 import { Route as AdminAdminProductsRouteImport } from './routes/admin/_admin/products'
 import { Route as AdminAdminOrdersRouteImport } from './routes/admin/_admin/orders'
@@ -27,6 +33,26 @@ const AdminRouteImport = createFileRoute('/admin')()
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StorefrontRoute = StorefrontRouteImport.update({
@@ -50,6 +76,16 @@ const AdminAdminRoute = AdminAdminRouteImport.update({
 const StorefrontSearchRoute = StorefrontSearchRouteImport.update({
   id: '/search',
   path: '/search',
+  getParentRoute: () => StorefrontRoute,
+} as any)
+const StorefrontCheckoutRoute = StorefrontCheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
+  getParentRoute: () => StorefrontRoute,
+} as any)
+const StorefrontCartRoute = StorefrontCartRouteImport.update({
+  id: '/cart',
+  path: '/cart',
   getParentRoute: () => StorefrontRoute,
 } as any)
 const AdminAdminSkusRoute = AdminAdminSkusRouteImport.update({
@@ -79,6 +115,12 @@ const AdminAdminCustomersRoute = AdminAdminCustomersRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
+  '/auth': typeof AuthRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
+  '/cart': typeof StorefrontCartRoute
+  '/checkout': typeof StorefrontCheckoutRoute
   '/search': typeof StorefrontSearchRoute
   '/admin': typeof AdminAdminRouteWithChildren
   '/product/$id': typeof ProductIdRoute
@@ -90,6 +132,12 @@ export interface FileRoutesByFullPath {
   '/admin/skus': typeof AdminAdminSkusRoute
 }
 export interface FileRoutesByTo {
+  '/auth': typeof AuthRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
+  '/cart': typeof StorefrontCartRoute
+  '/checkout': typeof StorefrontCheckoutRoute
   '/search': typeof StorefrontSearchRoute
   '/admin': typeof AdminAdminRouteWithChildren
   '/product/$id': typeof ProductIdRoute
@@ -103,6 +151,12 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_storefront': typeof StorefrontRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
+  '/_storefront/cart': typeof StorefrontCartRoute
+  '/_storefront/checkout': typeof StorefrontCheckoutRoute
   '/_storefront/search': typeof StorefrontSearchRoute
   '/admin': typeof AdminRouteWithChildren
   '/admin/_admin': typeof AdminAdminRouteWithChildren
@@ -117,6 +171,12 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/auth'
+    | '/forgot-password'
+    | '/privacy'
+    | '/terms'
+    | '/cart'
+    | '/checkout'
     | '/search'
     | '/admin'
     | '/product/$id'
@@ -128,6 +188,12 @@ export interface FileRouteTypes {
     | '/admin/skus'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/auth'
+    | '/forgot-password'
+    | '/privacy'
+    | '/terms'
+    | '/cart'
+    | '/checkout'
     | '/search'
     | '/admin'
     | '/product/$id'
@@ -140,6 +206,12 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_storefront'
+    | '/auth'
+    | '/forgot-password'
+    | '/privacy'
+    | '/terms'
+    | '/_storefront/cart'
+    | '/_storefront/checkout'
     | '/_storefront/search'
     | '/admin'
     | '/admin/_admin'
@@ -154,6 +226,10 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   StorefrontRoute: typeof StorefrontRouteWithChildren
+  AuthRoute: typeof AuthRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
+  PrivacyRoute: typeof PrivacyRoute
+  TermsRoute: typeof TermsRoute
   AdminRoute: typeof AdminRouteWithChildren
   ProductIdRoute: typeof ProductIdRoute
 }
@@ -165,6 +241,34 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_storefront': {
@@ -200,6 +304,20 @@ declare module '@tanstack/react-router' {
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof StorefrontSearchRouteImport
+      parentRoute: typeof StorefrontRoute
+    }
+    '/_storefront/checkout': {
+      id: '/_storefront/checkout'
+      path: '/checkout'
+      fullPath: '/checkout'
+      preLoaderRoute: typeof StorefrontCheckoutRouteImport
+      parentRoute: typeof StorefrontRoute
+    }
+    '/_storefront/cart': {
+      id: '/_storefront/cart'
+      path: '/cart'
+      fullPath: '/cart'
+      preLoaderRoute: typeof StorefrontCartRouteImport
       parentRoute: typeof StorefrontRoute
     }
     '/admin/_admin/skus': {
@@ -241,11 +359,15 @@ declare module '@tanstack/react-router' {
 }
 
 interface StorefrontRouteChildren {
+  StorefrontCartRoute: typeof StorefrontCartRoute
+  StorefrontCheckoutRoute: typeof StorefrontCheckoutRoute
   StorefrontSearchRoute: typeof StorefrontSearchRoute
   StorefrontIndexRoute: typeof StorefrontIndexRoute
 }
 
 const StorefrontRouteChildren: StorefrontRouteChildren = {
+  StorefrontCartRoute: StorefrontCartRoute,
+  StorefrontCheckoutRoute: StorefrontCheckoutRoute,
   StorefrontSearchRoute: StorefrontSearchRoute,
   StorefrontIndexRoute: StorefrontIndexRoute,
 }
@@ -286,6 +408,10 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   StorefrontRoute: StorefrontRouteWithChildren,
+  AuthRoute: AuthRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
+  PrivacyRoute: PrivacyRoute,
+  TermsRoute: TermsRoute,
   AdminRoute: AdminRouteWithChildren,
   ProductIdRoute: ProductIdRoute,
 }
