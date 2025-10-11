@@ -13,6 +13,7 @@ const browser = await puppeteer.launch({
 });
 
 for await (const product of products) {
+  console.log(product.id);
   const fptUrl = `https://fptshop.com.vn/${product.metadata.slug}`;
   const page = await browser.newPage();
 

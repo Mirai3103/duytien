@@ -142,6 +142,7 @@ export const orders = pgTable("orders", {
   paymentMethod: paymentMethodEnum("payment_method").notNull(),
   deliveryAddress: text("delivery_address"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  voucherId: integer("voucher_id").references(() => vouchers.id),
 });
 
 // ===== ORDER ITEMS =====
@@ -238,29 +239,57 @@ export const specValues = pgTable("spec_values", {
 // }, (t) => [
 //     index('custom_name').on(t.id)
 // ]);
-export const productSpecs = pgTable("product_specs", { // spec of spu
-  id: integer("id").primaryKey().notNull().generatedAlwaysAsIdentity(),
-  productId: integer("product_id")
-    .references(() => products.id)
-    .notNull(),
-  specValueId:  integer("spec_value_id")
-    .references(() => specValues.id)
-    .notNull(), 
-    },(table) => [
-      uniqueIndex("product_specs_unique").on(table.specValueId, table.productId),
-    ]);
+export const productSpecs = pgTable(
+  "product_specs",
+  {
+    // spec of spu
+    id: integer("id").primaryKey().notNull().generatedAlwaysAsIdentity(),
+    productId: integer("product_id")
+      .references(() => products.id)
+      .notNull(),
+    specValueId: integer("spec_value_id")
+      .references(() => specValues.id)
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("product_specs_unique").on(table.specValueId, table.productId),
+  ]
+);
 
-export const productVariantSpecs = pgTable("product_variant_specs", { // spec of sku
+export const productVariantSpecs = pgTable(
+  "product_variant_specs",
+  {
+    // spec of sku
+    id: integer("id").primaryKey().notNull().generatedAlwaysAsIdentity(),
+    variantId: integer("variant_id")
+      .references(() => productVariants.id)
+      .notNull(),
+    specValueId: integer("spec_value_id")
+      .references(() => specValues.id)
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("product_variant_specs_unique").on(
+      table.specValueId,
+      table.variantId
+    ),
+  ]
+);
+export const voucherTypes = pgEnum("voucher_types", ["percentage", "fixed"]);
+export const vouchers = pgTable("vouchers", {
   id: integer("id").primaryKey().notNull().generatedAlwaysAsIdentity(),
-  variantId: integer("variant_id")
-    .references(() => productVariants.id)
-    .notNull(),
-  specValueId:  integer("spec_value_id")
-    .references(() => specValues.id)
-    .notNull(), 
-},(table) => [
-  uniqueIndex("product_variant_specs_unique").on(table.specValueId, table.variantId),
-]);
+  code: varchar("code", { length: 255 }).notNull(),
+  type: voucherTypes("type").notNull(),
+  discount: decimal("discount", { precision: 12, scale: 2 }).notNull(),
+  maxDiscount: decimal("max_discount", { precision: 12, scale: 2 }),
+  minOrderAmount: decimal("min_order_amount", { precision: 12, scale: 2 }),
+  maxOrderAmount: decimal("max_order_amount", { precision: 12, scale: 2 }),
+  maxUsage: integer("max_usage"),
+  isActive: boolean("is_active").default(true).notNull(),
+  usageCount: integer("usage_count").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // unique constraint on specValueId and variantId
 // export const productVariantSpecsUnique = uniqueIndex("product_variant_specs_unique").on(productVariantSpecs.specValueId, productVariantSpecs.variantId);
 // export const productSpecsUnique = uniqueIndex("product_specs_unique").on(productSpecs.specValueId, productSpecs.productId);

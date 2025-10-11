@@ -11,7 +11,7 @@ import BrandCarousel from "@/components/BrandCarousel";
 import NewsSection from "@/components/NewsSection";
 import Footer from "@/components/Footer";
 import CategoryProductSection from "@/components/CategoryProductSection";
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_storefront/")({
   component: Index,
 });
 

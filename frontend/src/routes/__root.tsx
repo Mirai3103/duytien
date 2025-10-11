@@ -5,7 +5,6 @@ import ChatBox from "@/components/ChatBox";
 const RootLayout = () => (
   <>
     <Outlet />
-    <ChatBox />
     <TanStackRouterDevtools />
   </>
 );
