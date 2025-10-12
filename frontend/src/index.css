@@ -79,7 +79,6 @@
   }
 }
 
-
 @utility marquee {
   animation: marquee 30s linear infinite;
 }
@@ -93,13 +92,39 @@
   }
 }
 
+@utility variant-swatch {
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover:not(:disabled) {
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.95);
+  }
+}
+
+@utility variant-option {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+}
+
 @utility pulse-sale {
   animation: pulse-sale 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-
-body{
-  font-family: 'Roboto', sans-serif;
+body {
+  font-family: "Roboto", sans-serif;
 }
 :root {
   --background: hsl(0 0% 100%);
@@ -125,7 +150,7 @@ body{
   --accent: hsl(353 100% 42%);
   --accent-foreground: hsl(0 0% 100%);
 
-  --destructive: hsl(0 84% 60%) ;
+  --destructive: hsl(0 84% 60%);
   --destructive-foreground: hsl(0 0% 100%);
 
   --border: hsl(0 0% 90%);
@@ -139,19 +164,22 @@ body{
   --flash-sale-accent: hsl(45 100% 50%);
 
   /* Gradients */
-  --gradient-hero: linear-gradient(135deg, hsl(353 100% 42%), hsl(353 100% 52%));
+  --gradient-hero: linear-gradient(
+    135deg,
+    hsl(353 100% 42%),
+    hsl(353 100% 52%)
+  );
   --gradient-sale: linear-gradient(135deg, hsl(45 100% 96%), hsl(45 100% 90%));
-  
+
   /* Shadows */
   --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.08);
   --shadow-hover: 0 4px 16px rgba(215, 0, 24, 0.15);
-  
+
   /* Transitions */
   --transition-base: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @layer utilities {
-  
   @keyframes marquee {
     0% {
       transform: translateX(0);
@@ -160,9 +188,10 @@ body{
       transform: translateX(-50%);
     }
   }
-  
+
   @keyframes pulse-sale {
-    0%, 100% {
+    0%,
+    100% {
       opacity: 1;
     }
     50% {

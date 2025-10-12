@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Search, SlidersHorizontal, X } from "lucide-react";
+import { Search, SlidersHorizontal, X, Check } from "lucide-react";
 import Header from "@/components/Header";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -27,19 +27,19 @@ import {
 } from "@/components/ui/sheet";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/lib/trpc";
-import type { AppRouter } from "../../../backend/dist-types/trpc";
 import _ from "lodash";
+import { RippleButton } from "@/components/ui/shadcn-io/ripple-button";
+import { useNavigate } from "@tanstack/react-router";
 
 const categories = ["Điện thoại", "Laptop", "Tai nghe", "Phụ kiện", "Đồng hồ"];
 const brands = ["Apple", "Samsung", "Xiaomi", "Oppo", "JBL", "Baseus"];
-type Product = Awaited<
-  ReturnType<AppRouter["products"]["getProductsWithVariants"]>
->[number];
-function ProductCard({ product }: { product: Product }) {
-  const attrs = React.useMemo(()=>{
-    function extractAttrs(product: Product) {
+// Remove unused Product type
+function ProductCard({ product }: { product: any }) {
+  const [selectedVariant, setSelectedVariant] = useState(product.variants[0]);
+
+  const attrs = React.useMemo(() => {
+    function extractAttrs(product: any) {
       const grouped = _.flatMap(product.variants, "variantValues");
-      // grouped là mảng tất cả variantValues
       const groupedByAttr = _.groupBy(grouped, (vv) => vv.value.attribute.name);
       return _.map(groupedByAttr, (arr, attrName) => ({
         name: attrName,
@@ -52,51 +52,186 @@ function ProductCard({ product }: { product: Product }) {
     }
     return extractAttrs(product);
   }, [product]);
-  console.log(attrs);
 
+  // Handle variant selection
+  const handleAttributeChange = (attrName: string, attrValue: string) => {
+    const currentSelection = selectedVariant.variantValues.reduce(
+      (acc: any, vv: any) => {
+        acc[vv.value.attribute.name] = vv.value.value;
+        return acc;
+      },
+      {} as Record<string, string>
+    );
+
+    // Update the selection for this attribute
+    currentSelection[attrName] = attrValue;
+
+    // Find variant that matches all current selections
+    const matchingVariant = product.variants.find((variant: any) => {
+      const variantAttrs = variant.variantValues.reduce(
+        (acc: any, vv: any) => {
+          acc[vv.value.attribute.name] = vv.value.value;
+          return acc;
+        },
+        {} as Record<string, string>
+      );
+
+      return Object.keys(currentSelection).every(
+        (key) => variantAttrs[key] === currentSelection[key]
+      );
+    });
+
+    if (matchingVariant) {
+      setSelectedVariant(matchingVariant);
+    }
+  };
+
+  // Check if an attribute value is available with current selection
+  const isAttributeAvailable = (attrName: string, attrValue: string) => {
+    const currentSelection = selectedVariant.variantValues.reduce(
+      (acc: any, vv: any) => {
+        acc[vv.value.attribute.name] = vv.value.value;
+        return acc;
+      },
+      {} as Record<string, string>
+    );
+
+    const tempSelection = { ...currentSelection, [attrName]: attrValue };
+
+    return product.variants.some((variant: any) => {
+      const variantAttrs = variant.variantValues.reduce(
+        (acc: any, vv: any) => {
+          acc[vv.value.attribute.name] = vv.value.value;
+          return acc;
+        },
+        {} as Record<string, string>
+      );
+
+      return Object.keys(tempSelection).every(
+        (key) => variantAttrs[key] === tempSelection[key]
+      );
+    });
+  };
+
+  const isOnSale = Math.random() > 0.5;
+  const discountPercent = Math.floor(Math.random() * 50) + 10;
+  const originalPrice = parseInt(selectedVariant.price);
+  const salePrice = isOnSale
+    ? Math.floor(originalPrice * (1 - discountPercent / 100))
+    : originalPrice;
+  const navigate = useNavigate();
   return (
     <Card
-      key={product.id}
-      className="group hover:shadow-lg transition-all duration-300 hover:border-primary cursor-pointer"
+      onClick={() =>
+        navigate({ to: "/product/$id", params: { id: selectedVariant.id } })
+      }
+      className="group hover:shadow-lg transition-all duration-300 hover:border-primary cursor-pointer overflow-hidden"
     >
       <CardContent className="p-3">
         <div className="relative mb-3">
-          {Math.random() > 0.5 && (
-            <Badge className="absolute top-0 left-0 z-10 bg-primary">
-              -{Math.floor(Math.random() * 100)}%
+          {isOnSale && (
+            <Badge className="absolute top-2 left-2 z-10 bg-primary text-white shadow-md">
+              -{discountPercent}%
             </Badge>
           )}
           <img
-            src={product.thumbnail!}
-            alt={product.name}
+            src={selectedVariant.image!}
+            alt={selectedVariant.name}
             className="w-full aspect-square object-contain group-hover:scale-105 transition-transform duration-300"
           />
         </div>
+
         <h3 className="font-medium text-sm mb-2 line-clamp-2 min-h-[40px]">
-          {product.name}
+          {selectedVariant.name}
         </h3>
-        <div className="flex items-center gap-1 mb-2">
-          <span className="text-yellow-500">★</span>
-          <span className="text-xs font-medium">
-            {Math.floor(Math.random() * 5)}
-          </span>
-          <span className="text-xs text-muted-foreground">
-            ({Math.floor(Math.random() * 100)})
-          </span>
-        </div>
-        <div className="space-y-1">
-          <div className="text-lg font-bold text-primary">
-            {parseInt(product.variants[0].price).toLocaleString("vi-VN")}đ
-          </div>
-          {Math.random() > 0.5 && (
+        <div className="space-y-1 mb-3">
+          {isOnSale && (
             <div className="text-xs text-muted-foreground line-through">
-              {parseInt(product.variants[0].price).toLocaleString("vi-VN")}đ
+              {originalPrice.toLocaleString("vi-VN")}đ
             </div>
           )}
+          <div className="text-lg font-bold text-primary">
+            {salePrice.toLocaleString("vi-VN")}đ
+          </div>
         </div>
-        <Button size="sm" className="w-full mt-3">
-          Mua ngay
-        </Button>
+        {/* Variant Selection */}
+        <div className="space-y-3 mb-3">
+          {attrs.map((attr) => (
+            <div key={attr.name}>
+              <div className="text-xs font-medium text-muted-foreground mb-1">
+                {attr.name}
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {attr.values.map((value) => {
+                  const isSelected = selectedVariant.variantValues.some(
+                    (vv: any) =>
+                      vv.value.attribute.name === attr.name &&
+                      vv.value.value === value.value
+                  );
+                  const isAvailable = isAttributeAvailable(
+                    attr.name,
+                    value.value
+                  );
+
+                  if (
+                    attr.name.toLowerCase().includes("màu") ||
+                    attr.name.toLowerCase().includes("color")
+                  ) {
+                    // Color swatches
+                    return (
+                      <button
+                        key={value.value}
+                        onClick={() =>
+                          handleAttributeChange(attr.name, value.value)
+                        }
+                        disabled={!isAvailable}
+                        className={`
+                          variant-swatch w-6 h-6 rounded-full border-2
+                          ${
+                            isSelected
+                              ? "border-primary ring-2 ring-primary/20"
+                              : "border-gray-300 hover:border-gray-400"
+                          }
+                          ${!isAvailable ? "opacity-30 cursor-not-allowed" : "cursor-pointer"}
+                        `}
+                        style={{ backgroundColor: value.code || "#e5e7eb" }}
+                        title={value.displayValue}
+                      >
+                        {isSelected && (
+                          <Check className="absolute inset-0 m-auto w-3 h-3 text-white drop-shadow-sm" />
+                        )}
+                      </button>
+                    );
+                  } else {
+                    // Text options (capacity, size, etc.)
+                    return (
+                      <button
+                        key={value.value}
+                        onClick={() =>
+                          handleAttributeChange(attr.name, value.value)
+                        }
+                        disabled={!isAvailable}
+                        className={`
+                          variant-option px-2 py-1 text-xs rounded-md border
+                          ${
+                            isSelected
+                              ? "border-primary bg-primary/10 text-primary font-medium"
+                              : "border-gray-300 hover:border-gray-400"
+                          }
+                          ${!isAvailable ? "opacity-30 cursor-not-allowed" : "cursor-pointer"}
+                        `}
+                      >
+                        {value.displayValue}
+                      </button>
+                    );
+                  }
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Price */}
       </CardContent>
     </Card>
   );
@@ -353,7 +488,7 @@ const SearchProducts = () => {
               <div className="mb-4 text-sm text-muted-foreground">
                 Tìm thấy {data.length} sản phẩm
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                 {data.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}

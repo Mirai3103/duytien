@@ -1,6 +1,8 @@
 import z from "zod";
 import { publicProcedure, router } from "../trpc";
 import db from "@/db";
+import { products } from "@/db/schema";
+import { eq } from "drizzle-orm";
 
 export const productsQuerySchema = z.object({
   page: z.number().default(1),
@@ -31,27 +33,52 @@ export const productsRoute = router({
       return await db.query.products.findMany({
         limit: input.limit,
         offset: (input.page - 1) * input.limit,
-        columns:{
-          description:false,
-          metadata:false
+        columns: {
+          description: false,
+          metadata: false,
         },
-        with:{
-          brand:true,
-          category:true,
-          variants:{
-            with:{
-              variantValues:{
-                with:{
-                  value:{
-                    with:{
-                      attribute:true
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
+        with: {
+          brand: true,
+          category: true,
+          variants: {
+            with: {
+              variantValues: {
+                with: {
+                  value: {
+                    with: {
+                      attribute: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+    }),
+
+  getProductDetail: publicProcedure
+    .input(z.number())
+    .query(async ({ input }) => {
+      return await db.query.products.findFirst({
+        where: eq(products.id, input),
+        with: {
+          brand: true,
+          category: true,
+          variants: {
+            with: {
+              variantValues: {
+                with: {
+                  value: {
+                    with: {
+                      attribute: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
       });
     }),
 });
