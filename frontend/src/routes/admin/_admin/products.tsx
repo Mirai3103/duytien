@@ -6,8 +6,8 @@ export const Route = createFileRoute("/admin/_admin/products")({
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Search } from "lucide-react";
-import { ProductsTable } from "@/components/products-table";
-import { ProductStats } from "@/components/product-stats";
+import { ProductsTable } from "@/components/admin/product/products-table";
+import { ProductStats } from "@/components/admin/product/product-stats";
 
 export default function ProductsPage() {
   return (

@@ -1,7 +1,7 @@
 import { Star } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { RippleButton } from "./ui/shadcn-io/ripple-button";
+import { RippleButton } from "../../ui/shadcn-io/ripple-button";
 
 const products = [
   {

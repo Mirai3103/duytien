@@ -9,6 +9,8 @@ import {
   Tag,
   Bell,
   Box,
+  FolderTree,
+  Tags,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -19,6 +21,8 @@ export const Route = createFileRoute("/admin/_admin")({
 
 const navigation = [
   { name: "Tổng quan", href: "/admin", icon: LayoutDashboard },
+  { name: "Danh mục", href: "/admin/categories", icon: FolderTree },
+  { name: "Thương hiệu", href: "/admin/brands", icon: Tags },
   { name: "Sản phẩm (SPU)", href: "/admin/products", icon: Package },
   { name: "Biến thể (SKU)", href: "/admin/skus", icon: Box },
   { name: "Đơn hàng", href: "/admin/orders", icon: ShoppingCart },

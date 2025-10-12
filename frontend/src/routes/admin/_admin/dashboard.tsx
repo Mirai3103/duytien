@@ -14,7 +14,7 @@ import {
   DollarSign,
 } from "lucide-react";
 import { RevenueChart } from "@/components/revenue-chart";
-import { OrdersChart } from "@/components/orders-chart";
+import { OrdersChart } from "@/components/admin/order/orders-chart";
 import { RecentOrders } from "@/components/recent-orders";
 import { TopProducts } from "@/components/top-products";
 

@@ -6,8 +6,8 @@ export const Route = createFileRoute("/admin/_admin/customers")({
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, UserPlus } from "lucide-react";
-import { CustomersTable } from "@/components/customers-table";
-import { CustomerStats } from "@/components/customer-stats";
+import { CustomersTable } from "@/components/admin/customer/customers-table";
+import { CustomerStats } from "@/components/admin/customer/customer-stats";
 
 export default function CustomersPage() {
   return (

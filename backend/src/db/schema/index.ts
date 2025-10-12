@@ -43,6 +43,8 @@ export const paymentStatusEnum = pgEnum("payment_status", [
   "failed",
 ]);
 
+export const userRoleEnum = pgEnum("user_role", ["admin", "customer"]);
+
 export const voucherTypes = pgEnum("voucher_types", ["percentage", "fixed"]);
 
 // ===== USERS =====
@@ -56,6 +58,7 @@ export const users = pgTable(
     phone: varchar("phone", { length: 50 }),
     address: text("address"),
     isActive: boolean("is_active").default(true).notNull(),
+    role: userRoleEnum("role").default("customer").notNull(),
   },
   (t) => [uniqueIndex("users_email_unique").on(t.email)]
 );
@@ -144,6 +147,21 @@ export const productVariants = pgTable(
     foreignKey({
       columns: [t.productId],
       foreignColumns: [products.id],
+    }).onDelete("cascade").onUpdate("cascade"),
+  ]
+);
+
+export const productVariantImages = pgTable(
+  "product_variant_images",
+  {
+    id: integer("id").primaryKey().notNull().generatedAlwaysAsIdentity(),
+    variantId: integer("variant_id").notNull(),
+    image: varchar("image", { length: 255 }).notNull(),
+  },
+  (t) => [
+    foreignKey({
+      columns: [t.variantId],
+      foreignColumns: [productVariants.id],
     }).onDelete("cascade").onUpdate("cascade"),
   ]
 );
@@ -460,6 +478,7 @@ export const productVariantsRelations = relations(
     orderItems: many(orderItems),
     cartItems: many(cartItems),
     reviews: many(reviews),
+    images: many(productVariantImages),
   })
 );
 
@@ -489,6 +508,17 @@ export const productVariantValuesRelations = relations(
     value: one(attributeValues, {
       fields: [productVariantValues.attributeValueId],
       references: [attributeValues.id],
+    }),
+  })
+);
+
+export const productVariantImagesRelations = relations(
+
+  productVariantImages,
+  ({ one }) => ({
+    variant: one(productVariants, {
+      fields: [productVariantImages.variantId],
+      references: [productVariants.id],
     }),
   })
 );
@@ -601,6 +631,7 @@ export const vouchersRelations = relations(vouchers, ({ many }) => ({
   orders: many(orders),
 }));
 
+
 // ===== EXPORT ALL =====
 export default {
   users,
@@ -640,4 +671,5 @@ export default {
   productSpecsRelations,
   productVariantSpecsRelations,
   vouchersRelations,
+  productVariantImagesRelations,
 };
