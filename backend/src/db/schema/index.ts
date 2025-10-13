@@ -90,7 +90,9 @@ export const categories = pgTable(
     foreignKey({
       columns: [t.parentId],
       foreignColumns: [t.id],
-    }).onDelete("cascade").onUpdate("cascade"),
+    })
+      .onDelete("cascade")
+      .onUpdate("cascade"),
   ]
 );
 
@@ -118,11 +120,15 @@ export const products = pgTable(
     foreignKey({
       columns: [t.brandId],
       foreignColumns: [brands.id],
-    }).onDelete("cascade").onUpdate("cascade"),
+    })
+      .onDelete("cascade")
+      .onUpdate("cascade"),
     foreignKey({
       columns: [t.categoryId],
       foreignColumns: [categories.id],
-    }).onDelete("cascade").onUpdate("cascade"),
+    })
+      .onDelete("cascade")
+      .onUpdate("cascade"),
   ]
 );
 
@@ -147,7 +153,9 @@ export const productVariants = pgTable(
     foreignKey({
       columns: [t.productId],
       foreignColumns: [products.id],
-    }).onDelete("cascade").onUpdate("cascade"),
+    })
+      .onDelete("cascade")
+      .onUpdate("cascade"),
   ]
 );
 
@@ -156,13 +164,15 @@ export const productVariantImages = pgTable(
   {
     id: integer("id").primaryKey().notNull().generatedAlwaysAsIdentity(),
     variantId: integer("variant_id").notNull(),
-    image: varchar("image", { length: 255 }).notNull(),
+    image: varchar("image", { length: 1000 }).notNull(),
   },
   (t) => [
     foreignKey({
       columns: [t.variantId],
       foreignColumns: [productVariants.id],
-    }).onDelete("cascade").onUpdate("cascade"),
+    })
+      .onDelete("cascade")
+      .onUpdate("cascade"),
   ]
 );
 
@@ -191,7 +201,9 @@ export const attributeValues = pgTable(
     foreignKey({
       columns: [t.attributeId],
       foreignColumns: [attributes.id],
-    }).onDelete("cascade").onUpdate("cascade"),
+    })
+      .onDelete("cascade")
+      .onUpdate("cascade"),
   ]
 );
 
@@ -207,11 +219,15 @@ export const productVariantValues = pgTable(
     foreignKey({
       columns: [t.variantId],
       foreignColumns: [productVariants.id],
-    }).onDelete("cascade").onUpdate("cascade"),
+    })
+      .onDelete("cascade")
+      .onUpdate("cascade"),
     foreignKey({
       columns: [t.attributeValueId],
       foreignColumns: [attributeValues.id],
-    }).onDelete("cascade").onUpdate("cascade"),
+    })
+      .onDelete("cascade")
+      .onUpdate("cascade"),
   ]
 );
 
@@ -232,11 +248,15 @@ export const cartItems = pgTable(
     foreignKey({
       columns: [t.userId],
       foreignColumns: [users.id],
-    }).onDelete("cascade").onUpdate("cascade"),
+    })
+      .onDelete("cascade")
+      .onUpdate("cascade"),
     foreignKey({
       columns: [t.variantId],
       foreignColumns: [productVariants.id],
-    }).onDelete("cascade").onUpdate("cascade"),
+    })
+      .onDelete("cascade")
+      .onUpdate("cascade"),
   ]
 );
 
@@ -279,11 +299,15 @@ export const orders = pgTable(
     foreignKey({
       columns: [t.userId],
       foreignColumns: [users.id],
-    }).onDelete("cascade").onUpdate("cascade"),
+    })
+      .onDelete("cascade")
+      .onUpdate("cascade"),
     foreignKey({
       columns: [t.voucherId],
       foreignColumns: [vouchers.id],
-    }).onDelete("set null").onUpdate("cascade"),
+    })
+      .onDelete("set null")
+      .onUpdate("cascade"),
   ]
 );
 
@@ -301,11 +325,15 @@ export const orderItems = pgTable(
     foreignKey({
       columns: [t.orderId],
       foreignColumns: [orders.id],
-    }).onDelete("cascade").onUpdate("cascade"),
+    })
+      .onDelete("cascade")
+      .onUpdate("cascade"),
     foreignKey({
       columns: [t.variantId],
       foreignColumns: [productVariants.id],
-    }).onDelete("cascade").onUpdate("cascade"),
+    })
+      .onDelete("cascade")
+      .onUpdate("cascade"),
   ]
 );
 
@@ -326,7 +354,9 @@ export const payments = pgTable(
     foreignKey({
       columns: [t.orderId],
       foreignColumns: [orders.id],
-    }).onDelete("cascade").onUpdate("cascade"),
+    })
+      .onDelete("cascade")
+      .onUpdate("cascade"),
   ]
 );
 
@@ -347,11 +377,15 @@ export const reviews = pgTable(
     foreignKey({
       columns: [t.userId],
       foreignColumns: [users.id],
-    }).onDelete("cascade").onUpdate("cascade"),
+    })
+      .onDelete("cascade")
+      .onUpdate("cascade"),
     foreignKey({
       columns: [t.variantId],
       foreignColumns: [productVariants.id],
-    }).onDelete("cascade").onUpdate("cascade"),
+    })
+      .onDelete("cascade")
+      .onUpdate("cascade"),
   ]
 );
 
@@ -377,7 +411,9 @@ export const specKeys = pgTable(
     foreignKey({
       columns: [t.groupId],
       foreignColumns: [specGroups.id],
-    }).onDelete("cascade").onUpdate("cascade"),
+    })
+      .onDelete("cascade")
+      .onUpdate("cascade"),
   ]
 );
 
@@ -393,7 +429,9 @@ export const specValues = pgTable(
     foreignKey({
       columns: [t.keyId],
       foreignColumns: [specKeys.id],
-    }).onDelete("cascade").onUpdate("cascade"),
+    })
+      .onDelete("cascade")
+      .onUpdate("cascade"),
   ]
 );
 
@@ -408,11 +446,15 @@ export const productSpecs = pgTable(
     foreignKey({
       columns: [t.productId],
       foreignColumns: [products.id],
-    }).onDelete("cascade").onUpdate("cascade"),
+    })
+      .onDelete("cascade")
+      .onUpdate("cascade"),
     foreignKey({
       columns: [t.specValueId],
       foreignColumns: [specValues.id],
-    }).onDelete("cascade").onUpdate("cascade"),
+    })
+      .onDelete("cascade")
+      .onUpdate("cascade"),
   ]
 );
 
@@ -427,11 +469,15 @@ export const productVariantSpecs = pgTable(
     foreignKey({
       columns: [t.variantId],
       foreignColumns: [productVariants.id],
-    }).onDelete("cascade").onUpdate("cascade"),
+    })
+      .onDelete("cascade")
+      .onUpdate("cascade"),
     foreignKey({
       columns: [t.specValueId],
       foreignColumns: [specValues.id],
-    }).onDelete("cascade").onUpdate("cascade"),
+    })
+      .onDelete("cascade")
+      .onUpdate("cascade"),
   ]
 );
 // ===== USERS =====
@@ -513,7 +559,6 @@ export const productVariantValuesRelations = relations(
 );
 
 export const productVariantImagesRelations = relations(
-
   productVariantImages,
   ({ one }) => ({
     variant: one(productVariants, {
@@ -631,7 +676,6 @@ export const vouchersRelations = relations(vouchers, ({ many }) => ({
   orders: many(orders),
 }));
 
-
 // ===== EXPORT ALL =====
 export default {
   users,
@@ -671,5 +715,6 @@ export default {
   productSpecsRelations,
   productVariantSpecsRelations,
   vouchersRelations,
+  productVariantImages,
   productVariantImagesRelations,
 };

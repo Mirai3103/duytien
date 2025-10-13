@@ -40,6 +40,20 @@ export const variantsRoute = router({
               },
             },
           },
+          specs: {
+            with: {
+              value: {
+                with: {
+                  key: {
+                    with: {
+                      group: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          images: true,
         },
       });
     }),

@@ -224,6 +224,24 @@ function RouteComponent() {
     }
     return extractAttrs(product);
   }, [product]);
+  const specs = React.useMemo(() => {
+    const variantSpecs = variant.specs;
+    function transformSpecs(data: typeof variantSpecs) {
+      return _(data)
+        .groupBy((item) => item.value.key.group.id)
+        .map((items, groupId) => ({
+          groupId: Number(groupId),
+          groupName: _.get(items, "[0].value.key.group.name", ""),
+          specs: items.map((i) => ({
+            specName: _.get(i, "value.key.name", ""),
+            specValue: _.get(i, "value.value", ""),
+          })),
+        }))
+        .value();
+    }
+    return transformSpecs(variantSpecs);
+  }, [variant]);
+  console.log(specs);
 
   const totalReviews = Object.values(mockProduct.ratingDistribution).reduce(
     (a, b) => a + b,
@@ -258,9 +276,9 @@ function RouteComponent() {
               <Card className="overflow-hidden">
                 <CardContent className="p-4">
                   <div className="relative aspect-square bg-muted/30 rounded-lg overflow-hidden mb-4">
-                    {mockProduct.discount > 0 && (
+                    {discountPercentage > 0 && (
                       <Badge className="absolute top-4 left-4 z-10 bg-primary text-lg px-3 py-1">
-                        -{mockProduct.discount}%
+                        -{discountPercentage}%
                       </Badge>
                     )}
                     <img
@@ -270,7 +288,7 @@ function RouteComponent() {
                     />
                   </div>
                   <div className="grid grid-cols-4 gap-2">
-                    {mockProduct.images.map((image, index) => (
+                    {variant.images.map((image, index) => (
                       <button
                         key={index}
                         onClick={() => setSelectedImage(index)}
@@ -281,7 +299,7 @@ function RouteComponent() {
                         }`}
                       >
                         <img
-                          src={variant.image!}
+                          src={image.image!}
                           alt={`${variant.name} ${index + 1}`}
                           className="w-full h-full object-contain"
                         />
@@ -538,7 +556,7 @@ function RouteComponent() {
 
                 <TabsContent value="specifications" className="mt-6">
                   <div className="space-y-6">
-                    {Object.entries(mockProduct.specifications).map(
+                    {/* {Object.entries(mockProduct.specifications).map(
                       ([category, specs]) => (
                         <div key={category}>
                           <h3 className="text-lg font-bold mb-3 text-primary">
@@ -563,7 +581,31 @@ function RouteComponent() {
                           </div>
                         </div>
                       )
-                    )}
+                    )} */}
+                    {specs.map((spec) => (
+                      <div key={spec.groupId + spec.groupName}>
+                        <h3 className="text-lg font-bold mb-3 text-primary">
+                          {spec.groupName}
+                        </h3>
+                        <div className="border rounded-lg overflow-hidden">
+                          {spec.specs.map((spec, index) => (
+                            <div
+                              key={spec.specName + index}
+                              className={`grid grid-cols-2 gap-4 p-3 ${
+                                index % 2 === 0 ? "bg-muted/30" : ""
+                              }`}
+                            >
+                              <span className="font-medium">
+                                {spec.specName}
+                              </span>
+                              <span className="text-muted-foreground">
+                                {spec.specValue}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </TabsContent>
 

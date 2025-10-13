@@ -8,7 +8,7 @@ const products = await db.query.products.findMany({
 });
 
 const browser = await puppeteer.launch({
-  headless: true,
+  headless: false,
   args: ["--no-sandbox", "--disable-setuid-sandbox"],
 });
 
@@ -41,7 +41,7 @@ for await (const product of products) {
   const description = await page
     .$eval(
       ".ProductContent_description-container__miT3z",
-      (el) => el.textContent?.trim() || ""
+      (el) => el.innerHTML?.trim() || ""
     )
     .catch(() => "");
   await page.waitForSelector(
