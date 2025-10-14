@@ -1,0 +1,14 @@
+{
+	// root
+	"compilerOptions": {
+		"baseUrl": ".",
+		"paths": {
+			"@f5tech/backend/*": ["apps/backend/src/*"]
+		},
+		"verbatimModuleSyntax": true,
+		"moduleResolution": "node",
+		"resolveJsonModule": true,
+		"esModuleInterop": true,
+		"skipLibCheck": true
+	}
+}

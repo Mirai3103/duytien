@@ -1,0 +1,1 @@
+ALTER TABLE "categories" ADD COLUMN "metadata" jsonb DEFAULT '{"totalChild":0}'::jsonb;

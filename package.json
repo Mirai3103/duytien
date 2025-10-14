@@ -1,0 +1,16 @@
+{
+	"name": "f5tech",
+	"version": "1.0.0",
+	"description": "",
+	"keywords": [],
+	"author": "",
+	"license": "MIT",
+	"devDependencies": {
+		"@biomejs/biome": "^2.2.6"
+	},
+	"scripts": {
+		"lint": "biome check .",
+		"format": "biome format . --write",
+		"lint:fix": "biome check . --write"
+	}
+}
