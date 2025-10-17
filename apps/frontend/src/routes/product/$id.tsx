@@ -204,9 +204,9 @@ import _ from "lodash";
 
 function RouteComponent() {
   const { product, variant } = Route.useLoaderData(); // TODO: Use this to fetch actual product data
-  const reducedPrice = Number(variant.metadata.reducedPrice);
+  const reducedPrice = Number(variant.metadata?.reducedPrice) || 0;
   const reducePrice = Number(variant.price) - reducedPrice;
-  const discountPercentage = Number(variant.metadata.discountPercentage);
+  const discountPercentage = Number(variant.metadata?.discountPercentage) || 0;
   const [selectedImage, setSelectedImage] = useState(0);
   const navigate = useNavigate();
 

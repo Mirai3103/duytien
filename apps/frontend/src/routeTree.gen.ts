@@ -8,455 +8,547 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from '@tanstack/react-router'
 
-import { Route as rootRouteImport } from "./routes/__root";
-import { Route as StorefrontRouteImport } from "./routes/_storefront";
-import { Route as StorefrontCartRouteImport } from "./routes/_storefront/cart";
-import { Route as StorefrontCheckoutRouteImport } from "./routes/_storefront/checkout";
-import { Route as StorefrontIndexRouteImport } from "./routes/_storefront/index";
-import { Route as StorefrontSearchRouteImport } from "./routes/_storefront/search";
-import { Route as AdminAdminRouteImport } from "./routes/admin/_admin";
-import { Route as AdminAdminBrandsRouteImport } from "./routes/admin/_admin/brands";
-import { Route as AdminAdminCategoriesRouteImport } from "./routes/admin/_admin/categories";
-import { Route as AdminAdminCustomersRouteImport } from "./routes/admin/_admin/customers";
-import { Route as AdminAdminDashboardRouteImport } from "./routes/admin/_admin/dashboard";
-import { Route as AdminAdminOrdersRouteImport } from "./routes/admin/_admin/orders";
-import { Route as AdminAdminProductsRouteImport } from "./routes/admin/_admin/products";
-import { Route as AdminAdminSkusRouteImport } from "./routes/admin/_admin/skus";
-import { Route as AuthRouteImport } from "./routes/auth";
-import { Route as ForgotPasswordRouteImport } from "./routes/forgot-password";
-import { Route as PrivacyRouteImport } from "./routes/privacy";
-import { Route as ProductIdRouteImport } from "./routes/product/$id";
-import { Route as TermsRouteImport } from "./routes/terms";
+import { Route as rootRouteImport } from './routes/__root'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as StorefrontRouteImport } from './routes/_storefront'
+import { Route as StorefrontIndexRouteImport } from './routes/_storefront/index'
+import { Route as ProductIdRouteImport } from './routes/product/$id'
+import { Route as AdminAdminRouteImport } from './routes/admin/_admin'
+import { Route as StorefrontSearchRouteImport } from './routes/_storefront/search'
+import { Route as StorefrontCheckoutRouteImport } from './routes/_storefront/checkout'
+import { Route as StorefrontCartRouteImport } from './routes/_storefront/cart'
+import { Route as AdminAdminOrdersRouteImport } from './routes/admin/_admin/orders'
+import { Route as AdminAdminDashboardRouteImport } from './routes/admin/_admin/dashboard'
+import { Route as AdminAdminCustomersRouteImport } from './routes/admin/_admin/customers'
+import { Route as AdminAdminCategoriesRouteImport } from './routes/admin/_admin/categories'
+import { Route as AdminAdminBrandsRouteImport } from './routes/admin/_admin/brands'
+import { Route as AdminAdminProductsIndexRouteImport } from './routes/admin/_admin/products/index'
+import { Route as AdminAdminProductsCreateRouteImport } from './routes/admin/_admin/products/create'
+import { Route as AdminAdminProductsIdEditRouteImport } from './routes/admin/_admin/products/$id.edit'
+import { Route as AdminAdminProductsIdVariantsIndexRouteImport } from './routes/admin/_admin/products/$id.variants/index'
+import { Route as AdminAdminProductsIdVariantsCreateRouteImport } from './routes/admin/_admin/products/$id.variants/create'
+import { Route as AdminAdminProductsIdVariantsVariantIdEditRouteImport } from './routes/admin/_admin/products/$id.variants/$variantId.edit'
 
-const AdminRouteImport = createFileRoute("/admin")();
+const AdminRouteImport = createFileRoute('/admin')()
 
 const AdminRoute = AdminRouteImport.update({
-	id: "/admin",
-	path: "/admin",
-	getParentRoute: () => rootRouteImport,
-} as any);
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TermsRoute = TermsRouteImport.update({
-	id: "/terms",
-	path: "/terms",
-	getParentRoute: () => rootRouteImport,
-} as any);
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PrivacyRoute = PrivacyRouteImport.update({
-	id: "/privacy",
-	path: "/privacy",
-	getParentRoute: () => rootRouteImport,
-} as any);
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
-	id: "/forgot-password",
-	path: "/forgot-password",
-	getParentRoute: () => rootRouteImport,
-} as any);
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
-	id: "/auth",
-	path: "/auth",
-	getParentRoute: () => rootRouteImport,
-} as any);
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StorefrontRoute = StorefrontRouteImport.update({
-	id: "/_storefront",
-	getParentRoute: () => rootRouteImport,
-} as any);
+  id: '/_storefront',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StorefrontIndexRoute = StorefrontIndexRouteImport.update({
-	id: "/",
-	path: "/",
-	getParentRoute: () => StorefrontRoute,
-} as any);
+  id: '/',
+  path: '/',
+  getParentRoute: () => StorefrontRoute,
+} as any)
 const ProductIdRoute = ProductIdRouteImport.update({
-	id: "/product/$id",
-	path: "/product/$id",
-	getParentRoute: () => rootRouteImport,
-} as any);
+  id: '/product/$id',
+  path: '/product/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminAdminRoute = AdminAdminRouteImport.update({
-	id: "/_admin",
-	getParentRoute: () => AdminRoute,
-} as any);
+  id: '/_admin',
+  getParentRoute: () => AdminRoute,
+} as any)
 const StorefrontSearchRoute = StorefrontSearchRouteImport.update({
-	id: "/search",
-	path: "/search",
-	getParentRoute: () => StorefrontRoute,
-} as any);
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => StorefrontRoute,
+} as any)
 const StorefrontCheckoutRoute = StorefrontCheckoutRouteImport.update({
-	id: "/checkout",
-	path: "/checkout",
-	getParentRoute: () => StorefrontRoute,
-} as any);
+  id: '/checkout',
+  path: '/checkout',
+  getParentRoute: () => StorefrontRoute,
+} as any)
 const StorefrontCartRoute = StorefrontCartRouteImport.update({
-	id: "/cart",
-	path: "/cart",
-	getParentRoute: () => StorefrontRoute,
-} as any);
-const AdminAdminSkusRoute = AdminAdminSkusRouteImport.update({
-	id: "/skus",
-	path: "/skus",
-	getParentRoute: () => AdminAdminRoute,
-} as any);
-const AdminAdminProductsRoute = AdminAdminProductsRouteImport.update({
-	id: "/products",
-	path: "/products",
-	getParentRoute: () => AdminAdminRoute,
-} as any);
+  id: '/cart',
+  path: '/cart',
+  getParentRoute: () => StorefrontRoute,
+} as any)
 const AdminAdminOrdersRoute = AdminAdminOrdersRouteImport.update({
-	id: "/orders",
-	path: "/orders",
-	getParentRoute: () => AdminAdminRoute,
-} as any);
+  id: '/orders',
+  path: '/orders',
+  getParentRoute: () => AdminAdminRoute,
+} as any)
 const AdminAdminDashboardRoute = AdminAdminDashboardRouteImport.update({
-	id: "/dashboard",
-	path: "/dashboard",
-	getParentRoute: () => AdminAdminRoute,
-} as any);
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AdminAdminRoute,
+} as any)
 const AdminAdminCustomersRoute = AdminAdminCustomersRouteImport.update({
-	id: "/customers",
-	path: "/customers",
-	getParentRoute: () => AdminAdminRoute,
-} as any);
+  id: '/customers',
+  path: '/customers',
+  getParentRoute: () => AdminAdminRoute,
+} as any)
 const AdminAdminCategoriesRoute = AdminAdminCategoriesRouteImport.update({
-	id: "/categories",
-	path: "/categories",
-	getParentRoute: () => AdminAdminRoute,
-} as any);
+  id: '/categories',
+  path: '/categories',
+  getParentRoute: () => AdminAdminRoute,
+} as any)
 const AdminAdminBrandsRoute = AdminAdminBrandsRouteImport.update({
-	id: "/brands",
-	path: "/brands",
-	getParentRoute: () => AdminAdminRoute,
-} as any);
+  id: '/brands',
+  path: '/brands',
+  getParentRoute: () => AdminAdminRoute,
+} as any)
+const AdminAdminProductsIndexRoute = AdminAdminProductsIndexRouteImport.update({
+  id: '/products/',
+  path: '/products/',
+  getParentRoute: () => AdminAdminRoute,
+} as any)
+const AdminAdminProductsCreateRoute =
+  AdminAdminProductsCreateRouteImport.update({
+    id: '/products/create',
+    path: '/products/create',
+    getParentRoute: () => AdminAdminRoute,
+  } as any)
+const AdminAdminProductsIdEditRoute =
+  AdminAdminProductsIdEditRouteImport.update({
+    id: '/products/$id/edit',
+    path: '/products/$id/edit',
+    getParentRoute: () => AdminAdminRoute,
+  } as any)
+const AdminAdminProductsIdVariantsIndexRoute =
+  AdminAdminProductsIdVariantsIndexRouteImport.update({
+    id: '/products/$id/variants/',
+    path: '/products/$id/variants/',
+    getParentRoute: () => AdminAdminRoute,
+  } as any)
+const AdminAdminProductsIdVariantsCreateRoute =
+  AdminAdminProductsIdVariantsCreateRouteImport.update({
+    id: '/products/$id/variants/create',
+    path: '/products/$id/variants/create',
+    getParentRoute: () => AdminAdminRoute,
+  } as any)
+const AdminAdminProductsIdVariantsVariantIdEditRoute =
+  AdminAdminProductsIdVariantsVariantIdEditRouteImport.update({
+    id: '/products/$id/variants/$variantId/edit',
+    path: '/products/$id/variants/$variantId/edit',
+    getParentRoute: () => AdminAdminRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
-	"/auth": typeof AuthRoute;
-	"/forgot-password": typeof ForgotPasswordRoute;
-	"/privacy": typeof PrivacyRoute;
-	"/terms": typeof TermsRoute;
-	"/cart": typeof StorefrontCartRoute;
-	"/checkout": typeof StorefrontCheckoutRoute;
-	"/search": typeof StorefrontSearchRoute;
-	"/admin": typeof AdminAdminRouteWithChildren;
-	"/product/$id": typeof ProductIdRoute;
-	"/": typeof StorefrontIndexRoute;
-	"/admin/brands": typeof AdminAdminBrandsRoute;
-	"/admin/categories": typeof AdminAdminCategoriesRoute;
-	"/admin/customers": typeof AdminAdminCustomersRoute;
-	"/admin/dashboard": typeof AdminAdminDashboardRoute;
-	"/admin/orders": typeof AdminAdminOrdersRoute;
-	"/admin/products": typeof AdminAdminProductsRoute;
-	"/admin/skus": typeof AdminAdminSkusRoute;
+  '/auth': typeof AuthRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
+  '/cart': typeof StorefrontCartRoute
+  '/checkout': typeof StorefrontCheckoutRoute
+  '/search': typeof StorefrontSearchRoute
+  '/admin': typeof AdminAdminRouteWithChildren
+  '/product/$id': typeof ProductIdRoute
+  '/': typeof StorefrontIndexRoute
+  '/admin/brands': typeof AdminAdminBrandsRoute
+  '/admin/categories': typeof AdminAdminCategoriesRoute
+  '/admin/customers': typeof AdminAdminCustomersRoute
+  '/admin/dashboard': typeof AdminAdminDashboardRoute
+  '/admin/orders': typeof AdminAdminOrdersRoute
+  '/admin/products/create': typeof AdminAdminProductsCreateRoute
+  '/admin/products': typeof AdminAdminProductsIndexRoute
+  '/admin/products/$id/edit': typeof AdminAdminProductsIdEditRoute
+  '/admin/products/$id/variants/create': typeof AdminAdminProductsIdVariantsCreateRoute
+  '/admin/products/$id/variants': typeof AdminAdminProductsIdVariantsIndexRoute
+  '/admin/products/$id/variants/$variantId/edit': typeof AdminAdminProductsIdVariantsVariantIdEditRoute
 }
 export interface FileRoutesByTo {
-	"/auth": typeof AuthRoute;
-	"/forgot-password": typeof ForgotPasswordRoute;
-	"/privacy": typeof PrivacyRoute;
-	"/terms": typeof TermsRoute;
-	"/cart": typeof StorefrontCartRoute;
-	"/checkout": typeof StorefrontCheckoutRoute;
-	"/search": typeof StorefrontSearchRoute;
-	"/admin": typeof AdminAdminRouteWithChildren;
-	"/product/$id": typeof ProductIdRoute;
-	"/": typeof StorefrontIndexRoute;
-	"/admin/brands": typeof AdminAdminBrandsRoute;
-	"/admin/categories": typeof AdminAdminCategoriesRoute;
-	"/admin/customers": typeof AdminAdminCustomersRoute;
-	"/admin/dashboard": typeof AdminAdminDashboardRoute;
-	"/admin/orders": typeof AdminAdminOrdersRoute;
-	"/admin/products": typeof AdminAdminProductsRoute;
-	"/admin/skus": typeof AdminAdminSkusRoute;
+  '/auth': typeof AuthRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
+  '/cart': typeof StorefrontCartRoute
+  '/checkout': typeof StorefrontCheckoutRoute
+  '/search': typeof StorefrontSearchRoute
+  '/admin': typeof AdminAdminRouteWithChildren
+  '/product/$id': typeof ProductIdRoute
+  '/': typeof StorefrontIndexRoute
+  '/admin/brands': typeof AdminAdminBrandsRoute
+  '/admin/categories': typeof AdminAdminCategoriesRoute
+  '/admin/customers': typeof AdminAdminCustomersRoute
+  '/admin/dashboard': typeof AdminAdminDashboardRoute
+  '/admin/orders': typeof AdminAdminOrdersRoute
+  '/admin/products/create': typeof AdminAdminProductsCreateRoute
+  '/admin/products': typeof AdminAdminProductsIndexRoute
+  '/admin/products/$id/edit': typeof AdminAdminProductsIdEditRoute
+  '/admin/products/$id/variants/create': typeof AdminAdminProductsIdVariantsCreateRoute
+  '/admin/products/$id/variants': typeof AdminAdminProductsIdVariantsIndexRoute
+  '/admin/products/$id/variants/$variantId/edit': typeof AdminAdminProductsIdVariantsVariantIdEditRoute
 }
 export interface FileRoutesById {
-	__root__: typeof rootRouteImport;
-	"/_storefront": typeof StorefrontRouteWithChildren;
-	"/auth": typeof AuthRoute;
-	"/forgot-password": typeof ForgotPasswordRoute;
-	"/privacy": typeof PrivacyRoute;
-	"/terms": typeof TermsRoute;
-	"/_storefront/cart": typeof StorefrontCartRoute;
-	"/_storefront/checkout": typeof StorefrontCheckoutRoute;
-	"/_storefront/search": typeof StorefrontSearchRoute;
-	"/admin": typeof AdminRouteWithChildren;
-	"/admin/_admin": typeof AdminAdminRouteWithChildren;
-	"/product/$id": typeof ProductIdRoute;
-	"/_storefront/": typeof StorefrontIndexRoute;
-	"/admin/_admin/brands": typeof AdminAdminBrandsRoute;
-	"/admin/_admin/categories": typeof AdminAdminCategoriesRoute;
-	"/admin/_admin/customers": typeof AdminAdminCustomersRoute;
-	"/admin/_admin/dashboard": typeof AdminAdminDashboardRoute;
-	"/admin/_admin/orders": typeof AdminAdminOrdersRoute;
-	"/admin/_admin/products": typeof AdminAdminProductsRoute;
-	"/admin/_admin/skus": typeof AdminAdminSkusRoute;
+  __root__: typeof rootRouteImport
+  '/_storefront': typeof StorefrontRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
+  '/_storefront/cart': typeof StorefrontCartRoute
+  '/_storefront/checkout': typeof StorefrontCheckoutRoute
+  '/_storefront/search': typeof StorefrontSearchRoute
+  '/admin': typeof AdminRouteWithChildren
+  '/admin/_admin': typeof AdminAdminRouteWithChildren
+  '/product/$id': typeof ProductIdRoute
+  '/_storefront/': typeof StorefrontIndexRoute
+  '/admin/_admin/brands': typeof AdminAdminBrandsRoute
+  '/admin/_admin/categories': typeof AdminAdminCategoriesRoute
+  '/admin/_admin/customers': typeof AdminAdminCustomersRoute
+  '/admin/_admin/dashboard': typeof AdminAdminDashboardRoute
+  '/admin/_admin/orders': typeof AdminAdminOrdersRoute
+  '/admin/_admin/products/create': typeof AdminAdminProductsCreateRoute
+  '/admin/_admin/products/': typeof AdminAdminProductsIndexRoute
+  '/admin/_admin/products/$id/edit': typeof AdminAdminProductsIdEditRoute
+  '/admin/_admin/products/$id/variants/create': typeof AdminAdminProductsIdVariantsCreateRoute
+  '/admin/_admin/products/$id/variants/': typeof AdminAdminProductsIdVariantsIndexRoute
+  '/admin/_admin/products/$id/variants/$variantId/edit': typeof AdminAdminProductsIdVariantsVariantIdEditRoute
 }
 export interface FileRouteTypes {
-	fileRoutesByFullPath: FileRoutesByFullPath;
-	fullPaths:
-		| "/auth"
-		| "/forgot-password"
-		| "/privacy"
-		| "/terms"
-		| "/cart"
-		| "/checkout"
-		| "/search"
-		| "/admin"
-		| "/product/$id"
-		| "/"
-		| "/admin/brands"
-		| "/admin/categories"
-		| "/admin/customers"
-		| "/admin/dashboard"
-		| "/admin/orders"
-		| "/admin/products"
-		| "/admin/skus";
-	fileRoutesByTo: FileRoutesByTo;
-	to:
-		| "/auth"
-		| "/forgot-password"
-		| "/privacy"
-		| "/terms"
-		| "/cart"
-		| "/checkout"
-		| "/search"
-		| "/admin"
-		| "/product/$id"
-		| "/"
-		| "/admin/brands"
-		| "/admin/categories"
-		| "/admin/customers"
-		| "/admin/dashboard"
-		| "/admin/orders"
-		| "/admin/products"
-		| "/admin/skus";
-	id:
-		| "__root__"
-		| "/_storefront"
-		| "/auth"
-		| "/forgot-password"
-		| "/privacy"
-		| "/terms"
-		| "/_storefront/cart"
-		| "/_storefront/checkout"
-		| "/_storefront/search"
-		| "/admin"
-		| "/admin/_admin"
-		| "/product/$id"
-		| "/_storefront/"
-		| "/admin/_admin/brands"
-		| "/admin/_admin/categories"
-		| "/admin/_admin/customers"
-		| "/admin/_admin/dashboard"
-		| "/admin/_admin/orders"
-		| "/admin/_admin/products"
-		| "/admin/_admin/skus";
-	fileRoutesById: FileRoutesById;
+  fileRoutesByFullPath: FileRoutesByFullPath
+  fullPaths:
+    | '/auth'
+    | '/forgot-password'
+    | '/privacy'
+    | '/terms'
+    | '/cart'
+    | '/checkout'
+    | '/search'
+    | '/admin'
+    | '/product/$id'
+    | '/'
+    | '/admin/brands'
+    | '/admin/categories'
+    | '/admin/customers'
+    | '/admin/dashboard'
+    | '/admin/orders'
+    | '/admin/products/create'
+    | '/admin/products'
+    | '/admin/products/$id/edit'
+    | '/admin/products/$id/variants/create'
+    | '/admin/products/$id/variants'
+    | '/admin/products/$id/variants/$variantId/edit'
+  fileRoutesByTo: FileRoutesByTo
+  to:
+    | '/auth'
+    | '/forgot-password'
+    | '/privacy'
+    | '/terms'
+    | '/cart'
+    | '/checkout'
+    | '/search'
+    | '/admin'
+    | '/product/$id'
+    | '/'
+    | '/admin/brands'
+    | '/admin/categories'
+    | '/admin/customers'
+    | '/admin/dashboard'
+    | '/admin/orders'
+    | '/admin/products/create'
+    | '/admin/products'
+    | '/admin/products/$id/edit'
+    | '/admin/products/$id/variants/create'
+    | '/admin/products/$id/variants'
+    | '/admin/products/$id/variants/$variantId/edit'
+  id:
+    | '__root__'
+    | '/_storefront'
+    | '/auth'
+    | '/forgot-password'
+    | '/privacy'
+    | '/terms'
+    | '/_storefront/cart'
+    | '/_storefront/checkout'
+    | '/_storefront/search'
+    | '/admin'
+    | '/admin/_admin'
+    | '/product/$id'
+    | '/_storefront/'
+    | '/admin/_admin/brands'
+    | '/admin/_admin/categories'
+    | '/admin/_admin/customers'
+    | '/admin/_admin/dashboard'
+    | '/admin/_admin/orders'
+    | '/admin/_admin/products/create'
+    | '/admin/_admin/products/'
+    | '/admin/_admin/products/$id/edit'
+    | '/admin/_admin/products/$id/variants/create'
+    | '/admin/_admin/products/$id/variants/'
+    | '/admin/_admin/products/$id/variants/$variantId/edit'
+  fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-	StorefrontRoute: typeof StorefrontRouteWithChildren;
-	AuthRoute: typeof AuthRoute;
-	ForgotPasswordRoute: typeof ForgotPasswordRoute;
-	PrivacyRoute: typeof PrivacyRoute;
-	TermsRoute: typeof TermsRoute;
-	AdminRoute: typeof AdminRouteWithChildren;
-	ProductIdRoute: typeof ProductIdRoute;
+  StorefrontRoute: typeof StorefrontRouteWithChildren
+  AuthRoute: typeof AuthRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
+  PrivacyRoute: typeof PrivacyRoute
+  TermsRoute: typeof TermsRoute
+  AdminRoute: typeof AdminRouteWithChildren
+  ProductIdRoute: typeof ProductIdRoute
 }
 
-declare module "@tanstack/react-router" {
-	interface FileRoutesByPath {
-		"/admin": {
-			id: "/admin";
-			path: "/admin";
-			fullPath: "/admin";
-			preLoaderRoute: typeof AdminRouteImport;
-			parentRoute: typeof rootRouteImport;
-		};
-		"/terms": {
-			id: "/terms";
-			path: "/terms";
-			fullPath: "/terms";
-			preLoaderRoute: typeof TermsRouteImport;
-			parentRoute: typeof rootRouteImport;
-		};
-		"/privacy": {
-			id: "/privacy";
-			path: "/privacy";
-			fullPath: "/privacy";
-			preLoaderRoute: typeof PrivacyRouteImport;
-			parentRoute: typeof rootRouteImport;
-		};
-		"/forgot-password": {
-			id: "/forgot-password";
-			path: "/forgot-password";
-			fullPath: "/forgot-password";
-			preLoaderRoute: typeof ForgotPasswordRouteImport;
-			parentRoute: typeof rootRouteImport;
-		};
-		"/auth": {
-			id: "/auth";
-			path: "/auth";
-			fullPath: "/auth";
-			preLoaderRoute: typeof AuthRouteImport;
-			parentRoute: typeof rootRouteImport;
-		};
-		"/_storefront": {
-			id: "/_storefront";
-			path: "";
-			fullPath: "";
-			preLoaderRoute: typeof StorefrontRouteImport;
-			parentRoute: typeof rootRouteImport;
-		};
-		"/_storefront/": {
-			id: "/_storefront/";
-			path: "/";
-			fullPath: "/";
-			preLoaderRoute: typeof StorefrontIndexRouteImport;
-			parentRoute: typeof StorefrontRoute;
-		};
-		"/product/$id": {
-			id: "/product/$id";
-			path: "/product/$id";
-			fullPath: "/product/$id";
-			preLoaderRoute: typeof ProductIdRouteImport;
-			parentRoute: typeof rootRouteImport;
-		};
-		"/admin/_admin": {
-			id: "/admin/_admin";
-			path: "/admin";
-			fullPath: "/admin";
-			preLoaderRoute: typeof AdminAdminRouteImport;
-			parentRoute: typeof AdminRoute;
-		};
-		"/_storefront/search": {
-			id: "/_storefront/search";
-			path: "/search";
-			fullPath: "/search";
-			preLoaderRoute: typeof StorefrontSearchRouteImport;
-			parentRoute: typeof StorefrontRoute;
-		};
-		"/_storefront/checkout": {
-			id: "/_storefront/checkout";
-			path: "/checkout";
-			fullPath: "/checkout";
-			preLoaderRoute: typeof StorefrontCheckoutRouteImport;
-			parentRoute: typeof StorefrontRoute;
-		};
-		"/_storefront/cart": {
-			id: "/_storefront/cart";
-			path: "/cart";
-			fullPath: "/cart";
-			preLoaderRoute: typeof StorefrontCartRouteImport;
-			parentRoute: typeof StorefrontRoute;
-		};
-		"/admin/_admin/skus": {
-			id: "/admin/_admin/skus";
-			path: "/skus";
-			fullPath: "/admin/skus";
-			preLoaderRoute: typeof AdminAdminSkusRouteImport;
-			parentRoute: typeof AdminAdminRoute;
-		};
-		"/admin/_admin/products": {
-			id: "/admin/_admin/products";
-			path: "/products";
-			fullPath: "/admin/products";
-			preLoaderRoute: typeof AdminAdminProductsRouteImport;
-			parentRoute: typeof AdminAdminRoute;
-		};
-		"/admin/_admin/orders": {
-			id: "/admin/_admin/orders";
-			path: "/orders";
-			fullPath: "/admin/orders";
-			preLoaderRoute: typeof AdminAdminOrdersRouteImport;
-			parentRoute: typeof AdminAdminRoute;
-		};
-		"/admin/_admin/dashboard": {
-			id: "/admin/_admin/dashboard";
-			path: "/dashboard";
-			fullPath: "/admin/dashboard";
-			preLoaderRoute: typeof AdminAdminDashboardRouteImport;
-			parentRoute: typeof AdminAdminRoute;
-		};
-		"/admin/_admin/customers": {
-			id: "/admin/_admin/customers";
-			path: "/customers";
-			fullPath: "/admin/customers";
-			preLoaderRoute: typeof AdminAdminCustomersRouteImport;
-			parentRoute: typeof AdminAdminRoute;
-		};
-		"/admin/_admin/categories": {
-			id: "/admin/_admin/categories";
-			path: "/categories";
-			fullPath: "/admin/categories";
-			preLoaderRoute: typeof AdminAdminCategoriesRouteImport;
-			parentRoute: typeof AdminAdminRoute;
-		};
-		"/admin/_admin/brands": {
-			id: "/admin/_admin/brands";
-			path: "/brands";
-			fullPath: "/admin/brands";
-			preLoaderRoute: typeof AdminAdminBrandsRouteImport;
-			parentRoute: typeof AdminAdminRoute;
-		};
-	}
+declare module '@tanstack/react-router' {
+  interface FileRoutesByPath {
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_storefront': {
+      id: '/_storefront'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof StorefrontRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_storefront/': {
+      id: '/_storefront/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof StorefrontIndexRouteImport
+      parentRoute: typeof StorefrontRoute
+    }
+    '/product/$id': {
+      id: '/product/$id'
+      path: '/product/$id'
+      fullPath: '/product/$id'
+      preLoaderRoute: typeof ProductIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/_admin': {
+      id: '/admin/_admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminAdminRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/_storefront/search': {
+      id: '/_storefront/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof StorefrontSearchRouteImport
+      parentRoute: typeof StorefrontRoute
+    }
+    '/_storefront/checkout': {
+      id: '/_storefront/checkout'
+      path: '/checkout'
+      fullPath: '/checkout'
+      preLoaderRoute: typeof StorefrontCheckoutRouteImport
+      parentRoute: typeof StorefrontRoute
+    }
+    '/_storefront/cart': {
+      id: '/_storefront/cart'
+      path: '/cart'
+      fullPath: '/cart'
+      preLoaderRoute: typeof StorefrontCartRouteImport
+      parentRoute: typeof StorefrontRoute
+    }
+    '/admin/_admin/orders': {
+      id: '/admin/_admin/orders'
+      path: '/orders'
+      fullPath: '/admin/orders'
+      preLoaderRoute: typeof AdminAdminOrdersRouteImport
+      parentRoute: typeof AdminAdminRoute
+    }
+    '/admin/_admin/dashboard': {
+      id: '/admin/_admin/dashboard'
+      path: '/dashboard'
+      fullPath: '/admin/dashboard'
+      preLoaderRoute: typeof AdminAdminDashboardRouteImport
+      parentRoute: typeof AdminAdminRoute
+    }
+    '/admin/_admin/customers': {
+      id: '/admin/_admin/customers'
+      path: '/customers'
+      fullPath: '/admin/customers'
+      preLoaderRoute: typeof AdminAdminCustomersRouteImport
+      parentRoute: typeof AdminAdminRoute
+    }
+    '/admin/_admin/categories': {
+      id: '/admin/_admin/categories'
+      path: '/categories'
+      fullPath: '/admin/categories'
+      preLoaderRoute: typeof AdminAdminCategoriesRouteImport
+      parentRoute: typeof AdminAdminRoute
+    }
+    '/admin/_admin/brands': {
+      id: '/admin/_admin/brands'
+      path: '/brands'
+      fullPath: '/admin/brands'
+      preLoaderRoute: typeof AdminAdminBrandsRouteImport
+      parentRoute: typeof AdminAdminRoute
+    }
+    '/admin/_admin/products/': {
+      id: '/admin/_admin/products/'
+      path: '/products'
+      fullPath: '/admin/products'
+      preLoaderRoute: typeof AdminAdminProductsIndexRouteImport
+      parentRoute: typeof AdminAdminRoute
+    }
+    '/admin/_admin/products/create': {
+      id: '/admin/_admin/products/create'
+      path: '/products/create'
+      fullPath: '/admin/products/create'
+      preLoaderRoute: typeof AdminAdminProductsCreateRouteImport
+      parentRoute: typeof AdminAdminRoute
+    }
+    '/admin/_admin/products/$id/edit': {
+      id: '/admin/_admin/products/$id/edit'
+      path: '/products/$id/edit'
+      fullPath: '/admin/products/$id/edit'
+      preLoaderRoute: typeof AdminAdminProductsIdEditRouteImport
+      parentRoute: typeof AdminAdminRoute
+    }
+    '/admin/_admin/products/$id/variants/': {
+      id: '/admin/_admin/products/$id/variants/'
+      path: '/products/$id/variants'
+      fullPath: '/admin/products/$id/variants'
+      preLoaderRoute: typeof AdminAdminProductsIdVariantsIndexRouteImport
+      parentRoute: typeof AdminAdminRoute
+    }
+    '/admin/_admin/products/$id/variants/create': {
+      id: '/admin/_admin/products/$id/variants/create'
+      path: '/products/$id/variants/create'
+      fullPath: '/admin/products/$id/variants/create'
+      preLoaderRoute: typeof AdminAdminProductsIdVariantsCreateRouteImport
+      parentRoute: typeof AdminAdminRoute
+    }
+    '/admin/_admin/products/$id/variants/$variantId/edit': {
+      id: '/admin/_admin/products/$id/variants/$variantId/edit'
+      path: '/products/$id/variants/$variantId/edit'
+      fullPath: '/admin/products/$id/variants/$variantId/edit'
+      preLoaderRoute: typeof AdminAdminProductsIdVariantsVariantIdEditRouteImport
+      parentRoute: typeof AdminAdminRoute
+    }
+  }
 }
 
 interface StorefrontRouteChildren {
-	StorefrontCartRoute: typeof StorefrontCartRoute;
-	StorefrontCheckoutRoute: typeof StorefrontCheckoutRoute;
-	StorefrontSearchRoute: typeof StorefrontSearchRoute;
-	StorefrontIndexRoute: typeof StorefrontIndexRoute;
+  StorefrontCartRoute: typeof StorefrontCartRoute
+  StorefrontCheckoutRoute: typeof StorefrontCheckoutRoute
+  StorefrontSearchRoute: typeof StorefrontSearchRoute
+  StorefrontIndexRoute: typeof StorefrontIndexRoute
 }
 
 const StorefrontRouteChildren: StorefrontRouteChildren = {
-	StorefrontCartRoute: StorefrontCartRoute,
-	StorefrontCheckoutRoute: StorefrontCheckoutRoute,
-	StorefrontSearchRoute: StorefrontSearchRoute,
-	StorefrontIndexRoute: StorefrontIndexRoute,
-};
+  StorefrontCartRoute: StorefrontCartRoute,
+  StorefrontCheckoutRoute: StorefrontCheckoutRoute,
+  StorefrontSearchRoute: StorefrontSearchRoute,
+  StorefrontIndexRoute: StorefrontIndexRoute,
+}
 
 const StorefrontRouteWithChildren = StorefrontRoute._addFileChildren(
-	StorefrontRouteChildren,
-);
+  StorefrontRouteChildren,
+)
 
 interface AdminAdminRouteChildren {
-	AdminAdminBrandsRoute: typeof AdminAdminBrandsRoute;
-	AdminAdminCategoriesRoute: typeof AdminAdminCategoriesRoute;
-	AdminAdminCustomersRoute: typeof AdminAdminCustomersRoute;
-	AdminAdminDashboardRoute: typeof AdminAdminDashboardRoute;
-	AdminAdminOrdersRoute: typeof AdminAdminOrdersRoute;
-	AdminAdminProductsRoute: typeof AdminAdminProductsRoute;
-	AdminAdminSkusRoute: typeof AdminAdminSkusRoute;
+  AdminAdminBrandsRoute: typeof AdminAdminBrandsRoute
+  AdminAdminCategoriesRoute: typeof AdminAdminCategoriesRoute
+  AdminAdminCustomersRoute: typeof AdminAdminCustomersRoute
+  AdminAdminDashboardRoute: typeof AdminAdminDashboardRoute
+  AdminAdminOrdersRoute: typeof AdminAdminOrdersRoute
+  AdminAdminProductsCreateRoute: typeof AdminAdminProductsCreateRoute
+  AdminAdminProductsIndexRoute: typeof AdminAdminProductsIndexRoute
+  AdminAdminProductsIdEditRoute: typeof AdminAdminProductsIdEditRoute
+  AdminAdminProductsIdVariantsCreateRoute: typeof AdminAdminProductsIdVariantsCreateRoute
+  AdminAdminProductsIdVariantsIndexRoute: typeof AdminAdminProductsIdVariantsIndexRoute
+  AdminAdminProductsIdVariantsVariantIdEditRoute: typeof AdminAdminProductsIdVariantsVariantIdEditRoute
 }
 
 const AdminAdminRouteChildren: AdminAdminRouteChildren = {
-	AdminAdminBrandsRoute: AdminAdminBrandsRoute,
-	AdminAdminCategoriesRoute: AdminAdminCategoriesRoute,
-	AdminAdminCustomersRoute: AdminAdminCustomersRoute,
-	AdminAdminDashboardRoute: AdminAdminDashboardRoute,
-	AdminAdminOrdersRoute: AdminAdminOrdersRoute,
-	AdminAdminProductsRoute: AdminAdminProductsRoute,
-	AdminAdminSkusRoute: AdminAdminSkusRoute,
-};
+  AdminAdminBrandsRoute: AdminAdminBrandsRoute,
+  AdminAdminCategoriesRoute: AdminAdminCategoriesRoute,
+  AdminAdminCustomersRoute: AdminAdminCustomersRoute,
+  AdminAdminDashboardRoute: AdminAdminDashboardRoute,
+  AdminAdminOrdersRoute: AdminAdminOrdersRoute,
+  AdminAdminProductsCreateRoute: AdminAdminProductsCreateRoute,
+  AdminAdminProductsIndexRoute: AdminAdminProductsIndexRoute,
+  AdminAdminProductsIdEditRoute: AdminAdminProductsIdEditRoute,
+  AdminAdminProductsIdVariantsCreateRoute:
+    AdminAdminProductsIdVariantsCreateRoute,
+  AdminAdminProductsIdVariantsIndexRoute:
+    AdminAdminProductsIdVariantsIndexRoute,
+  AdminAdminProductsIdVariantsVariantIdEditRoute:
+    AdminAdminProductsIdVariantsVariantIdEditRoute,
+}
 
 const AdminAdminRouteWithChildren = AdminAdminRoute._addFileChildren(
-	AdminAdminRouteChildren,
-);
+  AdminAdminRouteChildren,
+)
 
 interface AdminRouteChildren {
-	AdminAdminRoute: typeof AdminAdminRouteWithChildren;
+  AdminAdminRoute: typeof AdminAdminRouteWithChildren
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
-	AdminAdminRoute: AdminAdminRouteWithChildren,
-};
+  AdminAdminRoute: AdminAdminRouteWithChildren,
+}
 
-const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren);
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
-	StorefrontRoute: StorefrontRouteWithChildren,
-	AuthRoute: AuthRoute,
-	ForgotPasswordRoute: ForgotPasswordRoute,
-	PrivacyRoute: PrivacyRoute,
-	TermsRoute: TermsRoute,
-	AdminRoute: AdminRouteWithChildren,
-	ProductIdRoute: ProductIdRoute,
-};
+  StorefrontRoute: StorefrontRouteWithChildren,
+  AuthRoute: AuthRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
+  PrivacyRoute: PrivacyRoute,
+  TermsRoute: TermsRoute,
+  AdminRoute: AdminRouteWithChildren,
+  ProductIdRoute: ProductIdRoute,
+}
 export const routeTree = rootRouteImport
-	._addFileChildren(rootRouteChildren)
-	._addFileTypes<FileRouteTypes>();
+  ._addFileChildren(rootRouteChildren)
+  ._addFileTypes<FileRouteTypes>()
