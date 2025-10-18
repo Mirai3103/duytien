@@ -2,6 +2,8 @@ CREATE TYPE "public"."order_status" AS ENUM('pending', 'confirmed', 'shipping', 
 CREATE TYPE "public"."payment_method" AS ENUM('cod', 'vnpay', 'momo');--> statement-breakpoint
 CREATE TYPE "public"."payment_status" AS ENUM('pending', 'success', 'failed');--> statement-breakpoint
 CREATE TYPE "public"."product_status" AS ENUM('active', 'inactive');--> statement-breakpoint
+CREATE TYPE "public"."user_role" AS ENUM('admin', 'customer');--> statement-breakpoint
+CREATE TYPE "public"."variant_status" AS ENUM('active', 'inactive');--> statement-breakpoint
 CREATE TYPE "public"."voucher_types" AS ENUM('percentage', 'fixed');--> statement-breakpoint
 CREATE TABLE "attribute_values" (
 	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "attribute_values_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
@@ -34,7 +36,8 @@ CREATE TABLE "categories" (
 	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "categories_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
 	"name" varchar(255) NOT NULL,
 	"slug" varchar(255) NOT NULL,
-	"parent_id" integer
+	"parent_id" integer,
+	"metadata" jsonb DEFAULT '{"totalChild":0}'::jsonb
 );
 --> statement-breakpoint
 CREATE TABLE "order_items" (
@@ -66,10 +69,23 @@ CREATE TABLE "payments" (
 	"created_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "product_required_attributes" (
+	"product_id" integer NOT NULL,
+	"attribute_id" integer NOT NULL,
+	"default_value" varchar(255),
+	CONSTRAINT "product_required_attributes_product_id_attribute_id_pk" PRIMARY KEY("product_id","attribute_id")
+);
+--> statement-breakpoint
 CREATE TABLE "product_specs" (
 	"product_id" integer NOT NULL,
 	"spec_value_id" integer NOT NULL,
 	CONSTRAINT "product_specs_product_id_spec_value_id_pk" PRIMARY KEY("product_id","spec_value_id")
+);
+--> statement-breakpoint
+CREATE TABLE "product_variant_images" (
+	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "product_variant_images_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
+	"variant_id" integer NOT NULL,
+	"image" varchar(1000) NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "product_variant_specs" (
@@ -93,6 +109,7 @@ CREATE TABLE "product_variants" (
 	"stock" integer DEFAULT 0 NOT NULL,
 	"image" varchar(255),
 	"is_default" boolean DEFAULT false,
+	"status" "variant_status" DEFAULT 'active' NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"metadata" jsonb
 );
@@ -144,7 +161,8 @@ CREATE TABLE "users" (
 	"name" varchar(255),
 	"phone" varchar(50),
 	"address" text,
-	"is_active" boolean DEFAULT true NOT NULL
+	"is_active" boolean DEFAULT true NOT NULL,
+	"role" "user_role" DEFAULT 'customer' NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "vouchers" (
@@ -170,8 +188,11 @@ ALTER TABLE "order_items" ADD CONSTRAINT "order_items_variant_id_product_variant
 ALTER TABLE "orders" ADD CONSTRAINT "orders_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
 ALTER TABLE "orders" ADD CONSTRAINT "orders_voucher_id_vouchers_id_fk" FOREIGN KEY ("voucher_id") REFERENCES "public"."vouchers"("id") ON DELETE set null ON UPDATE cascade;--> statement-breakpoint
 ALTER TABLE "payments" ADD CONSTRAINT "payments_order_id_orders_id_fk" FOREIGN KEY ("order_id") REFERENCES "public"."orders"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
+ALTER TABLE "product_required_attributes" ADD CONSTRAINT "product_required_attributes_product_id_products_id_fk" FOREIGN KEY ("product_id") REFERENCES "public"."products"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
+ALTER TABLE "product_required_attributes" ADD CONSTRAINT "product_required_attributes_attribute_id_attributes_id_fk" FOREIGN KEY ("attribute_id") REFERENCES "public"."attributes"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
 ALTER TABLE "product_specs" ADD CONSTRAINT "product_specs_product_id_products_id_fk" FOREIGN KEY ("product_id") REFERENCES "public"."products"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
 ALTER TABLE "product_specs" ADD CONSTRAINT "product_specs_spec_value_id_spec_values_id_fk" FOREIGN KEY ("spec_value_id") REFERENCES "public"."spec_values"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
+ALTER TABLE "product_variant_images" ADD CONSTRAINT "product_variant_images_variant_id_product_variants_id_fk" FOREIGN KEY ("variant_id") REFERENCES "public"."product_variants"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
 ALTER TABLE "product_variant_specs" ADD CONSTRAINT "product_variant_specs_variant_id_product_variants_id_fk" FOREIGN KEY ("variant_id") REFERENCES "public"."product_variants"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
 ALTER TABLE "product_variant_specs" ADD CONSTRAINT "product_variant_specs_spec_value_id_spec_values_id_fk" FOREIGN KEY ("spec_value_id") REFERENCES "public"."spec_values"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
 ALTER TABLE "product_variant_values" ADD CONSTRAINT "product_variant_values_variant_id_product_variants_id_fk" FOREIGN KEY ("variant_id") REFERENCES "public"."product_variants"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
