@@ -38,7 +38,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { ArrowUpDown, Edit, MoreHorizontal, Trash2 } from "lucide-react";
+import { ArrowUpDown, Edit, MoreHorizontal, Trash2, Plus } from "lucide-react";
 import { useDebounceValue } from "usehooks-ts";
 import { VariantStatus, type Variant } from "@f5tech/schemas/variant";
 import { toast } from "sonner";
@@ -187,9 +187,17 @@ function RouteComponent() {
             Tìm kiếm, sắp xếp, xóa, bật/tắt, cập nhật giá và tồn kho
           </p>
         </div>
-        <Link to="/admin/products">
-          <Button variant="outline">Quay lại sản phẩm</Button>
-        </Link>
+        <div className="flex gap-3">
+          <Link to="/admin/products/$id/variants/create" params={{ id }}>
+            <Button className="gap-2">
+              <Plus className="h-4 w-4" />
+              Thêm biến thể
+            </Button>
+          </Link>
+          <Link to="/admin/products">
+            <Button variant="outline">Quay lại sản phẩm</Button>
+          </Link>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-3 items-center">

@@ -1,5 +1,5 @@
 import { z } from "zod";
-
+import slugify from "slugify";
 export enum ProductStatus {
   ACTIVE = "active",
   INACTIVE = "inactive",
@@ -35,8 +35,12 @@ export type ProductsQuery = z.infer<typeof productsQuerySchema>;
 const productSchema = z.object({
   id: z.number(),
   name: z.string(),
-  slug: z.string(),
-  description: z.string().optional(),
+  slug: z
+    .string()
+    .transform(
+      (val) => slugify(val, { lower: true, strict: true }) + "-" + Date.now()
+    ),
+  description: z.any().optional(),
   brandId: z.number().optional(),
   categoryId: z.number().optional(),
   thumbnail: z.string().optional(),

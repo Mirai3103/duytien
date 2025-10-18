@@ -59,7 +59,7 @@ function RouteComponent() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-h-full">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Sửa sản phẩm</h1>
         <Link to="/admin/products" className="text-sm underline">

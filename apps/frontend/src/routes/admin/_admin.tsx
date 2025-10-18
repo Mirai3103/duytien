@@ -47,7 +47,7 @@ export default function AdminLayout({
   });
   console.log(pathname);
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex h-screen bg-background max-h-screen">
       {/* Sidebar */}
       <aside className="w-64 border-r border-border bg-card flex flex-col">
         {/* Logo */}
@@ -120,7 +120,9 @@ export default function AdminLayout({
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        <main className="flex-1 overflow-y-auto p-6 max-h-calc(100vh-64px)">
+          {children}
+        </main>
       </div>
     </div>
   );

@@ -33,7 +33,6 @@ export function BrandDialog({
   onSave,
 }: BrandDialogProps) {
   const [name, setName] = useState("");
-  const [slug, setSlug] = useState("");
   const [logo, setLogo] = useState("");
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [originalLogo, setOriginalLogo] = useState<string>("");
@@ -44,14 +43,12 @@ export function BrandDialog({
       if (brand) {
         // Edit mode
         setName(brand.name);
-        setSlug(brand.slug);
         setLogo(brand.logo || "");
         setOriginalLogo(brand.logo || "");
         setLogoFile(null);
       } else {
         // Add mode
         setName("");
-        setSlug("");
         setLogo("");
         setOriginalLogo("");
         setLogoFile(null);
@@ -63,7 +60,6 @@ export function BrandDialog({
     setName(value);
     if (!brand) {
       // Auto-generate slug only when creating new brand
-      setSlug(slugify(value));
     }
   };
 
@@ -97,13 +93,13 @@ export function BrandDialog({
     onSave({
       id: brand?.id,
       name,
-      slug,
+      slug: brand?.slug ?? "",
       logo: finalLogoUrl || undefined,
     });
     onOpenChange(false);
   };
 
-  const isFormValid = name.trim() && slug.trim();
+  const isFormValid = name.trim();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -129,22 +125,6 @@ export function BrandDialog({
               placeholder="Nhập tên thương hiệu"
               className="bg-card border-border text-foreground"
             />
-          </div>
-
-          {/* Slug Input */}
-          <div className="grid gap-2">
-            <Label htmlFor="slug" className="text-foreground">
-              Slug <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              value={slug}
-              onChange={(e) => setSlug(e.target.value)}
-              placeholder="ten-thuong-hieu"
-              className="bg-card border-border text-foreground"
-            />
-            <p className="text-xs text-muted-foreground">
-              URL thân thiện, tự động tạo từ tên
-            </p>
           </div>
 
           {/* Logo Upload */}

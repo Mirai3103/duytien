@@ -3,7 +3,7 @@ import express from "express";
 import * as trpcExpress from "@trpc/server/adapters/express";
 import cors from "cors";
 import { appRouter } from "./trpc";
-import { getFileByKey, uploadFile } from "./utils/file.utils";
+import { getFileByKey, removeByKeys, uploadFile } from "./utils/file.utils";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import s3 from "./utils/s3";
 
@@ -34,6 +34,16 @@ app.get("/api/file/*path", async (req: any, res: any) => {
     });
   }
 });
+app.delete("/api/file/*path", async (req: any, res: any) => {
+  try {
+    const key = req.params.path.join("/");
+    await removeByKeys([key]);
+    return res.json({ message: "Xóa file thành công" });
+  } catch (error) {
+    console.log("Error deleting file:", error);
+  }
+});
+
 const createContext = ({
   req,
   res,

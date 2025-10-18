@@ -5,6 +5,7 @@ import multer from "multer";
 import s3, { GetObjectCommand } from "./s3";
 import path from "node:path";
 import { Readable } from "node:stream";
+import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 const storageLocal = multer.diskStorage({
   destination: (req, file, cb) => cb(null, UPLOAD_DIR),
   filename: (req, file, cb) => cb(null, Date.now() + "-" + file.originalname),
@@ -48,5 +49,24 @@ export async function getLocalFileByKey(
 
 export const getFileByKey: (key: string) => Promise<NodeJS.ReadableStream> =
   process.env.STORAGE_TYPE === "local" ? getLocalFileByKey : getS3FileByKey;
+
+export async function removeByKeys(keys: string[]) {
+  keys = keys.filter((key) => !key.startsWith("http"));
+  if (process.env.STORAGE_TYPE === "local") {
+    await Promise.allSettled(
+      keys.map((key) => fs.promises.unlink(path.resolve(UPLOAD_DIR, key)))
+    );
+  } else {
+    await Promise.allSettled(
+      keys.map((key) => {
+        const command = new DeleteObjectCommand({
+          Bucket: process.env.S3_BUCKET!,
+          Key: key,
+        });
+        return s3.send(command);
+      })
+    );
+  }
+}
 const upload = multer({ storage });
 export const uploadFile = upload.single("file");
