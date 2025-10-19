@@ -44,9 +44,11 @@ import {
   Upload,
   X,
   Images,
+  FileText,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { VariantSpecsTab } from "@/components/admin/variant/VariantSpecsTab";
 
 export const Route = createFileRoute(
   "/admin/_admin/products/$id/variants/$variantId/edit"
@@ -249,7 +251,7 @@ function RouteComponent() {
 
       {/* Tabs Section */}
       <Tabs defaultValue="info" className="space-y-6">
-        <TabsList className="grid w-full max-w-md grid-cols-3">
+        <TabsList className="grid w-full max-w-2xl grid-cols-4">
           <TabsTrigger value="info" className="gap-2">
             <Box className="h-4 w-4" />
             Thông tin
@@ -261,6 +263,10 @@ function RouteComponent() {
           <TabsTrigger value="attributes" className="gap-2">
             <Tag className="h-4 w-4" />
             Thuộc tính
+          </TabsTrigger>
+          <TabsTrigger value="specs" className="gap-2">
+            <FileText className="h-4 w-4" />
+            Thông số
           </TabsTrigger>
         </TabsList>
 
@@ -843,6 +849,11 @@ function RouteComponent() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Specs Tab */}
+        <TabsContent value="specs">
+          <VariantSpecsTab variantId={variantId} />
         </TabsContent>
       </Tabs>
     </div>

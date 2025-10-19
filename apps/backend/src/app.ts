@@ -4,15 +4,24 @@ import * as trpcExpress from "@trpc/server/adapters/express";
 import cors from "cors";
 import { appRouter } from "./trpc";
 import { getFileByKey, removeByKeys, uploadFile } from "./utils/file.utils";
-import { GetObjectCommand } from "@aws-sdk/client-s3";
-import s3 from "./utils/s3";
+import { fromNodeHeaders, toNodeHandler } from "better-auth/node";
+import { auth } from "./auth";
 
 const app = express();
 app.use(
   cors({
-    origin: "*",
+    origin: process.env.FRONTEND_URL!,
+    credentials: true,
   })
 );
+app.all("/api/auth/*", toNodeHandler(auth));
+app.use(express.json());
+// app.get("/api/me", async (req, res) => {
+//   const session = await auth.api.getSession({
+//      headers: fromNodeHeaders(req.headers),
+//    });
+//  return res.json(session);
+// });
 
 app.post("/api/upload", uploadFile, (req: any, res) => {
   return res.json({
@@ -44,16 +53,20 @@ app.delete("/api/file/*path", async (req: any, res: any) => {
   }
 });
 
-const createContext = ({
+const createContext = async ({
   req,
   res,
-}: trpcExpress.CreateExpressContextOptions) => ({});
+}: trpcExpress.CreateExpressContextOptions) => ({
+  session: await auth.api.getSession({
+    headers: fromNodeHeaders(req.headers),
+  }),
+});
 type Context = Awaited<ReturnType<typeof createContext>>;
 app.use(
   "/trpc",
   trpcExpress.createExpressMiddleware({
     router: appRouter,
-    createContext: () => ({}),
+    createContext: createContext,
   })
 );
 app.listen(3000, "0.0.0.0");

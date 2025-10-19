@@ -14,6 +14,7 @@ import {
   uniqueIndex,
   varchar,
 } from "drizzle-orm/pg-core";
+import { user, session, account, verification } from "./auth-schema";
 
 // ===== ENUMS =====
 export const productStatusEnum = pgEnum("product_status", [
@@ -774,4 +775,8 @@ export default {
   productVariantImagesRelations,
   productRequiredAttributes,
   productRequiredAttributesRelations,
+  user,
+  session,
+  account,
+  verification,
 };

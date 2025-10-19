@@ -1,10 +1,32 @@
 import { initTRPC } from "@trpc/server";
-
+type Context = {
+  session: {
+    session: {
+      id: string;
+      createdAt: Date;
+      updatedAt: Date;
+      userId: string;
+      expiresAt: Date;
+      token: string;
+      ipAddress?: string | null | undefined | undefined;
+      userAgent?: string | null | undefined | undefined;
+    };
+    user: {
+      id: string;
+      createdAt: Date;
+      updatedAt: Date;
+      email: string;
+      emailVerified: boolean;
+      name: string;
+      image?: string | null | undefined | undefined;
+    };
+  } | null;
+};
 /**
  * Initialization of tRPC backend
  * Should be done only once per backend!
  */
-const t = initTRPC.create();
+const t = initTRPC.context<Context>().create();
 
 /**
  * Export reusable router and procedure helpers

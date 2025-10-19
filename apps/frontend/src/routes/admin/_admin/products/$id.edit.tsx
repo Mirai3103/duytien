@@ -7,6 +7,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "@/lib/trpc";
 import ProductForm from "@/components/admin/product/ProductForm";
+import { ProductSpecsTab } from "@/components/admin/product/ProductSpecsTab";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -21,6 +22,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useId, useState } from "react";
+import { Info, Settings, FileText } from "lucide-react";
 
 export const Route = createFileRoute("/admin/_admin/products/$id/edit")({
   component: RouteComponent,
@@ -61,15 +63,30 @@ function RouteComponent() {
   return (
     <div className="space-y-6 max-h-full">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Sửa sản phẩm</h1>
-        <Link to="/admin/products" className="text-sm underline">
-          Quay lại danh sách
+        <div>
+          <h1 className="text-2xl font-semibold">Sửa sản phẩm</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Cập nhật thông tin, thuộc tính và thông số kỹ thuật
+          </p>
+        </div>
+        <Link to="/admin/products">
+          <Button variant="outline">Quay lại danh sách</Button>
         </Link>
       </div>
       <Tabs defaultValue="info" className="w-full">
-        <TabsList>
-          <TabsTrigger value="info">Thông tin</TabsTrigger>
-          <TabsTrigger value="attrs">Thuộc tính biến thể</TabsTrigger>
+        <TabsList className="grid w-full max-w-2xl grid-cols-3">
+          <TabsTrigger value="info" className="gap-2">
+            <Info className="h-4 w-4" />
+            Thông tin
+          </TabsTrigger>
+          <TabsTrigger value="attrs" className="gap-2">
+            <Settings className="h-4 w-4" />
+            Thuộc tính
+          </TabsTrigger>
+          <TabsTrigger value="specs" className="gap-2">
+            <FileText className="h-4 w-4" />
+            Thông số kỹ thuật
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="info">
           <Card>
@@ -90,6 +107,9 @@ function RouteComponent() {
         </TabsContent>
         <TabsContent value="attrs">
           <AttributesTab productId={productId} />
+        </TabsContent>
+        <TabsContent value="specs">
+          <ProductSpecsTab productId={productId} />
         </TabsContent>
       </Tabs>
     </div>
