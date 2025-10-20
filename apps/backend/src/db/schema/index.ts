@@ -15,7 +15,7 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 import { user, session, account, verification } from "./auth-schema";
-
+export * from "./auth-schema";
 // ===== ENUMS =====
 export const productStatusEnum = pgEnum("product_status", [
   "active",
@@ -75,6 +75,7 @@ export const brands = pgTable(
     name: varchar("name", { length: 255 }).notNull(),
     slug: varchar("slug", { length: 255 }).notNull(),
     logo: varchar("logo", { length: 255 }),
+    isFeatured: boolean("is_featured").default(false).notNull(),
   },
   (t) => [uniqueIndex("brands_slug_unique").on(t.slug)]
 );
@@ -123,6 +124,7 @@ export const products = pgTable(
     status: productStatusEnum("status").default("active").notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     price: decimal("price", { precision: 12, scale: 2 }).notNull(),
+    isFeatured: boolean("is_featured").default(false).notNull(),
     metadata: jsonb("metadata").$type<any>(),
   },
   (t) => [

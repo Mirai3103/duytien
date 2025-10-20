@@ -10,11 +10,11 @@ import { auth } from "./auth";
 const app = express();
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL!,
+    origin: [process.env.FRONTEND_URL!, "http://localhost:3000"],
     credentials: true,
   })
 );
-app.all("/api/auth/*", toNodeHandler(auth));
+app.all("/api/auth/*path", toNodeHandler(auth));
 app.use(express.json());
 // app.get("/api/me", async (req, res) => {
 //   const session = await auth.api.getSession({

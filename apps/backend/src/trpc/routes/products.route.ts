@@ -180,6 +180,26 @@ export const productsRoute = router({
         .where(eq(products.id, input));
       return { success: true };
     }),
+
+  getProductsByCategoryId: publicProcedure
+    .input(
+      z.object({
+        categoryId: z.number(),
+        limit: z.number().default(10),
+        offset: z.number().default(0),
+      })
+    )
+    .query(async ({ input }) => {
+      return await db.query.products.findMany({
+        where: eq(products.categoryId, input.categoryId),
+        limit: input.limit,
+        offset: input.offset,
+        with: {
+          brand: true,
+          category: true,
+        },
+      });
+    }),
 });
 
 export type GetProductsResponse = Awaited<
