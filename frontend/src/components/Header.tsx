@@ -1,4 +1,4 @@
-import { useNavigate } from "@tanstack/react-router";
+import { useLocation, useNavigate } from "@tanstack/react-router";
 import {
   Search,
   ShoppingCart,
@@ -22,15 +22,39 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useTRPC } from "@/lib/trpc";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useRef } from "react";
 
 const Header = () => {
   const navigate = useNavigate();
+  const searchRef = useRef<HTMLInputElement>(null);
   const handleSearch = (value: string) => {
-    navigate({ to: "/search", params: { query: value } });
+    console.log(value);
+    navigate({ to: "/search", search: { keyword: value } });
   };
   const session = useSession();
   const isAuth = !!session.data?.user;
-
+  const trpc = useTRPC();
+  const countCartItems = useQuery(
+    trpc.cart.countCartItems.queryOptions(undefined, {
+      enabled: isAuth,
+    })
+  );
+  const count = countCartItems.data ?? 0;
+  const location = useLocation();
+  useEffect(() => {
+    // add enter key listener to search input
+    const handleEnterKey = (e: KeyboardEvent) => {
+      if (e.key === "Enter") {
+        handleSearch(searchRef.current?.value ?? "");
+      }
+    };
+    searchRef.current?.addEventListener("keydown", handleEnterKey);
+    return () => {
+      searchRef.current?.removeEventListener("keydown", handleEnterKey);
+    };
+  }, [handleSearch]);
   return (
     <header className="bg-primary shadow-md sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4">
@@ -58,9 +82,9 @@ const Header = () => {
               />
               <Input
                 type="text"
+                ref={searchRef}
                 placeholder="Bạn muốn mua gì hôm nay?"
                 className="pl-10 pr-4 w-full bg-white border-none focus-visible:ring-white focus-visible:ring-offset-0"
-                onChange={(e) => handleSearch(e.target.value)}
               />
             </div>
           </div>
@@ -121,10 +145,11 @@ const Header = () => {
               variant="ghost"
               size="icon"
               className="relative text-white hover:bg-primary-dark hover:text-white"
+              onClick={() => navigate({ to: "/cart" })}
             >
               <ShoppingCart size={24} />
               <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs bg-yellow-400 text-gray-900 border-none">
-                0
+                {count}
               </Badge>
             </Button>
           </div>

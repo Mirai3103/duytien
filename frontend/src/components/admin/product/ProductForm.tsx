@@ -22,11 +22,7 @@ import {
 } from "@/components/ui/form";
 import { useTRPC } from "@/lib/trpc";
 import { useQuery } from "@tanstack/react-query";
-import {
-  ProductStatus,
-  type CreateProduct,
-  type UpdateProduct,
-} from "@f5tech/schemas/product";
+
 import ImageUploadPreview from "@/components/ImageUploadPreview";
 import { uploadFile } from "@/lib/file";
 import {
@@ -42,6 +38,11 @@ import {
   Image as ImageIcon,
   Info,
 } from "lucide-react";
+import {
+  ProductStatus,
+  type CreateProduct,
+  type UpdateProduct,
+} from "@/types/backend/schemas/product";
 
 type ProductFormValues = Omit<CreateProduct, "createdAt" | "id">;
 

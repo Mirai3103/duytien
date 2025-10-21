@@ -31,7 +31,6 @@ import {
 } from "@/components/ui/form";
 import ImageUploadPreview from "@/components/ImageUploadPreview";
 import { uploadFile } from "@/lib/file";
-import { VariantStatus, type CreateVariant } from "@f5tech/schemas/variant";
 import { toast } from "sonner";
 import {
   ArrowLeft,
@@ -43,6 +42,10 @@ import {
   Box,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import {
+  VariantStatus,
+  type CreateVariant,
+} from "@/types/backend/schemas/variant";
 
 export const Route = createFileRoute(
   "/admin/_admin/products/$id/variants/create"

@@ -21,12 +21,12 @@ export declare const variantSchema: z.ZodObject<{
 }, z.core.$strip>;
 export declare const createVariantSchema: z.ZodObject<{
     name: z.ZodString;
-    image: z.ZodString;
-    status: z.ZodEnum<typeof VariantStatus>;
-    price: z.ZodCoercedNumber<unknown>;
     productId: z.ZodNumber;
+    price: z.ZodCoercedNumber<unknown>;
+    status: z.ZodEnum<typeof VariantStatus>;
     sku: z.ZodString;
     stock: z.ZodCoercedNumber<unknown>;
+    image: z.ZodString;
     isDefault: z.ZodBoolean;
     attributeValues: z.ZodArray<z.ZodObject<{
         attributeId: z.ZodNumber;
@@ -36,12 +36,12 @@ export declare const createVariantSchema: z.ZodObject<{
 export declare const updateVariantSchema: z.ZodObject<{
     id: z.ZodNumber;
     name: z.ZodString;
-    image: z.ZodString;
-    status: z.ZodEnum<typeof VariantStatus>;
-    price: z.ZodCoercedNumber<unknown>;
     productId: z.ZodNumber;
+    price: z.ZodCoercedNumber<unknown>;
+    status: z.ZodEnum<typeof VariantStatus>;
     sku: z.ZodString;
     stock: z.ZodCoercedNumber<unknown>;
+    image: z.ZodString;
     isDefault: z.ZodBoolean;
 }, z.core.$strip>;
 export type Variant = z.infer<typeof variantSchema>;

@@ -13,7 +13,7 @@
     "tsx": "^4.20.6"
   },
   "scripts": {
-    "build:types": "tsc -p tsconfig.types.json ",
+    "build:types": "tsc -p tsconfig.types.json && tsc -p tsconfig.schema.json ",
     "build": "bun build src/app.ts --outdir dist --target node",
     "dev": "bun  --hot run src/app.ts "
   },

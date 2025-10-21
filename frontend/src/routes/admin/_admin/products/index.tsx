@@ -48,7 +48,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { useDebounceValue } from "usehooks-ts";
-import { ProductStatus } from "@f5tech/schemas/product";
+import { ProductStatus } from "@/types/backend/schemas/product";
 import { toast } from "sonner";
 import { Link } from "@tanstack/react-router";
 import { Edit, Plus } from "lucide-react";

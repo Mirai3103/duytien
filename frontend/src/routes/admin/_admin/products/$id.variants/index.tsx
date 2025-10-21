@@ -40,8 +40,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ArrowUpDown, Edit, MoreHorizontal, Trash2, Plus } from "lucide-react";
 import { useDebounceValue } from "usehooks-ts";
-import { VariantStatus, type Variant } from "@f5tech/schemas/variant";
 import { toast } from "sonner";
+import { VariantStatus, type Variant } from "@/types/backend/schemas/variant";
 
 export const Route = createFileRoute("/admin/_admin/products/$id/variants/")({
   component: RouteComponent,

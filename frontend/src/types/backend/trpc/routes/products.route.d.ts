@@ -1,4 +1,5 @@
 import { ProductStatus } from "@/schemas/product";
+import type { inferProcedureOutput } from "@trpc/server";
 export declare const productsRoute: import("@trpc/server").TRPCBuiltRouter<{
     ctx: {
         session: {
@@ -75,6 +76,28 @@ export declare const productsRoute: import("@trpc/server").TRPCBuiltRouter<{
                     totalChild?: number;
                 } | null;
             } | null;
+        }[];
+        meta: object;
+    }>;
+    countProducts: import("@trpc/server").TRPCQueryProcedure<{
+        input: {
+            page?: number | undefined;
+            limit?: number | undefined;
+            keyword?: string | undefined;
+            brandId?: number[] | undefined;
+            categoryId?: number[] | undefined;
+            sort?: {
+                field?: "name" | "createdAt" | "status" | "price" | undefined;
+                direction?: "asc" | "desc" | undefined;
+            } | undefined;
+            price?: {
+                min?: number | undefined;
+                max?: number | undefined;
+            } | undefined;
+            status?: ProductStatus[] | undefined;
+        };
+        output: {
+            count: number;
         }[];
         meta: object;
     }>;
@@ -305,4 +328,7 @@ export declare const productsRoute: import("@trpc/server").TRPCBuiltRouter<{
         meta: object;
     }>;
 }>>;
-export type GetProductsResponse = Awaited<ReturnType<typeof productsRoute.getProducts>>;
+export type GetProductsResponse = inferProcedureOutput<typeof productsRoute.getProducts>;
+export type GetProductsWithVariantsResponse = inferProcedureOutput<typeof productsRoute.getProductsWithVariants>;
+export type GetProductDetailResponse = inferProcedureOutput<typeof productsRoute.getProductDetail>;
+export type GetProductsByCategoryIdResponse = inferProcedureOutput<typeof productsRoute.getProductsByCategoryId>;

@@ -1,4 +1,4 @@
-import { initTRPC } from "@trpc/server";
+import { initTRPC, TRPCError } from "@trpc/server";
 type Context = {
   session: {
     session: {
@@ -34,3 +34,12 @@ const t = initTRPC.context<Context>().create();
  */
 export const router = t.router;
 export const publicProcedure = t.procedure;
+export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
+  if (!ctx.session?.session.userId) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Please login to continue",
+    });
+  }
+  return next({ ctx });
+});

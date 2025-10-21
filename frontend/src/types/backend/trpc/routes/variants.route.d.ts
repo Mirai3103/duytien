@@ -1,4 +1,5 @@
 import { VariantStatus } from "@/schemas/variant";
+import type { inferProcedureOutput } from "@trpc/server";
 export declare const variantsRoute: import("@trpc/server").TRPCBuiltRouter<{
     ctx: {
         session: {
@@ -111,6 +112,23 @@ export declare const variantsRoute: import("@trpc/server").TRPCBuiltRouter<{
         } | undefined;
         meta: object;
     }>;
+    getDefaultVariantDetail: import("@trpc/server").TRPCQueryProcedure<{
+        input: number;
+        output: {
+            id: number;
+            name: string;
+            image: string | null;
+            createdAt: Date;
+            metadata: any;
+            status: "active" | "inactive";
+            price: string;
+            productId: number | null;
+            sku: string;
+            stock: number;
+            isDefault: boolean | null;
+        } | undefined;
+        meta: object;
+    }>;
     createVariant: import("@trpc/server").TRPCMutationProcedure<{
         input: {
             name: string;
@@ -208,3 +226,5 @@ export declare const variantsRoute: import("@trpc/server").TRPCBuiltRouter<{
         meta: object;
     }>;
 }>>;
+export type GetVariantsResponse = inferProcedureOutput<typeof variantsRoute.getVariants>;
+export type GetVariantDetailResponse = inferProcedureOutput<typeof variantsRoute.getVariantDetail>;

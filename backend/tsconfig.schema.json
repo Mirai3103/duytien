@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.types.json",
+  "compilerOptions": {
+    "allowImportingTsExtensions": false,
+    "declaration": true,
+    "emitDeclarationOnly": false, // xuất cả js
+    "outDir": "../frontend/src/types/backend/schemas"
+  },
+  "include": ["src/schemas/**/*.ts"]
+}

@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, desc, eq, gt } from "drizzle-orm";
 import z from "zod";
 import db from "@/db";
 import {
@@ -12,6 +12,7 @@ import {
   updateVariantSchema,
   VariantStatus,
 } from "@/schemas/variant";
+import type { inferProcedureOutput } from "@trpc/server";
 async function upsertAttributeValue(attributeId: number, value: string) {
   const existingAttributeValue = await db.query.attributeValues.findFirst({
     where: (fields, { and, eq }) =>
@@ -79,6 +80,29 @@ export const variantsRoute = router({
         },
       });
     }),
+  getDefaultVariantDetail: publicProcedure
+    .input(z.number())
+    .query(async ({ input }) => {
+      // tìm variant có isDefault là true
+
+      let variant = await db.query.productVariants.findFirst({
+        where: and(
+          eq(productVariants.productId, input),
+          eq(productVariants.isDefault, true)
+        ),
+      });
+      // nếu ko có thì tìm cái còn stock lớn nhất
+      if (!variant) {
+        variant = await db.query.productVariants.findFirst({
+          where: and(
+            eq(productVariants.productId, input),
+            gt(productVariants.stock, 0)
+          ),
+          orderBy: [desc(productVariants.stock)],
+        });
+      }
+      return variant;
+    }),
 
   createVariant: publicProcedure
     .input(createVariantSchema)
@@ -107,13 +131,14 @@ export const variantsRoute = router({
   updateVariant: publicProcedure
     .input(updateVariantSchema)
     .mutation(async ({ input }) => {
+      const { id, ...rest } = input;
       await db
         .update(productVariants)
         .set({
-          ...input,
-          price: input.price.toString(),
+          ...rest,
+          price: rest.price.toString(),
         })
-        .where(eq(productVariants.id, input.id));
+        .where(eq(productVariants.id, id));
       return { success: true };
     }),
   setVariantAttributes: publicProcedure
@@ -215,3 +240,10 @@ export const variantsRoute = router({
       return { success: true };
     }),
 });
+
+export type GetVariantsResponse = inferProcedureOutput<
+  typeof variantsRoute.getVariants
+>;
+export type GetVariantDetailResponse = inferProcedureOutput<
+  typeof variantsRoute.getVariantDetail
+>;

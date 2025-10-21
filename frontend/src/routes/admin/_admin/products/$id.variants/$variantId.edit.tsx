@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/form";
 import ImageUploadPreview from "@/components/ImageUploadPreview";
 import { uploadFile } from "@/lib/file";
-import { VariantStatus, type UpdateVariant } from "@f5tech/schemas/variant";
+
 import { toast } from "sonner";
 import {
   ArrowLeft,
@@ -49,6 +49,10 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { VariantSpecsTab } from "@/components/admin/variant/VariantSpecsTab";
+import {
+  VariantStatus,
+  type UpdateVariant,
+} from "@/types/backend/schemas/variant";
 
 export const Route = createFileRoute(
   "/admin/_admin/products/$id/variants/$variantId/edit"

@@ -1,11 +1,19 @@
-import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  notFound,
+  redirect,
+  useNavigate,
+} from "@tanstack/react-router";
 import {
   Check,
   ChevronRight,
   Heart,
+  Minus,
+  Plus,
   RefreshCw,
   Share2,
   Shield,
+  ShoppingCart,
   Star,
   Truck,
 } from "lucide-react";
@@ -17,16 +25,37 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const Route = createFileRoute("/product/$id")({
   component: RouteComponent,
-  loader: async ({ context, params }) => {
+  validateSearch: (search: Record<string, unknown>) => {
+    return {
+      isSpu: Boolean(search?.isSpu ?? false),
+    };
+  },
+  loaderDeps: ({ search: { isSpu = false } }) => ({ isSpu }),
+  loader: async ({ context, params, deps: { isSpu } }) => {
     const { id } = params;
-    const { trpc, queryClient } = context;
-
+    const { trpc, queryClient, trpcClient } = context;
+    if (isSpu) {
+      const data = await trpcClient.variants.getDefaultVariantDetail.query(
+        parseInt(id, 10)
+      );
+      if (data) {
+        throw redirect({
+          to: "/product/$id",
+          params: { id: data.id.toString() },
+          search: { isSpu: false },
+          replace: true,
+        });
+      } else {
+        throw notFound();
+      }
+    }
     try {
       const data = await queryClient.ensureQueryData(
         trpc.variants.getVariantDetail.queryOptions(parseInt(id, 10))
@@ -41,166 +70,94 @@ export const Route = createFileRoute("/product/$id")({
   },
 });
 
-// Mock Product Data
-const mockProduct = {
-  id: 1,
-  name: "iPhone 15 Pro Max 256GB",
-  brand: "Apple",
-  price: 29990000,
-  oldPrice: 34990000,
-  discount: 14,
-  rating: 4.8,
-  reviewCount: 1247,
-  soldCount: 2456,
-  images: [
-    "https://cdn2.cellphones.com.vn/insecure/rs:fill:358:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/i/p/iphone-15-pro-max_3.png",
-    "https://cdn2.cellphones.com.vn/insecure/rs:fill:358:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/i/p/iphone-15-pro-max_2.png",
-    "https://cdn2.cellphones.com.vn/insecure/rs:fill:358:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/i/p/iphone-15-pro-max_1.png",
-    "https://cdn2.cellphones.com.vn/insecure/rs:fill:358:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/i/p/iphone-15-pro-max_4.png",
-  ],
-  colors: [
-    { id: "natural", name: "Titan Tự Nhiên", color: "#F5F5DC" },
-    { id: "blue", name: "Titan Xanh", color: "#4A5568" },
-    { id: "white", name: "Titan Trắng", color: "#E8E8E8" },
-    { id: "black", name: "Titan Đen", color: "#1A1A1A" },
-  ],
-  storage: [
-    { id: "256gb", size: "256GB", price: 29990000, oldPrice: 34990000 },
-    { id: "512gb", size: "512GB", price: 34990000, oldPrice: 39990000 },
-    { id: "1tb", size: "1TB", price: 39990000, oldPrice: 44990000 },
-  ],
-  highlights: [
-    "Chip A17 Pro mạnh mẽ với GPU 6 lõi",
-    "Camera chính 48MP, zoom quang học 5x",
-    "Màn hình Super Retina XDR 6.7 inch",
-    "Khung Titan chuẩn hàng không vũ trụ",
-    "Nút Action có thể tùy chỉnh",
-    "Cổng USB-C hỗ trợ USB 3.0",
-  ],
-  description: `iPhone 15 Pro Max là đỉnh cao công nghệ của Apple với thiết kế khung titan cao cấp, chip A17 Pro mạnh mẽ nhất từ trước đến nay. Màn hình Super Retina XDR 6.7 inch cho trải nghiệm hình ảnh tuyệt vời. Camera chính 48MP cùng zoom quang học 5x mang đến khả năng chụp ảnh chuyên nghiệp.
-
-Chip A17 Pro được sản xuất trên tiến trình 3nm tiên tiến nhất, mang lại hiệu năng vượt trội và tiết kiệm năng lượng. Hệ thống camera Pro với 3 ống kính cho phép bạn sáng tạo không giới hạn.
-
-Khung titan chuẩn hàng không vũ trụ vừa nhẹ vừa bền, tạo cảm giác cao cấp trong tay. Nút Action mới có thể tùy chỉnh cho các tác vụ nhanh.`,
-  specifications: {
-    "Màn hình": {
-      "Công nghệ màn hình": "Super Retina XDR OLED",
-      "Độ phân giải": "2796 x 1290 pixels",
-      "Màn hình rộng": "6.7 inch",
-      "Tần số quét": "120Hz ProMotion",
-      "Độ sáng tối đa": "2000 nits",
-    },
-    "Camera sau": {
-      "Camera chính": "48MP f/1.78",
-      "Camera góc siêu rộng": "12MP f/2.2",
-      "Camera tele": "12MP f/2.8 (zoom quang 5x)",
-      "Quay video": "4K 60fps, ProRes, Action Mode",
-      "Tính năng": "Night mode, Deep Fusion, Smart HDR 5",
-    },
-    "Camera trước": {
-      "Độ phân giải": "12MP f/1.9",
-      "Tính năng": "Night mode, 4K 60fps, Cinematic mode",
-    },
-    "Vi xử lý": {
-      Chip: "Apple A17 Pro (3nm)",
-      CPU: "6 nhân",
-      GPU: "6 nhân",
-      "Neural Engine": "16 nhân",
-    },
-    "Pin & Sạc": {
-      "Dung lượng pin": "4422 mAh",
-      "Loại pin": "Li-Ion",
-      "Sạc nhanh": "27W (USB-C)",
-      "Sạc không dây": "MagSafe 15W, Qi 7.5W",
-    },
-    "Kết nối": {
-      "Mạng di động": "5G",
-      SIM: "2 eSIM + 1 Nano SIM",
-      Wifi: "Wi-Fi 6E",
-      Bluetooth: "v5.3",
-      "Cổng kết nối": "USB-C (USB 3.0)",
-    },
-    "Thiết kế & Chất liệu": {
-      "Kích thước": "159.9 x 76.7 x 8.25 mm",
-      "Trọng lượng": "221g",
-      "Chất liệu": "Khung Titan, mặt lưng kính",
-      "Kháng nước": "IP68",
-    },
+const fake_highlights: string[] = [
+  "Chip A17 Pro mạnh mẽ với GPU 6 lõi",
+  "Camera chính 48MP, zoom quang học 5x",
+  "Màn hình Super Retina XDR 6.7 inch",
+  "Khung Titan chuẩn hàng không vũ trụ",
+  "Nút Action có thể tùy chỉnh",
+  "Cổng USB-C hỗ trợ USB 3.0",
+];
+const fake_policies: {
+  icon: React.ElementType;
+  title: string;
+  description: string;
+}[] = [
+  {
+    icon: Shield,
+    title: "Bảo hành chính hãng 12 tháng",
+    description: "Bảo hành tại các trung tâm Apple ủy quyền",
   },
-  policies: [
-    {
-      icon: Shield,
-      title: "Bảo hành chính hãng 12 tháng",
-      description: "Bảo hành tại các trung tâm Apple ủy quyền",
-    },
-    {
-      icon: Truck,
-      title: "Giao hàng miễn phí toàn quốc",
-      description: "Giao hàng trong 2-3 ngày",
-    },
-    {
-      icon: RefreshCw,
-      title: "Đổi trả trong 7 ngày",
-      description: "Nếu có lỗi từ nhà sản xuất",
-    },
-    {
-      icon: Shield,
-      title: "1 đổi 1 trong 30 ngày",
-      description: "Với sản phẩm lỗi từ nhà sản xuất",
-    },
-  ],
-  reviews: [
-    {
-      id: 1,
-      user: "Nguyễn Văn A",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=1",
-      rating: 5,
-      date: "2024-10-01",
-      comment:
-        "Sản phẩm tuyệt vời! Hiệu năng mạnh mẽ, camera chụp ảnh đẹp. Rất hài lòng với lựa chọn của mình.",
-      helpful: 45,
-    },
-    {
-      id: 2,
-      user: "Trần Thị B",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=2",
-      rating: 5,
-      date: "2024-09-28",
-      comment:
-        "iPhone 15 Pro Max xứng đáng là flagship 2024. Màn hình đẹp, pin trâu, chip A17 Pro quá mượt.",
-      helpful: 32,
-    },
-    {
-      id: 3,
-      user: "Lê Văn C",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=3",
-      rating: 4,
-      date: "2024-09-25",
-      comment:
-        "Máy đẹp, chạy mượt. Tuy nhiên giá hơi cao. Nhưng chất lượng Apple thì không phải bàn.",
-      helpful: 28,
-    },
-    {
-      id: 4,
-      user: "Phạm Thị D",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=4",
-      rating: 5,
-      date: "2024-09-20",
-      comment:
-        "Camera quá đỉnh, zoom 5x rõ nét lắm. Chơi game cũng không bị nóng máy. 10 điểm!",
-      helpful: 56,
-    },
-  ],
-  ratingDistribution: {
-    5: 75,
-    4: 15,
-    3: 6,
-    2: 2,
-    1: 2,
+  {
+    icon: Truck,
+    title: "Giao hàng miễn phí toàn quốc",
+    description: "Giao hàng trong 2-3 ngày",
   },
+  {
+    icon: RefreshCw,
+    title: "Đổi trả trong 7 ngày",
+    description: "Nếu có lỗi từ nhà sản xuất",
+  },
+  {
+    icon: Shield,
+    title: "1 đổi 1 trong 30 ngày",
+    description: "Với sản phẩm lỗi từ nhà sản xuất",
+  },
+];
+const fake_reviews = [
+  {
+    id: 1,
+    user: "Nguyễn Văn A",
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=1",
+    rating: 5,
+    date: "2024-10-01",
+    comment:
+      "Sản phẩm tuyệt vời! Hiệu năng mạnh mẽ, camera chụp ảnh đẹp. Rất hài lòng với lựa chọn của mình.",
+    helpful: 45,
+  },
+  {
+    id: 2,
+    user: "Trần Thị B",
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=2",
+    rating: 5,
+    date: "2024-09-28",
+    comment:
+      "iPhone 15 Pro Max xứng đáng là flagship 2024. Màn hình đẹp, pin trâu, chip A17 Pro quá mượt.",
+    helpful: 32,
+  },
+  {
+    id: 3,
+    user: "Lê Văn C",
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=3",
+    rating: 4,
+    date: "2024-09-25",
+    comment:
+      "Máy đẹp, chạy mượt. Tuy nhiên giá hơi cao. Nhưng chất lượng Apple thì không phải bàn.",
+    helpful: 28,
+  },
+  {
+    id: 4,
+    user: "Phạm Thị D",
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=4",
+    rating: 5,
+    date: "2024-09-20",
+    comment:
+      "Camera quá đỉnh, zoom 5x rõ nét lắm. Chơi game cũng không bị nóng máy. 10 điểm!",
+    helpful: 56,
+  },
+];
+const fake_ratingDistribution = {
+  5: 75,
+  4: 15,
+  3: 6,
+  2: 2,
+  1: 2,
 };
-
 import _ from "lodash";
+import { useTRPC } from "@/lib/trpc";
+import { toast } from "sonner";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { RippleButton } from "@/components/ui/shadcn-io/ripple-button";
 
 function RouteComponent() {
   const { product, variant } = Route.useLoaderData(); // TODO: Use this to fetch actual product data
@@ -208,7 +165,35 @@ function RouteComponent() {
   const reducePrice = Number(variant.price) - reducedPrice;
   const discountPercentage = Number(variant.metadata?.discountPercentage) || 0;
   const [selectedImage, setSelectedImage] = useState(0);
+  const [quantity, setQuantity] = useState(1);
   const navigate = useNavigate();
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+  const mutateAddToCart = useMutation(
+    trpc.cart.addToCart.mutationOptions({
+      onSuccess: () => {
+        toast.success("Thêm vào giỏ hàng thành công");
+        setQuantity(1); // Reset quantity after adding to cart
+        queryClient.invalidateQueries(trpc.cart.countCartItems.queryOptions());
+      },
+      onError: () => {
+        toast.error("Thêm vào giỏ hàng thất bại");
+      },
+    })
+  );
+
+  const handleQuantityChange = (value: number) => {
+    if (value >= 1 && value <= 999) {
+      setQuantity(value);
+    }
+  };
+
+  const handleAddToCart = () => {
+    mutateAddToCart.mutate({
+      variantId: variant.id,
+      quantity: quantity,
+    });
+  };
 
   const attrs = React.useMemo(() => {
     function extractAttrs(product: any) {
@@ -244,7 +229,7 @@ function RouteComponent() {
   }, [variant]);
   console.log(specs);
 
-  const totalReviews = Object.values(mockProduct.ratingDistribution).reduce(
+  const totalReviews = Object.values(fake_ratingDistribution).reduce(
     (a, b) => a + b,
     0
   );
@@ -334,22 +319,20 @@ function RouteComponent() {
                         <Star
                           key={star}
                           className={`h-5 w-5 ${
-                            star <= mockProduct.rating
+                            true
                               ? "fill-yellow-500 text-yellow-500"
                               : "text-muted"
                           }`}
                         />
                       ))}
                     </div>
-                    <span className="font-semibold">{mockProduct.rating}</span>
+                    <span className="font-semibold">4</span>
                     <span className="text-muted-foreground">
-                      ({mockProduct.reviewCount} đánh giá)
+                      ({2000} đánh giá)
                     </span>
                   </div>
                   <Separator orientation="vertical" className="h-4" />
-                  <span className="text-muted-foreground">
-                    Đã bán {mockProduct.soldCount}
-                  </span>
+                  <span className="text-muted-foreground">Đã bán {2000}</span>
                 </div>
               </div>
 
@@ -388,6 +371,45 @@ function RouteComponent() {
                             vv.value.value === value.value
                         );
 
+                        const otherSelectedValues =
+                          variant.variantValues.filter(
+                            (vv: any) => vv.value.attribute.name !== attr.name
+                          );
+
+                        const targetVariant = product.variants.find(
+                          (v: any) => {
+                            const hasThisValue = v.variantValues.some(
+                              (vv: any) =>
+                                vv.value.attribute.name === attr.name &&
+                                vv.value.value === value.value
+                            );
+                            if (!hasThisValue) return false;
+
+                            return otherSelectedValues.every((osv: any) =>
+                              v.variantValues.some(
+                                (vv: any) =>
+                                  vv.value.attribute.name ===
+                                    osv.value.attribute.name &&
+                                  vv.value.value === osv.value.value
+                              )
+                            );
+                          }
+                        );
+
+                        const isOutOfStock =
+                          !targetVariant || (targetVariant.stock ?? 0) <= 0;
+
+                        const handleVariantChange = () => {
+                          if (targetVariant && !isSelected) {
+                            navigate({
+                              to: "/product/$id",
+                              params: { id: targetVariant.id.toString() },
+                              replace: true,
+                              search: { isSpu: false },
+                            });
+                          }
+                        };
+
                         if (
                           attr.name.toLowerCase().includes("màu") ||
                           attr.name.toLowerCase().includes("color")
@@ -396,39 +418,39 @@ function RouteComponent() {
                           return (
                             <button
                               key={value.value}
-                              onClick={() => {
-                                // Find variant with this attribute value
-                                const targetVariant = product.variants.find(
-                                  (v: any) =>
-                                    v.variantValues.some(
-                                      (vv: any) =>
-                                        vv.value.attribute.name === attr.name &&
-                                        vv.value.value === value.value
-                                    )
-                                );
-                                if (targetVariant) {
-                                  navigate({
-                                    to: "/product/$id",
-                                    params: { id: targetVariant.id.toString() },
-                                  });
-                                }
-                              }}
+                              onClick={handleVariantChange}
+                              disabled={isOutOfStock}
                               className={`
-                                variant-swatch w-12 h-12 rounded-full border-2
+                                relative variant-swatch w-12 h-12 rounded-full border-2 transition-all
                                 ${
                                   isSelected
                                     ? "border-primary ring-2 ring-primary/20"
-                                    : "border-gray-300 hover:border-gray-400"
+                                    : "border-gray-300"
                                 }
-                                cursor-pointer
+                                ${
+                                  isOutOfStock
+                                    ? "cursor-not-allowed opacity-50"
+                                    : "hover:border-gray-400 cursor-pointer"
+                                }
                               `}
                               style={{
                                 backgroundColor: value.code || "#e5e7eb",
                               }}
-                              title={value.displayValue}
+                              title={`${value.displayValue}${
+                                isOutOfStock ? " (Hết hàng)" : ""
+                              }`}
                             >
                               {isSelected && (
                                 <Check className="absolute inset-0 m-auto w-4 h-4 text-white drop-shadow-sm" />
+                              )}
+                              {isOutOfStock && (
+                                <div
+                                  className="absolute inset-0 bg-black/40"
+                                  style={{
+                                    clipPath:
+                                      "polygon(0 0, 2px 0, 100% calc(100% - 2px), 100% 100%, calc(100% - 2px) 100%, 0 2px, 0 0)",
+                                  }}
+                                />
                               )}
                             </button>
                           );
@@ -437,34 +459,29 @@ function RouteComponent() {
                           return (
                             <button
                               key={value.value}
-                              onClick={() => {
-                                // Find variant with this attribute value
-                                const targetVariant = product.variants.find(
-                                  (v: any) =>
-                                    v.variantValues.some(
-                                      (vv: any) =>
-                                        vv.value.attribute.name === attr.name &&
-                                        vv.value.value === value.value
-                                    )
-                                );
-                                if (targetVariant) {
-                                  navigate({
-                                    to: "/product/$id",
-                                    params: { id: targetVariant.id.toString() },
-                                  });
-                                }
-                              }}
+                              onClick={handleVariantChange}
+                              disabled={isOutOfStock}
                               className={`
-                                variant-option px-4 py-2 text-sm rounded-md border
+                                relative variant-option px-4 py-2 text-sm rounded-md border
                                 ${
                                   isSelected
                                     ? "border-primary bg-primary/10 text-primary font-medium"
-                                    : "border-gray-300 hover:border-gray-400"
+                                    : "border-gray-300"
                                 }
-                                cursor-pointer
+                                ${
+                                  isOutOfStock
+                                    ? "cursor-not-allowed opacity-50 text-muted-foreground"
+                                    : "hover:border-gray-400 cursor-pointer"
+                                }
                               `}
+                              title={`${value.displayValue}${
+                                isOutOfStock ? " (Hết hàng)" : ""
+                              }`}
                             >
                               {value.displayValue}
+                              {isOutOfStock && (
+                                <div className="absolute bottom-1/2 left-[5%] right-[5%] h-px bg-slate-400" />
+                              )}
                             </button>
                           );
                         }
@@ -478,13 +495,13 @@ function RouteComponent() {
               <Card>
                 <CardContent className="p-4">
                   <h3 className="font-semibold mb-3">Thông số nổi bật</h3>
-                  <ul className="grid grid-cols-2 gap-2">
-                    {mockProduct.highlights.map((feature, index) => (
+                  <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
+                    {fake_highlights.map((feature, index) => (
                       <li
                         key={index}
                         className="flex items-start gap-2 text-sm"
                       >
-                        <span className="text-primary mt-1">✓</span>
+                        <Check className="h-4 w-4 text-primary mt-1 flex-shrink-0" />
                         <span>{feature}</span>
                       </li>
                     ))}
@@ -492,25 +509,78 @@ function RouteComponent() {
                 </CardContent>
               </Card>
 
+              {/* Quantity Selection */}
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-semibold">Số lượng:</h3>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => handleQuantityChange(quantity - 1)}
+                        disabled={quantity <= 1}
+                        className="h-10 w-10"
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                      <Input
+                        type="number"
+                        min="1"
+                        max="999"
+                        value={quantity}
+                        onChange={(e) =>
+                          handleQuantityChange(parseInt(e.target.value) || 1)
+                        }
+                        className="w-20 h-10 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      />
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => handleQuantityChange(quantity + 1)}
+                        disabled={quantity >= 999}
+                        className="h-10 w-10"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  {(variant.stock || 0) > 0 ? (
+                    <p className="text-sm text-muted-foreground text-right mt-2">
+                      {variant.stock} sản phẩm có sẵn
+                    </p>
+                  ) : null}
+                </CardContent>
+              </Card>
+
               {/* Action Buttons */}
               <div className="flex gap-3">
-                <Button size="lg" className="flex-1 text-lg h-14">
-                  Mua ngay
-                </Button>
-                <Button
+                <RippleButton
+                  size="lg"
+                  className="flex-1 text-lg h-14"
+                  disabled={(variant.stock ?? 0) <= 0}
+                >
+                  {(variant.stock ?? 0) > 0 ? "Mua ngay" : "Hết hàng"}
+                </RippleButton>
+                <RippleButton
                   size="lg"
                   variant="outline"
                   className="flex-1 text-lg h-14"
+                  onClick={handleAddToCart}
+                  disabled={
+                    mutateAddToCart.isPending || (variant.stock ?? 0) <= 0
+                  }
                 >
-                  Thêm vào giỏ
-                </Button>
+                  <ShoppingCart className="h-5 w-5 mr-2" />
+                  {mutateAddToCart.isPending ? "Đang thêm..." : "Thêm vào giỏ"}
+                </RippleButton>
               </div>
 
               {/* Policies */}
               <Card>
                 <CardContent className="p-4">
                   <div className="grid grid-cols-2 gap-4">
-                    {mockProduct.policies.map((policy, index) => (
+                    {fake_policies.map((policy, index) => (
                       <div key={index} className="flex gap-3">
                         <div className="flex-shrink-0">
                           <policy.icon className="h-5 w-5 text-primary" />
@@ -538,9 +608,7 @@ function RouteComponent() {
                   <TabsTrigger value="specifications">
                     Thông số kỹ thuật
                   </TabsTrigger>
-                  <TabsTrigger value="reviews">
-                    Đánh giá ({mockProduct.reviewCount})
-                  </TabsTrigger>
+                  <TabsTrigger value="reviews">Đánh giá ({2000})</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="description" className="mt-6">
@@ -618,15 +686,13 @@ function RouteComponent() {
                     <div className="lg:col-span-1">
                       <Card>
                         <CardContent className="p-6 text-center">
-                          <div className="text-5xl font-bold mb-2">
-                            {mockProduct.rating}
-                          </div>
+                          <div className="text-5xl font-bold mb-2">4</div>
                           <div className="flex justify-center mb-2">
                             {[1, 2, 3, 4, 5].map((star) => (
                               <Star
                                 key={star}
                                 className={`h-5 w-5 ${
-                                  star <= mockProduct.rating
+                                  star <= 4
                                     ? "fill-yellow-500 text-yellow-500"
                                     : "text-muted"
                                 }`}
@@ -646,8 +712,8 @@ function RouteComponent() {
                                 <span className="text-sm w-6">{rating}★</span>
                                 <Progress
                                   value={
-                                    (mockProduct.ratingDistribution[
-                                      rating as keyof typeof mockProduct.ratingDistribution
+                                    (fake_ratingDistribution[
+                                      rating as unknown as keyof typeof fake_ratingDistribution
                                     ] /
                                       totalReviews) *
                                     100
@@ -656,8 +722,8 @@ function RouteComponent() {
                                 />
                                 <span className="text-sm text-muted-foreground w-12 text-right">
                                   {
-                                    mockProduct.ratingDistribution[
-                                      rating as keyof typeof mockProduct.ratingDistribution
+                                    fake_ratingDistribution[
+                                      rating as unknown as keyof typeof fake_ratingDistribution
                                     ]
                                   }
                                   %
@@ -671,7 +737,7 @@ function RouteComponent() {
 
                     {/* Reviews List */}
                     <div className="lg:col-span-2 space-y-4">
-                      {mockProduct.reviews.map((review) => (
+                      {fake_reviews.map((review: any) => (
                         <Card key={review.id}>
                           <CardContent className="p-6">
                             <div className="flex items-start gap-4">

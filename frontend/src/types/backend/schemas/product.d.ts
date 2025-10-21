@@ -12,9 +12,9 @@ export declare const productsQuerySchema: z.ZodObject<{
     sort: z.ZodOptional<z.ZodObject<{
         field: z.ZodOptional<z.ZodEnum<{
             name: "name";
-            createdAt: "createdAt";
-            status: "status";
             price: "price";
+            status: "status";
+            createdAt: "createdAt";
         }>>;
         direction: z.ZodOptional<z.ZodEnum<{
             asc: "asc";
@@ -44,23 +44,23 @@ export type Product = z.infer<typeof productSchema>;
 export declare const createProductSchema: z.ZodObject<{
     name: z.ZodString;
     slug: z.ZodPipe<z.ZodString, z.ZodTransform<string, string>>;
-    description: z.ZodOptional<z.ZodAny>;
     brandId: z.ZodOptional<z.ZodNumber>;
     categoryId: z.ZodOptional<z.ZodNumber>;
-    thumbnail: z.ZodOptional<z.ZodString>;
-    status: z.ZodEnum<typeof ProductStatus>;
     price: z.ZodNumber;
+    status: z.ZodEnum<typeof ProductStatus>;
+    description: z.ZodOptional<z.ZodAny>;
+    thumbnail: z.ZodOptional<z.ZodString>;
 }, z.core.$strip>;
 export declare const updateProductSchema: z.ZodObject<{
     id: z.ZodNumber;
     name: z.ZodString;
     slug: z.ZodPipe<z.ZodString, z.ZodTransform<string, string>>;
-    description: z.ZodOptional<z.ZodAny>;
     brandId: z.ZodOptional<z.ZodNumber>;
     categoryId: z.ZodOptional<z.ZodNumber>;
-    thumbnail: z.ZodOptional<z.ZodString>;
-    status: z.ZodEnum<typeof ProductStatus>;
     price: z.ZodNumber;
+    status: z.ZodEnum<typeof ProductStatus>;
+    description: z.ZodOptional<z.ZodAny>;
+    thumbnail: z.ZodOptional<z.ZodString>;
 }, z.core.$strip>;
 export type CreateProduct = z.infer<typeof createProductSchema>;
 export type UpdateProduct = z.infer<typeof updateProductSchema>;

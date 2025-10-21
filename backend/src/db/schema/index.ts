@@ -51,22 +51,6 @@ export const variantStatusEnum = pgEnum("variant_status", [
   "inactive",
 ]);
 
-// ===== USERS =====
-export const users = pgTable(
-  "users",
-  {
-    id: integer("id").primaryKey().notNull().generatedAlwaysAsIdentity(),
-    email: varchar("email", { length: 255 }).notNull(),
-    password: varchar("password", { length: 255 }).notNull(),
-    full_name: varchar("name", { length: 255 }),
-    phone: varchar("phone", { length: 50 }),
-    address: text("address"),
-    isActive: boolean("is_active").default(true).notNull(),
-    role: userRoleEnum("role").default("customer").notNull(),
-  },
-  (t) => [uniqueIndex("users_email_unique").on(t.email)]
-);
-
 // ===== BRANDS =====
 export const brands = pgTable(
   "brands",
@@ -278,7 +262,7 @@ export const cartItems = pgTable(
   "cart_items",
   {
     id: integer("id").primaryKey().notNull().generatedAlwaysAsIdentity(),
-    userId: integer("user_id").notNull(),
+    userId: text("user_id").notNull(),
     variantId: integer("variant_id").notNull(),
     quantity: integer("quantity").notNull(),
     price: decimal("price", { precision: 12, scale: 2 }).notNull(),
@@ -289,7 +273,7 @@ export const cartItems = pgTable(
     uniqueIndex("cart_user_variant_unique").on(t.userId, t.variantId),
     foreignKey({
       columns: [t.userId],
-      foreignColumns: [users.id],
+      foreignColumns: [user.id],
     })
       .onDelete("cascade")
       .onUpdate("cascade"),
@@ -326,7 +310,7 @@ export const orders = pgTable(
   "orders",
   {
     id: integer("id").primaryKey().notNull().generatedAlwaysAsIdentity(),
-    userId: integer("user_id").notNull(),
+    userId: text("user_id").notNull(),
     status: orderStatusEnum("status").default("pending").notNull(),
     totalAmount: decimal("total_amount", { precision: 14, scale: 2 }).notNull(),
     paymentMethod: paymentMethodEnum("payment_method").notNull(),
@@ -340,7 +324,7 @@ export const orders = pgTable(
     index("orders_created_idx").on(t.createdAt),
     foreignKey({
       columns: [t.userId],
-      foreignColumns: [users.id],
+      foreignColumns: [user.id],
     })
       .onDelete("cascade")
       .onUpdate("cascade"),
@@ -407,7 +391,7 @@ export const reviews = pgTable(
   "reviews",
   {
     id: integer("id").primaryKey().notNull().generatedAlwaysAsIdentity(),
-    userId: integer("user_id").notNull(),
+    userId: text("user_id").notNull(),
     variantId: integer("variant_id").notNull(),
     rating: integer("rating").notNull(),
     comment: text("comment"),
@@ -418,7 +402,7 @@ export const reviews = pgTable(
     uniqueIndex("reviews_user_variant_unique").on(t.userId, t.variantId),
     foreignKey({
       columns: [t.userId],
-      foreignColumns: [users.id],
+      foreignColumns: [user.id],
     })
       .onDelete("cascade")
       .onUpdate("cascade"),
@@ -523,7 +507,7 @@ export const productVariantSpecs = pgTable(
   ]
 );
 // ===== USERS =====
-export const usersRelations = relations(users, ({ many }) => ({
+export const usersRelations = relations(user, ({ many }) => ({
   cartItems: many(cartItems),
   orders: many(orders),
   reviews: many(reviews),
@@ -615,9 +599,9 @@ export const productVariantImagesRelations = relations(
 
 // ===== CART =====
 export const cartItemsRelations = relations(cartItems, ({ one }) => ({
-  user: one(users, {
+  user: one(user, {
     fields: [cartItems.userId],
-    references: [users.id],
+    references: [user.id],
   }),
   variant: one(productVariants, {
     fields: [cartItems.variantId],
@@ -627,9 +611,9 @@ export const cartItemsRelations = relations(cartItems, ({ one }) => ({
 
 // ===== ORDERS =====
 export const ordersRelations = relations(orders, ({ one, many }) => ({
-  user: one(users, {
+  user: one(user, {
     fields: [orders.userId],
-    references: [users.id],
+    references: [user.id],
   }),
   voucher: one(vouchers, {
     fields: [orders.voucherId],
@@ -659,9 +643,9 @@ export const paymentsRelations = relations(payments, ({ one }) => ({
 
 // ===== REVIEWS =====
 export const reviewsRelations = relations(reviews, ({ one }) => ({
-  user: one(users, {
+  user: one(user, {
     fields: [reviews.userId],
-    references: [users.id],
+    references: [user.id],
   }),
   variant: one(productVariants, {
     fields: [reviews.variantId],
@@ -736,7 +720,6 @@ export const productRequiredAttributesRelations = relations(
 );
 // ===== EXPORT ALL =====
 export default {
-  users,
   brands,
   categories,
   products,

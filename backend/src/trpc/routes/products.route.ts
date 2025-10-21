@@ -1,7 +1,17 @@
-import { and, asc, between, desc, eq, ilike, inArray } from "drizzle-orm";
+import {
+  and,
+  asc,
+  between,
+  count,
+  desc,
+  eq,
+  exists,
+  ilike,
+  inArray,
+} from "drizzle-orm";
 import z from "zod";
 import db from "@/db";
-import { products } from "@/db/schema";
+import { products, productVariants } from "@/db/schema";
 import { publicProcedure, router } from "../trpc";
 import {
   createProductSchema,
@@ -9,7 +19,8 @@ import {
   ProductStatus,
   updateProductSchema,
 } from "@/schemas/product";
-// import type { inferProcedureOutput } from "@trpc/server";
+import type { inferProcedureOutput } from "@trpc/server";
+import { CasingCache } from "drizzle-orm/casing";
 
 export const productsRoute = router({
   getProducts: publicProcedure
@@ -76,6 +87,43 @@ export const productsRoute = router({
         },
       });
     }),
+  countProducts: publicProcedure
+    .input(productsQuerySchema)
+    .query(async ({ input }) => {
+      const conditions = [
+        exists(
+          db
+            .select({ id: productVariants.id })
+            .from(productVariants)
+            .where(eq(productVariants.productId, products.id))
+        ),
+      ];
+      if (input.keyword) {
+        conditions.push(ilike(products.name, `%${input.keyword}%`));
+      }
+      if (input.brandId) {
+        conditions.push(inArray(products.brandId, input.brandId));
+      }
+      if (input.categoryId) {
+        conditions.push(inArray(products.categoryId, input.categoryId));
+      }
+      if (input.status) {
+        conditions.push(inArray(products.status, input.status));
+      }
+      if (input.price) {
+        conditions.push(
+          between(
+            products.price,
+            input.price.min?.toString() ?? "0",
+            input.price.max?.toString() ?? "100000000"
+          )
+        );
+      }
+      return await db
+        .select({ count: count() })
+        .from(products)
+        .where(and(...conditions));
+    }),
   getProductsWithVariants: publicProcedure
     .input(productsQuerySchema)
     .query(async ({ input }) => {
@@ -85,6 +133,43 @@ export const productsRoute = router({
         columns: {
           description: false,
           metadata: false,
+        },
+        where(fields, operators) {
+          console.log({ input });
+          const conditions = [
+            exists(
+              db
+                .select({ id: productVariants.id })
+                .from(productVariants)
+                .where(eq(productVariants.productId, fields.id))
+            ),
+          ];
+          if (input.keyword) {
+            conditions.push(ilike(fields.name, `%${input.keyword}%`));
+          }
+          if (input.brandId && input.brandId.length > 0) {
+            conditions.push(inArray(fields.brandId, input.brandId));
+          }
+          if (input.categoryId && input.categoryId.length > 0) {
+            conditions.push(inArray(fields.categoryId, input.categoryId));
+          }
+          if (input.status && input.status.length > 0) {
+            conditions.push(inArray(fields.status, input.status));
+          }
+          if (input.price) {
+            conditions.push(
+              between(
+                fields.price,
+                input.price.min?.toString() ?? "0",
+                input.price.max?.toString() ?? "100000000"
+              )
+            );
+          }
+          console.log(conditions.length);
+          if (conditions.length > 0) {
+            return and(...conditions);
+          }
+          return undefined;
         },
         with: {
           brand: true,
@@ -202,6 +287,15 @@ export const productsRoute = router({
     }),
 });
 
-export type GetProductsResponse = Awaited<
-  ReturnType<typeof productsRoute.getProducts>
+export type GetProductsResponse = inferProcedureOutput<
+  typeof productsRoute.getProducts
+>;
+export type GetProductsWithVariantsResponse = inferProcedureOutput<
+  typeof productsRoute.getProductsWithVariants
+>;
+export type GetProductDetailResponse = inferProcedureOutput<
+  typeof productsRoute.getProductDetail
+>;
+export type GetProductsByCategoryIdResponse = inferProcedureOutput<
+  typeof productsRoute.getProductsByCategoryId
 >;
