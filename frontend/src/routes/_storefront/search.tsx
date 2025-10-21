@@ -1,8 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import SearchProducts from "@/pages/search";
+import SearchProducts from "@/components/pages/search";
 import { zodValidator } from "@tanstack/zod-adapter";
 import { z } from "zod";
-import type { GetProductsResponse } from "@/types/backend/trpc/routes/products.route";
 
 // helper: ép kiểu number an toàn (reject NaN, Infinity → undefined)
 const safeNumber = z.preprocess((val) => {
@@ -17,7 +16,7 @@ const safeLimit = z
     if (!Number.isFinite(num)) return undefined; // undefined → default
     return Math.min(num, 200); // clamp max 200
   }, z.number())
-  .default(10);
+  .default(15);
 
 export const productsQuerySchema = z.object({
   page: safeNumber.default(1),
@@ -45,7 +44,6 @@ export const Route = createFileRoute("/_storefront/search")({
   loaderDeps: ({ search }) => ({ search }),
   loader: async ({ context, deps }) => {
     const { trpc, queryClient, trpcClient } = context;
-    console.log({ deps });
     const params = {
       page: deps.search.page,
       limit: deps.search.limit,
@@ -63,11 +61,13 @@ export const Route = createFileRoute("/_storefront/search")({
     };
     const p1 = trpcClient.products.getProductsWithVariants.query(params);
     const p2 = trpcClient.products.countProducts.query(params);
-    return Promise.all([p1, p2]);
+    return {
+      products: p1,
+      total: p2.then((res) => res[0].count),
+    };
   },
 });
 
 function RouteComponent() {
-  const [products, total] = Route.useLoaderData();
-  return <SearchProducts products={products as any} total={total[0].count} />;
+  return <SearchProducts />;
 }

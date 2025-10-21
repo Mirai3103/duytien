@@ -134,6 +134,7 @@ export const productsRoute = router({
           description: false,
           metadata: false,
         },
+
         where(fields, operators) {
           console.log({ input });
           const conditions = [
@@ -187,6 +188,15 @@ export const productsRoute = router({
               },
             },
           },
+        },
+        orderBy(fields, operators) {
+          const field =
+            fields[input.sort?.field as keyof typeof fields] ||
+            fields.createdAt;
+          if (input.sort?.direction === "asc") {
+            return asc(field);
+          }
+          return desc(field);
         },
       });
     }),
@@ -345,3 +355,100 @@ export type GetProductDetailResponse = inferProcedureOutput<
 export type GetProductsByCategoryIdResponse = inferProcedureOutput<
   typeof productsRoute.getProductsByCategoryId
 >;
+
+// getProductsWithVariants: publicProcedure
+//   .input(productsQuerySchema)
+//   .query(async ({ input }) => {
+//     // 1. Query PRODUCTS (KHÔNG load variants)
+//     const products = await db.query.products.findMany({
+//       limit: input.limit,
+//       offset: (input.page - 1) * input.limit,
+//       columns: {
+//         description: false,
+//         metadata: false,
+//       },
+//       where(fields, operators) {
+//         const conditions = [
+//           exists(
+//             db
+//               .select({ id: productVariants.id })
+//               .from(productVariants)
+//               .where(eq(productVariants.productId, fields.id))
+//           ),
+//         ];
+//         if (input.keyword) {
+//           conditions.push(ilike(fields.name, `%${input.keyword}%`));
+//         }
+//         if (input.brandId && input.brandId.length > 0) {
+//           conditions.push(inArray(fields.brandId, input.brandId));
+//         }
+//         if (input.categoryId && input.categoryId.length > 0) {
+//           conditions.push(inArray(fields.categoryId, input.categoryId));
+//         }
+//         if (input.status && input.status.length > 0) {
+//           conditions.push(inArray(fields.status, input.status));
+//         }
+//         if (input.price) {
+//           conditions.push(
+//             between(
+//               fields.price,
+//               input.price.min?.toString() ?? "0",
+//               input.price.max?.toString() ?? "100000000"
+//             )
+//           );
+//         }
+//         if (conditions.length > 0) return and(...conditions);
+//         return undefined;
+//       },
+//       with: {
+//         brand: true,
+//         category: true,
+//       },
+//       orderBy(fields, operators) {
+//         const field =
+//           fields[input.sort?.field as keyof typeof fields] ||
+//           fields.createdAt;
+//         if (input.sort?.direction === "asc") return asc(field);
+//         return desc(field);
+//       },
+//     });
+
+//     if (products.length === 0) return [];
+
+//     // 2. Query VARIANTS theo productIds
+//     const productIds = products.map((p) => p.id);
+
+//     const variants = await db.query.productVariants.findMany({
+//       where: inArray(productVariants.productId, productIds),
+//       with: {
+//         variantValues: {
+//           with: {
+//             value: {
+//               with: {
+//                 attribute: true,
+//               },
+//             },
+//           },
+//         },
+//       },
+//     });
+
+//     // 3. Group variants theo productId
+//     const variantsByProductId = variants.reduce<Record<string, any[]>>(
+//       (acc, variant) => {
+//         const pid = variant.productId;
+//         if (!acc[pid]) acc[pid] = [];
+//         acc[pid].push(variant);
+//         return acc;
+//       },
+//       {}
+//     );
+
+//     // 4. Merge
+//     const merged = products.map((p) => ({
+//       ...p,
+//       variants: variantsByProductId[p.id] ?? [],
+//     }));
+
+//     return merged;
+//   }),
