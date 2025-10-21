@@ -263,6 +263,24 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
                         };
                     }[];
                 }[];
+                specs: {
+                    productId: number;
+                    specValueId: number;
+                    value: {
+                        id: number;
+                        value: string;
+                        keyId: number;
+                        key: {
+                            id: number;
+                            name: string;
+                            groupId: number;
+                            group: {
+                                id: number;
+                                name: string;
+                            };
+                        };
+                    };
+                }[];
             } | undefined;
             meta: object;
         }>;
@@ -350,6 +368,28 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
                         totalChild?: number;
                     } | null;
                 } | null;
+            }[];
+            meta: object;
+        }>;
+        getFeaturedProducts: import("@trpc/server").TRPCQueryProcedure<{
+            input: {
+                limit?: number | undefined;
+                offset?: number | undefined;
+                categoryId?: number | undefined;
+            };
+            output: {
+                id: number;
+                name: string;
+                createdAt: Date;
+                slug: string;
+                isFeatured: boolean;
+                metadata: any;
+                description: string | null;
+                brandId: number | null;
+                categoryId: number | null;
+                thumbnail: string | null;
+                status: "active" | "inactive";
+                price: string;
             }[];
             meta: object;
         }>;
@@ -813,6 +853,17 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
             output: {
                 success: boolean;
             };
+            meta: object;
+        }>;
+        getFeatured: import("@trpc/server").TRPCQueryProcedure<{
+            input: void;
+            output: {
+                id: number;
+                name: string;
+                slug: string;
+                logo: string | null;
+                isFeatured: boolean;
+            }[];
             meta: object;
         }>;
     }>>;

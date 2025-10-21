@@ -11,7 +11,7 @@ import {
 } from "drizzle-orm";
 import z from "zod";
 import db from "@/db";
-import { products, productVariants } from "@/db/schema";
+import { categories, products, productVariants } from "@/db/schema";
 import { publicProcedure, router } from "../trpc";
 import {
   createProductSchema,
@@ -212,6 +212,19 @@ export const productsRoute = router({
               },
             },
           },
+          specs: {
+            with: {
+              value: {
+                with: {
+                  key: {
+                    with: {
+                      group: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       });
     }),
@@ -283,6 +296,39 @@ export const productsRoute = router({
           brand: true,
           category: true,
         },
+      });
+    }),
+  getFeaturedProducts: publicProcedure
+    .input(
+      z.object({
+        limit: z.number().default(10),
+        offset: z.number().default(0),
+        categoryId: z.number().optional(),
+      })
+    )
+    .query(async ({ input }) => {
+      let categoryIds: number[] = [];
+      if (input.categoryId) {
+        categoryIds.push(input.categoryId);
+        // find all child categories
+        const childCategories = await db.query.categories.findMany({
+          where: eq(categories.parentId, input.categoryId),
+          columns: {
+            id: true,
+          },
+        });
+        categoryIds.push(...childCategories.map((category) => category.id));
+      }
+      return await db.query.products.findMany({
+        where(fields, operators) {
+          const conditions = [eq(fields.isFeatured, true)];
+          if (categoryIds.length > 0) {
+            conditions.push(inArray(fields.categoryId, categoryIds));
+          }
+          return and(...conditions);
+        },
+        limit: input.limit,
+        offset: input.offset,
       });
     }),
 });

@@ -13,6 +13,7 @@ import type { GetCartResponse } from "@/types/backend/trpc/routes/cart.route";
 import { useTRPC } from "@/lib/trpc";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { RippleButton } from "@/components/ui/shadcn-io/ripple-button";
 
 export const Route = createFileRoute("/_storefront/cart")({
   component: RouteComponent,
@@ -91,10 +92,15 @@ function RouteComponent() {
   const total = subtotal - discount + shipping;
 
   const isEmpty = cartItems?.length === 0;
-  const variantValues = React.useMemo(() => {
-    return cartItems?.flatMap((item) =>
-      item.variant.variantValues.map((value) => value.value.value)
-    );
+  const variantsValues = React.useMemo(() => {
+    const mapValues = new Map<number, string[]>();
+    cartItems?.forEach((item) => {
+      mapValues.set(
+        item.variant.id,
+        item.variant.variantValues.map((value) => value.value.value)
+      );
+    });
+    return mapValues;
   }, [cartItems]);
 
   return (
@@ -173,15 +179,17 @@ function RouteComponent() {
 
                             {/* Variants */}
                             <div className="flex flex-wrap gap-2 mb-2">
-                              {variantValues?.map((value) => (
-                                <Badge
-                                  variant="secondary"
-                                  className="text-xs"
-                                  key={value}
-                                >
-                                  {value}
-                                </Badge>
-                              ))}
+                              {variantsValues
+                                ?.get(item.variant.id)
+                                ?.map((value) => (
+                                  <Badge
+                                    variant="secondary"
+                                    className="text-xs"
+                                    key={value}
+                                  >
+                                    {value}
+                                  </Badge>
+                                ))}
                             </div>
 
                             {/* Price */}
@@ -229,15 +237,15 @@ function RouteComponent() {
                                 </Button>
                               </div>
 
-                              <Button
+                              <RippleButton
                                 variant="ghost"
                                 size="sm"
-                                className="text-destructive hover:text-destructive"
+                                className="text-destructive hover:text-white"
                                 onClick={() => removeItem(item.id)}
                               >
                                 <Trash2 className="h-4 w-4 mr-1" />
                                 Xóa
-                              </Button>
+                              </RippleButton>
                             </div>
 
                             {/* Stock Status */}

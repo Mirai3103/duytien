@@ -1,9 +1,10 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { ChevronRight, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useTRPC } from "@/lib/trpc";
 import { useQuery } from "@tanstack/react-query";
+import { RippleButton } from "./ui/shadcn-io/ripple-button";
 
 interface Product {
   id: number;
@@ -16,25 +17,23 @@ interface Product {
 interface CategoryProductSectionProps {
   title: string;
   categoryId: number;
-  products: Product[];
   bgColor?: string;
 }
 
 const CategoryProductSection = ({
   title,
   categoryId,
-  products,
   bgColor = "bg-white",
 }: CategoryProductSectionProps) => {
   const trpc = useTRPC();
   const { data } = useQuery(
-    trpc.products.getProductsByCategoryId.queryOptions({
+    trpc.products.getFeaturedProducts.queryOptions({
       categoryId,
-      limit: 10,
+      limit: 5,
       offset: 0,
     })
   );
-  console.log(data);
+  const navigate = useNavigate({ from: "/" });
   return (
     <section className={`${bgColor} py-12`}>
       <div className="container mx-auto px-4">
@@ -42,7 +41,7 @@ const CategoryProductSection = ({
           <h2 className="text-3xl font-bold">{title}</h2>
           <Link
             to="/search"
-            search={{ category: categoryId }}
+            search={{ categoryId: [categoryId] }}
             className="flex items-center gap-2 text-primary font-semibold hover:gap-3 transition-all group"
           >
             Xem thêm
@@ -54,30 +53,43 @@ const CategoryProductSection = ({
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          {products.map((product) => (
+          {data?.map((product) => (
             <Card
               key={product.id}
               className="hover-lift cursor-pointer overflow-hidden"
+              onClick={() => {
+                navigate({
+                  to: "/product/$id",
+                  params: { id: product.id.toString() as string },
+                  search: { isSpu: true },
+                });
+              }}
             >
               <img
-                src={product.image}
+                src={product.thumbnail ?? "/images/placeholder.png"}
                 alt={product.name}
-                className="w-full h-48 object-cover"
+                className="w-full h-56 object-contain mx-auto"
               />
               <div className="p-4 space-y-3">
                 <h3 className="font-semibold text-sm line-clamp-2 h-10">
                   {product.name}
                 </h3>
-                <div className="flex items-center gap-1">
-                  <Star size={16} className="fill-yellow-400 text-yellow-400" />
-                  <span className="text-sm font-medium">{product.rating}</span>
-                </div>
                 <p className="text-lg font-bold text-primary">
-                  {product.price.toLocaleString("vi-VN")}đ
+                  {Number(product.price).toLocaleString("vi-VN")}đ
                 </p>
-                <Button size="sm" className="w-full">
+                <RippleButton
+                  size="sm"
+                  className="w-full"
+                  onClick={() => {
+                    navigate({
+                      to: "/product/$id",
+                      params: { id: product.id.toString() as string },
+                      search: { isSpu: true },
+                    });
+                  }}
+                >
                   Mua ngay
-                </Button>
+                </RippleButton>
               </div>
             </Card>
           ))}

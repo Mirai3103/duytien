@@ -194,6 +194,7 @@ function RouteComponent() {
       quantity: quantity,
     });
   };
+  console.log(product.specs);
 
   const attrs = React.useMemo(() => {
     function extractAttrs(product: any) {
@@ -212,22 +213,25 @@ function RouteComponent() {
   }, [product]);
   const specs = React.useMemo(() => {
     const variantSpecs = variant.specs;
-    function transformSpecs(data: typeof variantSpecs) {
+    const productSpecs = product.specs;
+    const combinedSpecs = [...variantSpecs, ...productSpecs];
+    function transformSpecs(data: typeof combinedSpecs) {
       return _(data)
         .groupBy((item) => item.value.key.group.id)
         .map((items, groupId) => ({
           groupId: Number(groupId),
           groupName: _.get(items, "[0].value.key.group.name", ""),
-          specs: items.map((i) => ({
-            specName: _.get(i, "value.key.name", ""),
-            specValue: _.get(i, "value.value", ""),
-          })),
+          specs: items
+            .filter((i) => i.value?.value) // <── BỎ NHỮNG SPEC TRỐNG
+            .map((i) => ({
+              specName: _.get(i, "value.key.name", ""),
+              specValue: _.get(i, "value.value", ""),
+            })),
         }))
         .value();
     }
-    return transformSpecs(variantSpecs);
-  }, [variant]);
-  console.log(specs);
+    return transformSpecs(combinedSpecs);
+  }, [variant.specs, product.specs]);
 
   const totalReviews = Object.values(fake_ratingDistribution).reduce(
     (a, b) => a + b,

@@ -3,7 +3,7 @@ import {
   querySchema,
   updateBrandSchema,
 } from "@/schemas/brand";
-import { desc, eq, ilike } from "drizzle-orm";
+import { asc, desc, eq, ilike } from "drizzle-orm";
 import z from "zod";
 import db from "@/db";
 import { brands as brandsTable } from "@/db/schema";
@@ -52,4 +52,12 @@ export const brandRoute = router({
       }
       return { success: true };
     }),
+  getFeatured: publicProcedure.query(async () => {
+    const brands = await db.query.brands.findMany({
+      where: eq(brandsTable.isFeatured, true),
+      limit: 10,
+      orderBy: [asc(brandsTable.name)],
+    });
+    return brands;
+  }),
 });

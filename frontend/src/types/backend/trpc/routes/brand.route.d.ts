@@ -73,4 +73,15 @@ export declare const brandRoute: import("@trpc/server").TRPCBuiltRouter<{
         };
         meta: object;
     }>;
+    getFeatured: import("@trpc/server").TRPCQueryProcedure<{
+        input: void;
+        output: {
+            id: number;
+            name: string;
+            slug: string;
+            logo: string | null;
+            isFeatured: boolean;
+        }[];
+        meta: object;
+    }>;
 }>>;

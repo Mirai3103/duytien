@@ -203,19 +203,16 @@ function Index() {
       <CategoryProductSection
         title="Điện Thoại Hot"
         categoryId={1}
-        products={phoneProducts}
         bgColor="bg-secondary"
       />
       <CategoryProductSection
         title="Tablet Hot"
-        categoryId={1}
-        products={phoneProducts}
+        categoryId={5}
         bgColor="bg-secondary"
       />
       <CategoryProductSection
         title="Phụ Kiện Hot"
         categoryId={2}
-        products={phoneProducts}
         bgColor="bg-secondary"
       />
 
