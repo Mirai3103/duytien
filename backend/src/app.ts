@@ -14,14 +14,13 @@ app.use(
     credentials: true,
   })
 );
+// error handler
+app.use((err: any, req: any, res: any, next: any) => {
+  console.error(err.stack);
+  res.status(500).send("Something broke!");
+});
 app.all("/api/auth/*path", toNodeHandler(auth));
 app.use(express.json());
-// app.get("/api/me", async (req, res) => {
-//   const session = await auth.api.getSession({
-//      headers: fromNodeHeaders(req.headers),
-//    });
-//  return res.json(session);
-// });
 
 app.post("/api/upload", uploadFile, (req: any, res) => {
   return res.json({

@@ -1,16 +1,17 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
     {
       "source": "/trpc/(.*)",
-      "destination": "http://13.212.62.89:3000/$1"
+      "destination": "https://api.sniptxt.xyz/trpc/$1"
+    },
+    {
+      "source": "/api/(.*)",
+      "destination": "https://api.sniptxt.xyz/api/$1"
     },
     {
       "source": "/(.*)",
       "destination": "/index.html"
-    },
-    {
-      "source": "/api/(.*)",
-      "destination": "http://13.212.62.89:3000/api/$1"
     }
   ]
 }

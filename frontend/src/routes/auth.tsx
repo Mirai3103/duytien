@@ -147,7 +147,7 @@ function RouteComponent() {
     console.log("Google login initiated");
     const data = await signIn.social({
       provider: "google",
-      callbackURL: "http://localhost:5173",
+      callbackURL: window.location.origin,
     });
     console.log(data);
     alert(
