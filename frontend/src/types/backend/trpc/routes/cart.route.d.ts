@@ -102,6 +102,40 @@ declare const cartRoute: import("@trpc/server").TRPCBuiltRouter<{
         output: number;
         meta: object;
     }>;
+    getCartItemsInIds: import("@trpc/server").TRPCQueryProcedure<{
+        input: number[];
+        output: {
+            id: number;
+            userId: string;
+            price: string;
+            variantId: number;
+            quantity: number;
+            variant: {
+                id: number;
+                name: string;
+                image: string | null;
+                createdAt: Date;
+                metadata: any;
+                status: "active" | "inactive";
+                price: string;
+                productId: number | null;
+                sku: string;
+                stock: number;
+                isDefault: boolean | null;
+                variantValues: {
+                    variantId: number;
+                    attributeValueId: number;
+                    value: {
+                        id: number;
+                        value: string;
+                        metadata: unknown;
+                        attributeId: number;
+                    };
+                }[];
+            };
+        }[];
+        meta: object;
+    }>;
 }>>;
 export default cartRoute;
 export type GetCartResponse = inferProcedureOutput<typeof cartRoute.getCart>;

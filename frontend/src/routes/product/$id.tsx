@@ -175,6 +175,7 @@ function RouteComponent() {
         toast.success("Thêm vào giỏ hàng thành công");
         setQuantity(1); // Reset quantity after adding to cart
         queryClient.invalidateQueries(trpc.cart.countCartItems.queryOptions());
+        queryClient.invalidateQueries(trpc.cart.getCart.queryOptions());
       },
       onError: () => {
         toast.error("Thêm vào giỏ hàng thất bại");

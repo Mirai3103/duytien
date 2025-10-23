@@ -9,21 +9,22 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import type { GetCartResponse } from "@/types/backend/trpc/routes/cart.route";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useTRPC } from "@/lib/trpc";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { RippleButton } from "@/components/ui/shadcn-io/ripple-button";
+import { useCartStore } from "@/store/cart";
 
 export const Route = createFileRoute("/_storefront/cart")({
   component: RouteComponent,
 });
 
-type CartItems = GetCartResponse;
-
 function RouteComponent() {
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
+  const { select, toggle, clear, isSelected, isAll } = useCartStore();
+
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
@@ -83,13 +84,32 @@ function RouteComponent() {
     setAppliedCoupon(null);
   };
 
-  const subtotal = cartItems?.reduce(
+  // Tính toán chỉ với các sản phẩm được chọn
+  const selectedItems = cartItems?.filter((item) => isSelected(item.id)) || [];
+  const subtotal = selectedItems.reduce(
     (sum, item) => sum + Number(item.price) * Number(item.quantity),
     0
   );
   const discount = appliedCoupon ? subtotal * 0.1 : 0; // 10% discount if coupon applied
   const shipping = subtotal >= 10000000 ? 0 : 30000; // Free shipping over 10M
   const total = subtotal - discount + shipping;
+
+  // Xử lý select all
+  const handleSelectAll = () => {
+    if (isAll(cartItems?.length || 0)) {
+      clear();
+    } else {
+      cartItems?.forEach((item) => select(item.id));
+    }
+  };
+
+  const handleClearCart = () => {
+    if (window.confirm("Bạn có chắc chắn muốn xóa toàn bộ giỏ hàng?")) {
+      mutateClearCart.mutate();
+      clear();
+      toast.success("Đã xóa toàn bộ giỏ hàng");
+    }
+  };
 
   const isEmpty = cartItems?.length === 0;
   const variantsValues = React.useMemo(() => {
@@ -142,12 +162,44 @@ function RouteComponent() {
               <div className="lg:col-span-2 space-y-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Sản phẩm</CardTitle>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Checkbox
+                          checked={isAll(cartItems?.length || 0)}
+                          onCheckedChange={handleSelectAll}
+                          id="select-all"
+                        />
+                        <label
+                          htmlFor="select-all"
+                          className="text-sm font-medium cursor-pointer"
+                        >
+                          Chọn tất cả ({cartItems?.length || 0} sản phẩm)
+                        </label>
+                      </div>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={handleClearCart}
+                        disabled={isEmpty}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Xóa giỏ hàng
+                      </Button>
+                    </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {cartItems.map((item, index) => (
                       <div key={item.id}>
                         <div className="flex gap-4">
+                          {/* Checkbox */}
+                          <div className="flex-shrink-0 pt-2">
+                            <Checkbox
+                              checked={isSelected(item.id)}
+                              onCheckedChange={() => toggle(item.id)}
+                              id={`item-${item.id}`}
+                            />
+                          </div>
+
                           {/* Product Image */}
                           <Link
                             to="/product/$id"
@@ -353,6 +405,15 @@ function RouteComponent() {
                     <CardTitle>Tổng đơn hàng</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
+                    {/* Selected Items Info */}
+                    <div className="text-sm text-muted-foreground bg-muted p-3 rounded-lg">
+                      Đã chọn{" "}
+                      <span className="font-semibold text-foreground">
+                        {selectedItems.length}
+                      </span>{" "}
+                      sản phẩm
+                    </div>
+
                     {/* Summary Items */}
                     <div className="space-y-3">
                       <div className="flex justify-between">
@@ -405,11 +466,21 @@ function RouteComponent() {
                     </div>
 
                     {/* Checkout Button */}
-                    <Link to="/checkout">
-                      <Button size="lg" className="w-full">
+                    <Link to="/checkout" disabled={selectedItems.length === 0}>
+                      <Button
+                        size="lg"
+                        className="w-full"
+                        disabled={selectedItems.length === 0}
+                      >
                         Tiến hành thanh toán
                       </Button>
                     </Link>
+
+                    {selectedItems.length === 0 && (
+                      <p className="text-xs text-center text-muted-foreground">
+                        Vui lòng chọn ít nhất một sản phẩm để thanh toán
+                      </p>
+                    )}
 
                     {/* Additional Info */}
                     <div className="space-y-2 pt-4 border-t">

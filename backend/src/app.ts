@@ -16,8 +16,11 @@ app.use(
 );
 // error handler
 app.use((err: any, req: any, res: any, next: any) => {
-  console.error(err.stack);
-  res.status(500).send("Something broke!");
+  if (res.headersSent) {
+    return next(err)
+  }
+  res.status(500)
+  res.render('error', { error: err })
 });
 app.all("/api/auth/*path", toNodeHandler(auth));
 app.use(express.json());

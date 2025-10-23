@@ -1,4 +1,4 @@
-import { and, count, eq, isNull, sql } from "drizzle-orm";
+import { and, count, eq, inArray, isNull, sql } from "drizzle-orm";
 import z from "zod";
 import db from "@/db";
 import { cartItems as cartItemsTable } from "@/db/schema";
@@ -107,6 +107,29 @@ const cartRoute = router({
       .where(eq(cartItemsTable.userId, userId));
     return result[0]?.count ?? 0;
   }),
+  getCartItemsInIds: protectedProcedure
+    .input(z.array(z.number()))
+    .query(async ({ ctx, input }) => {
+      const userId = ctx.session!.session.userId;
+      const result = await db.query.cartItems.findMany({
+        where: and(
+          eq(cartItemsTable.userId, userId),
+          inArray(cartItemsTable.id, input)
+        ),
+        with: {
+          variant: {
+            with: {
+              variantValues: {
+                with: {
+                  value: true,
+                },
+              },
+            },
+          },
+        },
+      });
+      return result;
+    }),
 });
 
 export default cartRoute;
