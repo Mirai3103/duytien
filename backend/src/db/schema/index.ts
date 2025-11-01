@@ -314,7 +314,7 @@ export const orders = pgTable(
     status: orderStatusEnum("status").default("pending").notNull(),
     totalAmount: decimal("total_amount", { precision: 14, scale: 2 }).notNull(),
     paymentMethod: paymentMethodEnum("payment_method").notNull(),
-    deliveryAddress: text("delivery_address"),
+    deliveryAddressId: integer("delivery_address_id"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     voucherId: integer("voucher_id"),
   },
@@ -331,6 +331,12 @@ export const orders = pgTable(
     foreignKey({
       columns: [t.voucherId],
       foreignColumns: [vouchers.id],
+    })
+      .onDelete("set null")
+      .onUpdate("cascade"),
+    foreignKey({
+      columns: [t.deliveryAddressId],
+      foreignColumns: [addresses.id],
     })
       .onDelete("set null")
       .onUpdate("cascade"),
@@ -506,6 +512,31 @@ export const productVariantSpecs = pgTable(
       .onUpdate("cascade"),
   ]
 );
+
+export const addresses = pgTable(
+  "addresses",
+  {
+    id: integer("id").primaryKey().notNull().generatedAlwaysAsIdentity(),
+    userId: text("user_id").references(() => user.id),
+    detail: text("detail").notNull(), //số nhà, tên đường
+    ward: varchar("ward", { length: 255 }).notNull(), //phường/xã
+    district: varchar("district", { length: 255 }).notNull(), //quận/huyện
+    province: varchar("province", { length: 255 }).notNull(), //tỉnh/thành phố
+    isDefault: boolean("is_default").default(false).notNull(),
+    note: text("note"),
+    phone: varchar("phone", { length: 255 }).notNull(), // số điện thoại người nhận
+    fullName: varchar("full_name", { length: 255 }).notNull(), // tên người nhận
+  },
+  (t) => [
+    foreignKey({
+      columns: [t.userId],
+      foreignColumns: [user.id],
+    })
+      .onDelete("cascade")
+      .onUpdate("cascade"),
+  ]
+);
+
 // ===== USERS =====
 export const usersRelations = relations(user, ({ many }) => ({
   cartItems: many(cartItems),
@@ -764,4 +795,5 @@ export default {
   session,
   account,
   verification,
+  addresses,
 };

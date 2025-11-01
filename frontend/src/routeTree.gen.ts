@@ -8,8 +8,6 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { createFileRoute } from '@tanstack/react-router'
-
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as PrivacyRouteImport } from './routes/privacy'
@@ -19,6 +17,7 @@ import { Route as StorefrontRouteImport } from './routes/_storefront'
 import { Route as StorefrontIndexRouteImport } from './routes/_storefront/index'
 import { Route as ProductIdRouteImport } from './routes/product/$id'
 import { Route as AdminAdminRouteImport } from './routes/admin/_admin'
+import { Route as StorefrontUserRouteImport } from './routes/_storefront/user'
 import { Route as StorefrontSearchRouteImport } from './routes/_storefront/search'
 import { Route as StorefrontCheckoutRouteImport } from './routes/_storefront/checkout'
 import { Route as StorefrontCartRouteImport } from './routes/_storefront/cart'
@@ -34,13 +33,6 @@ import { Route as AdminAdminProductsIdVariantsIndexRouteImport } from './routes/
 import { Route as AdminAdminProductsIdVariantsCreateRouteImport } from './routes/admin/_admin/products/$id.variants/create'
 import { Route as AdminAdminProductsIdVariantsVariantIdEditRouteImport } from './routes/admin/_admin/products/$id.variants/$variantId.edit'
 
-const AdminRouteImport = createFileRoute('/admin')()
-
-const AdminRoute = AdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
@@ -78,6 +70,11 @@ const ProductIdRoute = ProductIdRouteImport.update({
 const AdminAdminRoute = AdminAdminRouteImport.update({
   id: '/_admin',
   getParentRoute: () => AdminRoute,
+} as any)
+const StorefrontUserRoute = StorefrontUserRouteImport.update({
+  id: '/user',
+  path: '/user',
+  getParentRoute: () => StorefrontRoute,
 } as any)
 const StorefrontSearchRoute = StorefrontSearchRouteImport.update({
   id: '/search',
@@ -163,6 +160,7 @@ export interface FileRoutesByFullPath {
   '/cart': typeof StorefrontCartRoute
   '/checkout': typeof StorefrontCheckoutRoute
   '/search': typeof StorefrontSearchRoute
+  '/user': typeof StorefrontUserRoute
   '/admin': typeof AdminAdminRouteWithChildren
   '/product/$id': typeof ProductIdRoute
   '/': typeof StorefrontIndexRoute
@@ -186,6 +184,7 @@ export interface FileRoutesByTo {
   '/cart': typeof StorefrontCartRoute
   '/checkout': typeof StorefrontCheckoutRoute
   '/search': typeof StorefrontSearchRoute
+  '/user': typeof StorefrontUserRoute
   '/admin': typeof AdminAdminRouteWithChildren
   '/product/$id': typeof ProductIdRoute
   '/': typeof StorefrontIndexRoute
@@ -211,7 +210,7 @@ export interface FileRoutesById {
   '/_storefront/cart': typeof StorefrontCartRoute
   '/_storefront/checkout': typeof StorefrontCheckoutRoute
   '/_storefront/search': typeof StorefrontSearchRoute
-  '/admin': typeof AdminRouteWithChildren
+  '/_storefront/user': typeof StorefrontUserRoute
   '/admin/_admin': typeof AdminAdminRouteWithChildren
   '/product/$id': typeof ProductIdRoute
   '/_storefront/': typeof StorefrontIndexRoute
@@ -237,6 +236,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/checkout'
     | '/search'
+    | '/user'
     | '/admin'
     | '/product/$id'
     | '/'
@@ -260,6 +260,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/checkout'
     | '/search'
+    | '/user'
     | '/admin'
     | '/product/$id'
     | '/'
@@ -284,7 +285,7 @@ export interface FileRouteTypes {
     | '/_storefront/cart'
     | '/_storefront/checkout'
     | '/_storefront/search'
-    | '/admin'
+    | '/_storefront/user'
     | '/admin/_admin'
     | '/product/$id'
     | '/_storefront/'
@@ -307,19 +308,11 @@ export interface RootRouteChildren {
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   PrivacyRoute: typeof PrivacyRoute
   TermsRoute: typeof TermsRoute
-  AdminRoute: typeof AdminRouteWithChildren
   ProductIdRoute: typeof ProductIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/terms': {
       id: '/terms'
       path: '/terms'
@@ -371,10 +364,17 @@ declare module '@tanstack/react-router' {
     }
     '/admin/_admin': {
       id: '/admin/_admin'
-      path: '/admin'
+      path: ''
       fullPath: '/admin'
       preLoaderRoute: typeof AdminAdminRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/_storefront/user': {
+      id: '/_storefront/user'
+      path: '/user'
+      fullPath: '/user'
+      preLoaderRoute: typeof StorefrontUserRouteImport
+      parentRoute: typeof StorefrontRoute
     }
     '/_storefront/search': {
       id: '/_storefront/search'
@@ -481,6 +481,7 @@ interface StorefrontRouteChildren {
   StorefrontCartRoute: typeof StorefrontCartRoute
   StorefrontCheckoutRoute: typeof StorefrontCheckoutRoute
   StorefrontSearchRoute: typeof StorefrontSearchRoute
+  StorefrontUserRoute: typeof StorefrontUserRoute
   StorefrontIndexRoute: typeof StorefrontIndexRoute
 }
 
@@ -488,6 +489,7 @@ const StorefrontRouteChildren: StorefrontRouteChildren = {
   StorefrontCartRoute: StorefrontCartRoute,
   StorefrontCheckoutRoute: StorefrontCheckoutRoute,
   StorefrontSearchRoute: StorefrontSearchRoute,
+  StorefrontUserRoute: StorefrontUserRoute,
   StorefrontIndexRoute: StorefrontIndexRoute,
 }
 
@@ -495,58 +497,12 @@ const StorefrontRouteWithChildren = StorefrontRoute._addFileChildren(
   StorefrontRouteChildren,
 )
 
-interface AdminAdminRouteChildren {
-  AdminAdminBrandsRoute: typeof AdminAdminBrandsRoute
-  AdminAdminCategoriesRoute: typeof AdminAdminCategoriesRoute
-  AdminAdminCustomersRoute: typeof AdminAdminCustomersRoute
-  AdminAdminDashboardRoute: typeof AdminAdminDashboardRoute
-  AdminAdminOrdersRoute: typeof AdminAdminOrdersRoute
-  AdminAdminProductsCreateRoute: typeof AdminAdminProductsCreateRoute
-  AdminAdminProductsIndexRoute: typeof AdminAdminProductsIndexRoute
-  AdminAdminProductsIdEditRoute: typeof AdminAdminProductsIdEditRoute
-  AdminAdminProductsIdVariantsCreateRoute: typeof AdminAdminProductsIdVariantsCreateRoute
-  AdminAdminProductsIdVariantsIndexRoute: typeof AdminAdminProductsIdVariantsIndexRoute
-  AdminAdminProductsIdVariantsVariantIdEditRoute: typeof AdminAdminProductsIdVariantsVariantIdEditRoute
-}
-
-const AdminAdminRouteChildren: AdminAdminRouteChildren = {
-  AdminAdminBrandsRoute: AdminAdminBrandsRoute,
-  AdminAdminCategoriesRoute: AdminAdminCategoriesRoute,
-  AdminAdminCustomersRoute: AdminAdminCustomersRoute,
-  AdminAdminDashboardRoute: AdminAdminDashboardRoute,
-  AdminAdminOrdersRoute: AdminAdminOrdersRoute,
-  AdminAdminProductsCreateRoute: AdminAdminProductsCreateRoute,
-  AdminAdminProductsIndexRoute: AdminAdminProductsIndexRoute,
-  AdminAdminProductsIdEditRoute: AdminAdminProductsIdEditRoute,
-  AdminAdminProductsIdVariantsCreateRoute:
-    AdminAdminProductsIdVariantsCreateRoute,
-  AdminAdminProductsIdVariantsIndexRoute:
-    AdminAdminProductsIdVariantsIndexRoute,
-  AdminAdminProductsIdVariantsVariantIdEditRoute:
-    AdminAdminProductsIdVariantsVariantIdEditRoute,
-}
-
-const AdminAdminRouteWithChildren = AdminAdminRoute._addFileChildren(
-  AdminAdminRouteChildren,
-)
-
-interface AdminRouteChildren {
-  AdminAdminRoute: typeof AdminAdminRouteWithChildren
-}
-
-const AdminRouteChildren: AdminRouteChildren = {
-  AdminAdminRoute: AdminAdminRouteWithChildren,
-}
-
-const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   StorefrontRoute: StorefrontRouteWithChildren,
   AuthRoute: AuthRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   PrivacyRoute: PrivacyRoute,
   TermsRoute: TermsRoute,
-  AdminRoute: AdminRouteWithChildren,
   ProductIdRoute: ProductIdRoute,
 }
 export const routeTree = rootRouteImport
