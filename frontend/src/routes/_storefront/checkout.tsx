@@ -11,8 +11,9 @@ import {
   Truck,
   User,
   Wallet,
+  Plus,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import Navbar from "@/components/Navbar";
@@ -26,57 +27,101 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useCartStore } from "@/store/cart";
 import { useTRPC } from "@/lib/trpc";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { AddressDialog, type Address } from "@/components/user/address-dialog";
 
 export const Route = createFileRoute("/_storefront/checkout")({
   component: RouteComponent,
 });
 
-const provinces = [
-  "Hà Nội",
-  "TP. Hồ Chí Minh",
-  "Đà Nẵng",
-  "Hải Phòng",
-  "Cần Thơ",
-  "An Giang",
-  "Bà Rịa - Vũng Tàu",
-  "Bắc Giang",
-  "Bắc Kạn",
-  "Bạc Liêu",
-  // Add more provinces as needed
-];
-
 interface FormData {
-  fullName: string;
   email: string;
-  phone: string;
-  province: string;
-  district: string;
-  ward: string;
-  address: string;
   note: string;
 }
 
 function RouteComponent() {
   const [paymentMethod, setPaymentMethod] = useState("cod");
   const [shippingMethod, setShippingMethod] = useState("standard");
+  const [addressDialogOpen, setAddressDialogOpen] = useState(false);
+  const [selectedAddressId, setSelectedAddressId] = useState<number | null>(
+    null
+  );
+
   const { selectedIds } = useCartStore();
   const trpc = useTRPC();
+  const queryClient = useQueryClient();
+
   const { data: cartItems } = useQuery(
     trpc.cart.getCartItemsInIds.queryOptions(selectedIds, {
       enabled: selectedIds.length > 0,
     })
   );
+
+  // Load user addresses
+  const { data: addresses = [] } = useQuery(
+    trpc.addresses.getAddresses.queryOptions()
+  );
+
+  // Mutation to create address
+  const createAddressMutation = useMutation({
+    ...trpc.addresses.createAddress.mutationOptions(),
+    onSuccess: async (newAddressId) => {
+      await queryClient.invalidateQueries({
+        queryKey: trpc.addresses.getAddresses.queryOptions().queryKey,
+      });
+      // Select the newly created address - will be handled by the next addresses update
+      setSelectedAddressId(newAddressId);
+    },
+  });
+
   const [formData, setFormData] = useState<FormData>({
-    fullName: "",
     email: "",
-    phone: "",
-    province: "",
-    district: "",
-    ward: "",
-    address: "",
     note: "",
   });
+
+  // Auto-select default address when addresses first load
+  useEffect(() => {
+    if (addresses.length > 0 && !selectedAddressId) {
+      const defaultAddress = addresses.find((a) => a.isDefault);
+      if (defaultAddress) {
+        handleSelectAddress({
+          id: defaultAddress.id,
+          fullName: defaultAddress.fullName,
+          phone: defaultAddress.phone,
+          detail: defaultAddress.detail,
+          ward: defaultAddress.ward,
+          province: defaultAddress.province,
+          note: defaultAddress.note || "",
+          isDefault: defaultAddress.isDefault,
+        });
+      } else {
+        // If no default, select the first one
+        handleSelectAddress({
+          id: addresses[0].id,
+          fullName: addresses[0].fullName,
+          phone: addresses[0].phone,
+          detail: addresses[0].detail,
+          ward: addresses[0].ward,
+          province: addresses[0].province,
+          note: addresses[0].note || "",
+          isDefault: addresses[0].isDefault,
+        });
+      }
+    }
+  }, [addresses.length]);
+
+  // Auto-fill note from selected address
+  useEffect(() => {
+    if (selectedAddressId && addresses.length > 0) {
+      const selectedAddress = addresses.find((a) => a.id === selectedAddressId);
+      if (selectedAddress && selectedAddress.note) {
+        setFormData((prev) => ({
+          ...prev,
+          note: selectedAddress.note || prev.note, // Keep existing note if any
+        }));
+      }
+    }
+  }, [selectedAddressId, addresses]);
 
   const updateFormData = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -96,15 +141,29 @@ function RouteComponent() {
         : 0;
   const total = subtotal - discount + shippingFee;
 
+  // Handle address selection
+  const handleSelectAddress = (address: Address) => {
+    setSelectedAddressId(address.id);
+  };
+
+  // Handle save new address
+  const handleSaveAddress = async (
+    addressData: Omit<Address, "id"> & { id?: number }
+  ) => {
+    await createAddressMutation.mutateAsync({
+      fullName: addressData.fullName,
+      phone: addressData.phone,
+      detail: addressData.detail,
+      ward: addressData.ward,
+      province: addressData.province,
+      note: addressData.note || "",
+      isDefault: addressData.isDefault,
+    });
+    setAddressDialogOpen(false);
+  };
+
   const isFormValid = () => {
-    return (
-      formData.fullName &&
-      formData.email &&
-      formData.phone &&
-      formData.province &&
-      formData.district &&
-      formData.address
-    );
+    return selectedAddressId;
   };
 
   const handleSubmitOrder = () => {
@@ -145,155 +204,115 @@ function RouteComponent() {
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Left Column - Forms */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Customer Information */}
+              {/* Shipping Address - Select from saved addresses */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <User className="h-5 w-5" />
-                    Thông tin người nhận
-                  </CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2">
+                      <MapPin className="h-5 w-5" />
+                      Địa chỉ giao hàng
+                    </CardTitle>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setAddressDialogOpen(true)}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Thêm địa chỉ mới
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="fullName">
-                        Họ và tên <span className="text-destructive">*</span>
-                      </Label>
-                      <div className="relative">
-                        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          id="fullName"
-                          placeholder="Nguyễn Văn A"
-                          className="pl-10"
-                          value={formData.fullName}
+                  {addresses.length > 0 ? (
+                    <div className="space-y-3">
+                      {addresses.map((address) => (
+                        <div
+                          key={address.id}
+                          onClick={() =>
+                            handleSelectAddress({
+                              id: address.id,
+                              fullName: address.fullName,
+                              phone: address.phone,
+                              detail: address.detail,
+                              ward: address.ward,
+                              province: address.province,
+                              note: address.note || "",
+                              isDefault: address.isDefault,
+                            })
+                          }
+                          className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                            selectedAddressId === address.id
+                              ? "border-primary bg-primary/5"
+                              : "hover:bg-muted/50"
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <p className="font-semibold">
+                                  {address.fullName}
+                                </p>
+                                {address.isDefault && (
+                                  <Badge
+                                    variant="secondary"
+                                    className="text-xs"
+                                  >
+                                    Mặc định
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className="text-sm text-muted-foreground mb-1">
+                                {address.phone}
+                              </p>
+                              <p className="text-sm">
+                                {address.detail}, {address.ward},{" "}
+                                {address.province}
+                              </p>
+                              {address.note && (
+                                <p className="text-sm text-muted-foreground italic mt-1">
+                                  Ghi chú: {address.note}
+                                </p>
+                              )}
+                            </div>
+                            {selectedAddressId === address.id && (
+                              <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0" />
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <MapPin className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                      <p className="text-muted-foreground mb-4">
+                        Bạn chưa có địa chỉ nào
+                      </p>
+                      <Button onClick={() => setAddressDialogOpen(true)}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Thêm địa chỉ đầu tiên
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Email and note fields */}
+                  {selectedAddressId && (
+                    <div className="space-y-4 pt-4 border-t">
+                      <div className="space-y-2">
+                        <Label htmlFor="note">
+                          Ghi chú đơn hàng (không bắt buộc)
+                        </Label>
+                        <Textarea
+                          id="note"
+                          placeholder="Ghi chú về đơn hàng, ví dụ: thời gian hay chỉ dẫn địa điểm giao hàng chi tiết hơn..."
+                          rows={3}
+                          value={formData.note}
                           onChange={(e) =>
-                            updateFormData("fullName", e.target.value)
+                            updateFormData("note", e.target.value)
                           }
                         />
                       </div>
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="phone">
-                        Số điện thoại{" "}
-                        <span className="text-destructive">*</span>
-                      </Label>
-                      <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          id="phone"
-                          placeholder="0912345678"
-                          className="pl-10"
-                          value={formData.phone}
-                          onChange={(e) =>
-                            updateFormData("phone", e.target.value)
-                          }
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="email">
-                      Email <span className="text-destructive">*</span>
-                    </Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="example@email.com"
-                        className="pl-10"
-                        value={formData.email}
-                        onChange={(e) =>
-                          updateFormData("email", e.target.value)
-                        }
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Shipping Address */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <MapPin className="h-5 w-5" />
-                    Địa chỉ giao hàng
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid md:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="province">
-                        Tỉnh/Thành phố{" "}
-                        <span className="text-destructive">*</span>
-                      </Label>
-                      <select
-                        id="province"
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                        value={formData.province}
-                        onChange={(e) =>
-                          updateFormData("province", e.target.value)
-                        }
-                      >
-                        <option value="">Chọn tỉnh/thành phố</option>
-                        {provinces.map((province) => (
-                          <option key={province} value={province}>
-                            {province}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="district">
-                        Quận/Huyện <span className="text-destructive">*</span>
-                      </Label>
-                      <Input
-                        id="district"
-                        placeholder="Quận/Huyện"
-                        value={formData.district}
-                        onChange={(e) =>
-                          updateFormData("district", e.target.value)
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="ward">Phường/Xã</Label>
-                      <Input
-                        id="ward"
-                        placeholder="Phường/Xã"
-                        value={formData.ward}
-                        onChange={(e) => updateFormData("ward", e.target.value)}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="address">
-                      Địa chỉ cụ thể <span className="text-destructive">*</span>
-                    </Label>
-                    <Input
-                      id="address"
-                      placeholder="Số nhà, tên đường..."
-                      value={formData.address}
-                      onChange={(e) =>
-                        updateFormData("address", e.target.value)
-                      }
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="note">
-                      Ghi chú đơn hàng (không bắt buộc)
-                    </Label>
-                    <Textarea
-                      id="note"
-                      placeholder="Ghi chú về đơn hàng, ví dụ: thời gian hay chỉ dẫn địa điểm giao hàng chi tiết hơn..."
-                      rows={3}
-                      value={formData.note}
-                      onChange={(e) => updateFormData("note", e.target.value)}
-                    />
-                  </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -619,6 +638,13 @@ function RouteComponent() {
       </main>
 
       <Footer />
+
+      {/* Address Dialog */}
+      <AddressDialog
+        open={addressDialogOpen}
+        onOpenChange={setAddressDialogOpen}
+        onSave={handleSaveAddress}
+      />
     </div>
   );
 }
