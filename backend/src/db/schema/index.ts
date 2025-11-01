@@ -520,7 +520,6 @@ export const addresses = pgTable(
     userId: text("user_id").references(() => user.id),
     detail: text("detail").notNull(), //số nhà, tên đường
     ward: varchar("ward", { length: 255 }).notNull(), //phường/xã
-    district: varchar("district", { length: 255 }).notNull(), //quận/huyện
     province: varchar("province", { length: 255 }).notNull(), //tỉnh/thành phố
     isDefault: boolean("is_default").default(false).notNull(),
     note: text("note"),

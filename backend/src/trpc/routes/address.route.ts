@@ -3,9 +3,79 @@ import { publicProcedure, router } from "../trpc";
 import z from "zod";
 import { eq } from "drizzle-orm";
 import db from "@/db";
-import { user as usersTable, addresses } from "@/db/schema";
-import { auth } from "@/auth";
+import { addresses } from "@/db/schema";
+export interface Province {
+  code: string;
+  name: string;
+  englishName: string;
+  administrativeLevel: string;
+  decree: string;
+}
+export interface Commune {
+  code: string;
+  name: string;
+  englishName: string;
+  administrativeLevel: string;
+  provinceCode: string;
+  provinceName: string;
+  decree: string;
+}
+const ADDRESS_API_BASE = "https://production.cas.so/address-kit";
+const createAddressSchema = z.object({
+  phone: z.string(),
+  ward: z.string(),
+  province: z.string(),
+  detail: z.string(),
+  fullName: z.string(),
+  note: z.string(),
+  isDefault: z.boolean(),
+});
+const updateAddressSchema = createAddressSchema.partial().extend({
+  id: z.number(),
+});
 const addressRoute = router({
+  // Proxy endpoint to get provinces
+  getProvinces: publicProcedure.query(async () => {
+    try {
+      const response = await fetch(`${ADDRESS_API_BASE}/latest/provinces`);
+      if (!response.ok) {
+        console.log(await response.text());
+        throw new Error("Failed to fetch provinces");
+      }
+      console.log(`${ADDRESS_API_BASE}/latest/provinces`);
+      const data = (await response.json()) as { provinces: Province[] };
+      return data.provinces as Province[];
+    } catch (error) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to fetch provinces",
+      });
+    }
+  }),
+  // Proxy endpoint to get wards of a province
+  getWards: publicProcedure
+    .input(
+      z.object({
+        provinceCode: z.string(),
+      })
+    )
+    .query(async ({ input }) => {
+      try {
+        const response = await fetch(
+          `${ADDRESS_API_BASE}/latest/provinces/${input.provinceCode}/communes`
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch wards");
+        }
+        const data = (await response.json()) as { communes: Commune[] };
+        return data.communes as Commune[];
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch wards",
+        });
+      }
+    }),
   getAddresses: publicProcedure.query(async ({ ctx }) => {
     if (!ctx.session?.user) {
       throw new TRPCError({ code: "UNAUTHORIZED", message: "Unauthorized" });
@@ -29,24 +99,14 @@ const addressRoute = router({
         .update(addresses)
         .set({ isDefault: false })
         .where(eq(addresses.userId, ctx.session.user.id));
-      return await db
+      await db
         .update(addresses)
         .set({ isDefault: true })
         .where(eq(addresses.id, input.id));
+      return { success: true };
     }),
   createAddress: publicProcedure
-    .input(
-      z.object({
-        phone: z.string(),
-        ward: z.string(),
-        district: z.string(),
-        province: z.string(),
-        detail: z.string(),
-        fullName: z.string(),
-        note: z.string(),
-        isDefault: z.boolean(),
-      })
-    )
+    .input(createAddressSchema)
     .mutation(async ({ ctx, input }) => {
       if (!ctx.session?.user) {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Unauthorized" });
@@ -62,7 +122,6 @@ const addressRoute = router({
         .values({
           phone: input.phone,
           ward: input.ward,
-          district: input.district,
           province: input.province,
           detail: input.detail,
           fullName: input.fullName,
@@ -84,22 +143,11 @@ const addressRoute = router({
       if (!ctx.session?.user) {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Unauthorized" });
       }
-      return await db.delete(addresses).where(eq(addresses.id, input.id));
+      await db.delete(addresses).where(eq(addresses.id, input.id));
+      return { success: true };
     }),
   updateAddress: publicProcedure
-    .input(
-      z.object({
-        id: z.number(),
-        phone: z.string(),
-        ward: z.string(),
-        district: z.string(),
-        province: z.string(),
-        detail: z.string(),
-        fullName: z.string(),
-        note: z.string(),
-        isDefault: z.boolean(),
-      })
-    )
+    .input(updateAddressSchema)
     .mutation(async ({ ctx, input }) => {
       if (!ctx.session?.user) {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Unauthorized" });
@@ -109,7 +157,6 @@ const addressRoute = router({
         .set({
           phone: input.phone,
           ward: input.ward,
-          district: input.district,
           province: input.province,
           detail: input.detail,
           fullName: input.fullName,

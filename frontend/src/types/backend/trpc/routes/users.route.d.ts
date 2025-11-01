@@ -30,12 +30,28 @@ declare const usersRoute: import("@trpc/server").TRPCBuiltRouter<{
         input: void;
         output: {
             id: string;
-            createdAt: Date;
-            updatedAt: Date;
+            name: string;
             email: string;
             emailVerified: boolean;
-            name: string;
-            image?: string | null | undefined | undefined;
+            phone: string | null;
+            gender: string | null;
+            dateOfBirth: Date | null;
+            image: string | null;
+            createdAt: Date;
+            updatedAt: Date;
+        } | undefined;
+        meta: object;
+    }>;
+    updateMyProfile: import("@trpc/server").TRPCMutationProcedure<{
+        input: {
+            name?: string | undefined;
+            phone?: string | undefined;
+            gender?: "male" | "female" | "other" | undefined;
+            dateOfBirth?: string | undefined;
+            avatar?: string | undefined;
+        };
+        output: {
+            success: boolean;
         };
         meta: object;
     }>;

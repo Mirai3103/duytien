@@ -23,11 +23,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Camera, Save } from "lucide-react";
+import { Camera, Save, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { useTRPC } from "@/lib/trpc";
+import { uploadFile } from "@/lib/file";
+import { useEffect, useRef } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 // Zod validation schema
 const profileSchema = z.object({
@@ -42,42 +46,110 @@ const profileSchema = z.object({
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
 
-// Mock data
-const initialProfile = {
-  id: 1,
-  name: "Nguyễn Văn A",
-  email: "nguyenvana@example.com",
-  phone: "0123456789",
-  avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=user1",
-  dateOfBirth: "1990-01-01",
-  gender: "male" as const,
-};
-
 export function ProfileTab() {
-  const form = useForm<ProfileFormValues>({
-    resolver: zodResolver(profileSchema),
-    defaultValues: {
-      name: initialProfile.name,
-      email: initialProfile.email,
-      phone: initialProfile.phone,
-      dateOfBirth: initialProfile.dateOfBirth,
-      gender: initialProfile.gender,
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Query to get user profile
+  const { data: userProfile, isLoading: isLoadingProfile } = useQuery(
+    trpc.users.getMyProfile.queryOptions()
+  );
+
+  // Mutation to update profile
+  const updateProfileMutation = useMutation({
+    ...trpc.users.updateMyProfile.mutationOptions(),
+    onSuccess: () => {
+      toast.success("Cập nhật thông tin thành công!");
+      queryClient.invalidateQueries({
+        queryKey: trpc.users.getMyProfile.queryOptions().queryKey,
+      });
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Có lỗi xảy ra khi cập nhật thông tin");
     },
   });
 
-  const onSubmit = (data: ProfileFormValues) => {
-    // TODO: Integrate with API
-    console.log(data);
-    toast.success("Cập nhật thông tin thành công!");
-    form.reset(data);
+  const form = useForm<ProfileFormValues>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      phone: "",
+      dateOfBirth: "",
+      gender: "male",
+    },
+  });
+
+  // Update form when user profile is loaded
+  useEffect(() => {
+    if (userProfile) {
+      form.reset({
+        name: userProfile.name || "",
+        email: userProfile.email || "",
+        phone: userProfile.phone || "",
+        dateOfBirth: userProfile.dateOfBirth
+          ? new Date(userProfile.dateOfBirth).toISOString().split("T")[0]
+          : "",
+        gender: (userProfile.gender as "male" | "female" | "other") || "male",
+      });
+    }
+  }, [userProfile, form]);
+
+  const onSubmit = async (data: ProfileFormValues) => {
+    await updateProfileMutation.mutateAsync({
+      name: data.name,
+      phone: data.phone,
+      dateOfBirth: data.dateOfBirth,
+      gender: data.gender,
+    });
   };
 
-  const handleAvatarChange = () => {
-    // TODO: Implement avatar upload
-    toast.info("Tính năng đang phát triển");
+  const handleAvatarChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Check file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Kích thước file không được vượt quá 5MB");
+      return;
+    }
+
+    // Check file type
+    if (!file.type.startsWith("image/")) {
+      toast.error("Vui lòng chọn file hình ảnh");
+      return;
+    }
+
+    try {
+      toast.info("Đang tải ảnh lên...");
+      const avatarUrl = await uploadFile(file);
+
+      await updateProfileMutation.mutateAsync({
+        avatar: avatarUrl,
+      });
+
+      toast.success("Cập nhật ảnh đại diện thành công!");
+      queryClient.invalidateQueries({
+        queryKey: trpc.users.getMyProfile.queryOptions().queryKey,
+      });
+    } catch (error) {
+      toast.error("Có lỗi xảy ra khi tải ảnh lên");
+      console.error("Avatar upload error:", error);
+    }
   };
 
   const isFormDirty = form.formState.isDirty;
+
+  if (isLoadingProfile) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -91,21 +163,40 @@ export function ProfileTab() {
           <div className="flex items-center gap-6">
             <div className="relative">
               <Avatar className="h-24 w-24">
-                <AvatarImage src={initialProfile.avatar} alt={form.watch("name")} />
-                <AvatarFallback>{form.watch("name")?.charAt(0)}</AvatarFallback>
+                <AvatarImage
+                  src={userProfile?.image || undefined}
+                  alt={form.watch("name")}
+                />
+                <AvatarFallback>
+                  {form.watch("name")?.charAt(0)?.toUpperCase()}
+                </AvatarFallback>
               </Avatar>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleAvatarChange}
+              />
               <Button
                 size="icon"
                 variant="secondary"
                 className="absolute bottom-0 right-0 h-8 w-8 rounded-full"
-                onClick={handleAvatarChange}
+                onClick={() => fileInputRef.current?.click()}
+                disabled={updateProfileMutation.isPending}
               >
-                <Camera className="h-4 w-4" />
+                {updateProfileMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Camera className="h-4 w-4" />
+                )}
               </Button>
             </div>
             <div>
               <h3 className="text-lg font-semibold">{form.watch("name")}</h3>
-              <p className="text-sm text-muted-foreground">{form.watch("email")}</p>
+              <p className="text-sm text-muted-foreground">
+                {form.watch("email")}
+              </p>
             </div>
           </div>
 
@@ -176,7 +267,10 @@ export function ProfileTab() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Giới tính</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Chọn giới tính" />
@@ -195,15 +289,27 @@ export function ProfileTab() {
 
               {/* Action Buttons */}
               <div className="flex gap-3">
-                <Button type="submit" disabled={!isFormDirty}>
-                  <Save className="h-4 w-4 mr-2" />
-                  Lưu thay đổi
+                <Button
+                  type="submit"
+                  disabled={!isFormDirty || updateProfileMutation.isPending}
+                >
+                  {updateProfileMutation.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Đang lưu...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Lưu thay đổi
+                    </>
+                  )}
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => form.reset()}
-                  disabled={!isFormDirty}
+                  disabled={!isFormDirty || updateProfileMutation.isPending}
                 >
                   Hủy
                 </Button>

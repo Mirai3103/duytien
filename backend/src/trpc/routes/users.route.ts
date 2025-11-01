@@ -3,25 +3,37 @@ import { publicProcedure, router } from "../trpc";
 import z from "zod";
 import { eq } from "drizzle-orm";
 import db from "@/db";
-import { user as usersTable } from "@/db/schema";
-import { auth } from "@/auth";
+import { user, user as usersTable } from "@/db/schema";
+const updateUserSchema = z.object({
+  name: z.string().optional(),
+  phone: z.string().optional(),
+  gender: z.enum(["male", "female", "other"]).optional(),
+  dateOfBirth: z.string().optional(),
+  avatar: z.string().optional(),
+});
 const usersRoute = router({
   getMyProfile: publicProcedure.query(async ({ ctx }) => {
     if (!ctx.session?.user) {
       throw new TRPCError({ code: "UNAUTHORIZED", message: "Unauthorized" });
     }
-    return ctx.session.user;
+    return await db.query.user.findFirst({
+      where: eq(user.id, ctx.session.user.id),
+      columns: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        gender: true,
+        dateOfBirth: true,
+        image: true,
+        createdAt: true,
+        emailVerified: true,
+        updatedAt: true,
+      },
+    });
   }),
   updateMyProfile: publicProcedure
-    .input(
-      z.object({
-        name: z.string().optional(),
-        phone: z.string().optional(),
-        gender: z.enum(["male", "female", "other"]).optional(),
-        dateOfBirth: z.date().optional(),
-        avatar: z.string().optional(),
-      })
-    )
+    .input(updateUserSchema)
     .mutation(async ({ ctx, input }) => {
       if (!ctx.session?.user) {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Unauthorized" });
@@ -30,13 +42,15 @@ const usersRoute = router({
         .update(usersTable)
         .set({
           name: input.name,
-          dateOfBirth: input.dateOfBirth,
+          dateOfBirth: input.dateOfBirth
+            ? new Date(input.dateOfBirth)
+            : undefined,
           phone: input.phone,
           gender: input.gender,
           image: input.avatar,
         })
         .where(eq(usersTable.id, ctx.session.user.id));
-      return user;
+      return { success: true };
     }),
 });
 export { usersRoute };

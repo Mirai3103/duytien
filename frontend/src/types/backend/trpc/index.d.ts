@@ -1140,12 +1140,28 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
             input: void;
             output: {
                 id: string;
-                createdAt: Date;
-                updatedAt: Date;
+                name: string;
                 email: string;
                 emailVerified: boolean;
-                name: string;
-                image?: string | null | undefined | undefined;
+                phone: string | null;
+                gender: string | null;
+                dateOfBirth: Date | null;
+                image: string | null;
+                createdAt: Date;
+                updatedAt: Date;
+            } | undefined;
+            meta: object;
+        }>;
+        updateMyProfile: import("@trpc/server").TRPCMutationProcedure<{
+            input: {
+                name?: string | undefined;
+                phone?: string | undefined;
+                gender?: "male" | "female" | "other" | undefined;
+                dateOfBirth?: string | undefined;
+                avatar?: string | undefined;
+            };
+            output: {
+                success: boolean;
             };
             meta: object;
         }>;
@@ -1285,6 +1301,109 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
                     }[];
                 };
             }[];
+            meta: object;
+        }>;
+    }>>;
+    addresses: import("@trpc/server").TRPCBuiltRouter<{
+        ctx: {
+            session: {
+                session: {
+                    id: string;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    userId: string;
+                    expiresAt: Date;
+                    token: string;
+                    ipAddress?: string | null | undefined | undefined;
+                    userAgent?: string | null | undefined | undefined;
+                };
+                user: {
+                    id: string;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    email: string;
+                    emailVerified: boolean;
+                    name: string;
+                    image?: string | null | undefined | undefined;
+                };
+            } | null;
+        };
+        meta: object;
+        errorShape: import("@trpc/server").TRPCDefaultErrorShape;
+        transformer: false;
+    }, import("@trpc/server").TRPCDecorateCreateRouterOptions<{
+        getProvinces: import("@trpc/server").TRPCQueryProcedure<{
+            input: void;
+            output: import("./routes/address.route").Province[];
+            meta: object;
+        }>;
+        getWards: import("@trpc/server").TRPCQueryProcedure<{
+            input: {
+                provinceCode: string;
+            };
+            output: import("./routes/address.route").Commune[];
+            meta: object;
+        }>;
+        getAddresses: import("@trpc/server").TRPCQueryProcedure<{
+            input: void;
+            output: {
+                id: number;
+                phone: string;
+                userId: string | null;
+                isDefault: boolean;
+                detail: string;
+                ward: string;
+                province: string;
+                note: string | null;
+                fullName: string;
+            }[];
+            meta: object;
+        }>;
+        setDefaultAddress: import("@trpc/server").TRPCMutationProcedure<{
+            input: {
+                id: number;
+            };
+            output: {
+                success: boolean;
+            };
+            meta: object;
+        }>;
+        createAddress: import("@trpc/server").TRPCMutationProcedure<{
+            input: {
+                phone: string;
+                ward: string;
+                province: string;
+                detail: string;
+                fullName: string;
+                note: string;
+                isDefault: boolean;
+            };
+            output: number;
+            meta: object;
+        }>;
+        deleteAddress: import("@trpc/server").TRPCMutationProcedure<{
+            input: {
+                id: number;
+            };
+            output: {
+                success: boolean;
+            };
+            meta: object;
+        }>;
+        updateAddress: import("@trpc/server").TRPCMutationProcedure<{
+            input: {
+                id: number;
+                phone?: string | undefined;
+                ward?: string | undefined;
+                province?: string | undefined;
+                detail?: string | undefined;
+                fullName?: string | undefined;
+                note?: string | undefined;
+                isDefault?: boolean | undefined;
+            };
+            output: {
+                success: boolean;
+            };
             meta: object;
         }>;
     }>>;

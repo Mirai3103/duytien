@@ -36,6 +36,20 @@
       "when": 1761993288436,
       "tag": "0004_fresh_kronos",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1761996116019,
+      "tag": "0005_burly_doctor_doom",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1761998393844,
+      "tag": "0006_married_black_tarantula",
+      "breakpoints": true
     }
   ]
 }

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -10,6 +10,14 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Form,
   FormControl,
@@ -21,29 +29,34 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import z from "zod";
+import { type Province, type Commune } from "@/lib/address";
+import { Loader2 } from "lucide-react";
+import { useTRPC } from "@/lib/trpc";
+import { useQuery } from "@tanstack/react-query";
 
+// Match backend schema
 export interface Address {
   id: number;
-  name: string;
+  fullName: string;
   phone: string;
-  address: string;
+  detail: string;
   ward: string;
-  district: string;
-  city: string;
+  province: string;
+  note?: string;
   isDefault: boolean;
 }
 
 // Zod validation schema
 const addressSchema = z.object({
-  name: z.string().min(1, "Vui lòng nhập họ và tên"),
+  fullName: z.string().min(1, "Vui lòng nhập họ và tên"),
   phone: z
     .string()
     .min(10, "Số điện thoại phải có ít nhất 10 số")
     .regex(/^[0-9]+$/, "Số điện thoại chỉ được chứa số"),
-  address: z.string().min(1, "Vui lòng nhập địa chỉ"),
+  detail: z.string().min(1, "Vui lòng nhập địa chỉ"),
   ward: z.string().min(1, "Vui lòng nhập phường/xã"),
-  district: z.string().min(1, "Vui lòng nhập quận/huyện"),
-  city: z.string().min(1, "Vui lòng nhập tỉnh/thành phố"),
+  province: z.string().min(1, "Vui lòng nhập tỉnh/thành phố"),
+  note: z.string().optional(),
   isDefault: z.boolean().default(false),
 });
 
@@ -62,42 +75,79 @@ export function AddressDialog({
   address,
   onSave,
 }: AddressDialogProps) {
+  const trpc = useTRPC();
+  const [selectedProvinceCode, setSelectedProvinceCode] = useState<string>("");
+
   const form = useForm<AddressFormValues>({
     resolver: zodResolver(addressSchema) as any,
     defaultValues: {
-      name: "",
+      fullName: "",
       phone: "",
-      address: "",
+      detail: "",
       ward: "",
-      district: "",
-      city: "",
+      province: "",
+      note: "",
       isDefault: false,
     },
   });
 
+  // Query to get provinces
+  const {
+    data: provinces = [],
+    isLoading: loadingProvinces,
+  } = useQuery({
+    ...trpc.addresses.getProvinces.queryOptions(),
+    enabled: open, // Only fetch when dialog is open
+  });
+
+  // Query to get wards based on selected province
+  const {
+    data: wards = [],
+    isLoading: loadingWards,
+  } = useQuery({
+    ...trpc.addresses.getWards.queryOptions({
+      provinceCode: selectedProvinceCode,
+    }),
+    enabled: !!selectedProvinceCode, // Only fetch when province is selected
+  });
+
+  // Reset ward when province changes
+  useEffect(() => {
+    if (selectedProvinceCode) {
+      form.setValue("ward", "");
+    }
+  }, [selectedProvinceCode, form]);
+
   useEffect(() => {
     if (address) {
       form.reset({
-        name: address.name,
+        fullName: address.fullName,
         phone: address.phone,
-        address: address.address,
+        detail: address.detail,
         ward: address.ward,
-        district: address.district,
-        city: address.city,
+        province: address.province,
+        note: address.note || "",
         isDefault: address.isDefault,
       });
+
+      // Set province code for loading wards
+      const province = provinces.find((p) => p.name === address.province);
+      if (province) {
+        setSelectedProvinceCode(province.code);
+      }
     } else {
       form.reset({
-        name: "",
+        fullName: "",
         phone: "",
-        address: "",
+        detail: "",
         ward: "",
-        district: "",
-        city: "",
+        province: "",
+        note: "",
         isDefault: false,
       });
+      setSelectedProvinceCode("");
     }
-  }, [address, open, form]);
+  }, [address, open, form, provinces]);
 
   const onSubmit = (data: AddressFormValues) => {
     onSave({
@@ -125,7 +175,7 @@ export function AddressDialog({
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
-                  name="name"
+                  name="fullName"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Họ và tên</FormLabel>
@@ -153,10 +203,10 @@ export function AddressDialog({
 
               <FormField
                 control={form.control}
-                name="address"
+                name="detail"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Địa chỉ</FormLabel>
+                    <FormLabel>Địa chỉ chi tiết</FormLabel>
                     <FormControl>
                       <Input {...field} placeholder="Số nhà, tên đường" />
                     </FormControl>
@@ -165,47 +215,108 @@ export function AddressDialog({
                 )}
               />
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="province"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tỉnh/Thành phố</FormLabel>
+                      <Select
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          const province = provinces.find((p) => p.name === value);
+                          if (province) {
+                            setSelectedProvinceCode(province.code);
+                          }
+                        }}
+                        value={field.value}
+                        disabled={loadingProvinces}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Chọn tỉnh/thành phố" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {loadingProvinces ? (
+                            <div className="flex items-center justify-center p-2">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            </div>
+                          ) : (
+                            provinces.map((province) => (
+                              <SelectItem key={province.code} value={province.name}>
+                                {province.name}
+                              </SelectItem>
+                            ))
+                          )}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <FormField
                   control={form.control}
                   name="ward"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Phường/Xã</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Phường 1" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="district"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Quận/Huyện</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Quận 1" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="city"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tỉnh/TP</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="TP. HCM" />
-                      </FormControl>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        disabled={!selectedProvinceCode || loadingWards}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue
+                              placeholder={
+                                !selectedProvinceCode
+                                  ? "Chọn tỉnh trước"
+                                  : loadingWards
+                                  ? "Đang tải..."
+                                  : "Chọn phường/xã"
+                              }
+                            />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {loadingWards ? (
+                            <div className="flex items-center justify-center p-2">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            </div>
+                          ) : (
+                            wards.map((ward) => (
+                              <SelectItem key={ward.code} value={ward.name}>
+                                {ward.name}
+                              </SelectItem>
+                            ))
+                          )}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
+
+              <FormField
+                control={form.control}
+                name="note"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Ghi chú (không bắt buộc)</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        placeholder="Ví dụ: Gọi trước khi giao hàng..."
+                        rows={3}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}
