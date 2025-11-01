@@ -61,10 +61,10 @@ declare const addressRoute: import("@trpc/server").TRPCBuiltRouter<{
             phone: string;
             userId: string | null;
             isDefault: boolean;
+            note: string | null;
             detail: string;
             ward: string;
             province: string;
-            note: string | null;
             fullName: string;
         }[];
         meta: object;

@@ -18,6 +18,11 @@ import { useCartStore } from "@/store/cart";
 
 export const Route = createFileRoute("/_storefront/cart")({
   component: RouteComponent,
+  loader: async ({ context }) => {
+    await context.queryClient.prefetchQuery(
+      context.trpc.cart.getCart.queryOptions()
+    );
+  },
 });
 
 function RouteComponent() {
@@ -91,7 +96,7 @@ function RouteComponent() {
     0
   );
   const discount = appliedCoupon ? subtotal * 0.1 : 0; // 10% discount if coupon applied
-  const shipping = subtotal >= 10000000 ? 0 : 30000; // Free shipping over 10M
+  const shipping = 0; // Free shipping over 10M
   const total = subtotal - discount + shipping;
 
   // Xử lý select all
@@ -444,16 +449,6 @@ function RouteComponent() {
                           )}
                         </span>
                       </div>
-
-                      {subtotal < 10000000 && (
-                        <div className="text-xs text-muted-foreground bg-muted p-2 rounded">
-                          Mua thêm{" "}
-                          <span className="font-semibold text-foreground">
-                            {(10000000 - subtotal).toLocaleString("vi-VN")}đ
-                          </span>{" "}
-                          để được miễn phí vận chuyển
-                        </div>
-                      )}
 
                       <Separator />
 

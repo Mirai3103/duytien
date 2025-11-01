@@ -1,4 +1,4 @@
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -8,14 +8,14 @@ import {
   Wallet,
   Plus,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { useForm, Controller } from "react-hook-form";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import Navbar from "@/components/Navbar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
@@ -24,33 +24,45 @@ import { useCartStore } from "@/store/cart";
 import { useTRPC } from "@/lib/trpc";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { AddressDialog, type Address } from "@/components/user/address-dialog";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_storefront/checkout")({
   component: RouteComponent,
 });
 
-interface FormData {
-  email: string;
+interface CheckoutFormData {
+  selectedAddressId: number | null;
+  paymentMethod: "cod" | "momo" | "vnpay" | "bank";
   note: string;
 }
 
 function RouteComponent() {
-  const [paymentMethod, setPaymentMethod] = useState("cod");
-  const [shippingMethod, setShippingMethod] = useState("standard");
-  const [addressDialogOpen, setAddressDialogOpen] = useState(false);
-  const [selectedAddressId, setSelectedAddressId] = useState<number | null>(
-    null
-  );
-
   const { selectedIds } = useCartStore();
+
   const trpc = useTRPC();
   const queryClient = useQueryClient();
+
+  // Address dialog state
+  const [addressDialogOpen, setAddressDialogOpen] = useState(false);
+
+  // React Hook Form setup
+  const { control, handleSubmit, watch, setValue } = useForm<CheckoutFormData>({
+    defaultValues: {
+      selectedAddressId: null,
+      paymentMethod: "cod",
+      note: "",
+    },
+    mode: "onChange",
+  });
+
+  const selectedAddressId = watch("selectedAddressId");
 
   const { data: cartItems } = useQuery(
     trpc.cart.getCartItemsInIds.queryOptions(selectedIds, {
       enabled: selectedIds.length > 0,
     })
   );
+  const navigate = useNavigate();
 
   // Load user addresses
   const { data: addresses = [] } = useQuery(
@@ -58,69 +70,52 @@ function RouteComponent() {
   );
 
   // Mutation to create address
-  const createAddressMutation = useMutation({
-    ...trpc.addresses.createAddress.mutationOptions(),
-    onSuccess: async (newAddressId) => {
-      await queryClient.invalidateQueries({
-        queryKey: trpc.addresses.getAddresses.queryOptions().queryKey,
-      });
-      // Select the newly created address - will be handled by the next addresses update
-      setSelectedAddressId(newAddressId);
-    },
-  });
-
-  const [formData, setFormData] = useState<FormData>({
-    email: "",
-    note: "",
-  });
+  const createAddressMutation = useMutation(
+    trpc.addresses.createAddress.mutationOptions({
+      onSuccess: async (newAddressId) => {
+        await queryClient.invalidateQueries(
+          trpc.addresses.getAddresses.queryOptions()
+        );
+        // Select the newly created address
+        setValue("selectedAddressId", newAddressId, { shouldValidate: true });
+      },
+    })
+  );
+  const createOrderMutation = useMutation(
+    trpc.orders.createOrder.mutationOptions({
+      onSuccess: async () => {
+        await queryClient.invalidateQueries(
+          trpc.cart.getCartItemsInIds.queryOptions(selectedIds)
+        );
+        await queryClient.invalidateQueries(trpc.cart.getCart.queryOptions());
+        await queryClient.invalidateQueries(
+          trpc.cart.countCartItems.queryOptions()
+        );
+        navigate({ to: "/", replace: true });
+      },
+      onError: (error) => {
+        toast.error(error.message);
+      },
+    })
+  );
 
   // Auto-select default address when addresses first load
   useEffect(() => {
     if (addresses.length > 0 && !selectedAddressId) {
       const defaultAddress = addresses.find((a) => a.isDefault);
-      if (defaultAddress) {
-        handleSelectAddress({
-          id: defaultAddress.id,
-          fullName: defaultAddress.fullName,
-          phone: defaultAddress.phone,
-          detail: defaultAddress.detail,
-          ward: defaultAddress.ward,
-          province: defaultAddress.province,
-          note: defaultAddress.note || "",
-          isDefault: defaultAddress.isDefault,
+      const addressToSelect = defaultAddress || addresses[0];
+
+      if (addressToSelect) {
+        setValue("selectedAddressId", addressToSelect.id, {
+          shouldValidate: true,
         });
-      } else {
-        // If no default, select the first one
-        handleSelectAddress({
-          id: addresses[0].id,
-          fullName: addresses[0].fullName,
-          phone: addresses[0].phone,
-          detail: addresses[0].detail,
-          ward: addresses[0].ward,
-          province: addresses[0].province,
-          note: addresses[0].note || "",
-          isDefault: addresses[0].isDefault,
-        });
+        // Auto-fill note from address
+        if (addressToSelect.note) {
+          setValue("note", addressToSelect.note);
+        }
       }
     }
-  }, [addresses.length]);
-
-  // Auto-fill note from selected address
-  useEffect(() => {
-    if (selectedAddressId && addresses.length > 0) {
-      const selectedAddress = addresses.find((a) => a.id === selectedAddressId);
-      if (selectedAddress && selectedAddress.note) {
-        setFormData((prev) => ({
-          ...prev,
-          note: selectedAddress.note || prev.note, // Keep existing note if any
-        }));
-      }
-    }
-  }, [selectedAddressId, addresses]);
-
-  const updateFormData = (field: keyof FormData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
+  }, [addresses, selectedAddressId, setValue]);
 
   const subtotal =
     cartItems?.reduce<number>(
@@ -128,17 +123,14 @@ function RouteComponent() {
       0
     ) || 0;
   const discount = 0; // Can be calculated based on coupons
-  const shippingFee =
-    shippingMethod === "express"
-      ? 50000
-      : shippingMethod === "standard"
-        ? 30000
-        : 0;
+  const shippingFee = 0;
   const total = subtotal - discount + shippingFee;
 
   // Handle address selection
   const handleSelectAddress = (address: Address) => {
-    setSelectedAddressId(address.id);
+    setValue("selectedAddressId", address.id, { shouldValidate: true });
+    // Auto-fill note from selected address
+    setValue("note", address.note || "");
   };
 
   // Handle save new address
@@ -157,23 +149,32 @@ function RouteComponent() {
     setAddressDialogOpen(false);
   };
 
-  const isFormValid = () => {
-    return selectedAddressId;
-  };
-
-  const handleSubmitOrder = () => {
-    if (!isFormValid()) {
-      alert("Vui lòng điền đầy đủ thông tin");
+  // Form submission handler
+  const onSubmit = async (data: CheckoutFormData) => {
+    if (!data.selectedAddressId) {
+      alert("Vui lòng chọn địa chỉ giao hàng");
       return;
     }
     // Handle order submission
-    console.log("Order submitted", { formData, paymentMethod, shippingMethod });
-    alert("Đặt hàng thành công! (Demo)");
+    console.log("Order submitted", {
+      ...data,
+      cartItems,
+      total,
+    });
+    await createOrderMutation.mutateAsync({
+      cartItems: selectedIds,
+      shippingAddressId: data.selectedAddressId,
+      note: data.note,
+      paymentMethod: data.paymentMethod as "cod" | "momo" | "vnpay",
+    });
+    toast.success("Đặt hàng thành công");
   };
-  if (selectedIds.length === 0) {
-    return redirect({ to: "/cart" });
-  }
 
+  React.useEffect(() => {
+    if (selectedIds.length === 0) {
+      navigate({ to: "/cart", replace: true });
+    }
+  }, [selectedIds, navigate]);
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
@@ -289,21 +290,24 @@ function RouteComponent() {
                     </div>
                   )}
 
-                  {/* Email and note fields */}
+                  {/* Note field */}
                   {selectedAddressId && (
                     <div className="space-y-4 pt-4 border-t">
                       <div className="space-y-2">
                         <Label htmlFor="note">
                           Ghi chú đơn hàng (không bắt buộc)
                         </Label>
-                        <Textarea
-                          id="note"
-                          placeholder="Ghi chú về đơn hàng, ví dụ: thời gian hay chỉ dẫn địa điểm giao hàng chi tiết hơn..."
-                          rows={3}
-                          value={formData.note}
-                          onChange={(e) =>
-                            updateFormData("note", e.target.value)
-                          }
+                        <Controller
+                          name="note"
+                          control={control}
+                          render={({ field }) => (
+                            <Textarea
+                              {...field}
+                              id="note"
+                              placeholder="Ghi chú về đơn hàng, ví dụ: thời gian hay chỉ dẫn địa điểm giao hàng chi tiết hơn..."
+                              rows={3}
+                            />
+                          )}
                         />
                       </div>
                     </div>
@@ -389,31 +393,36 @@ function RouteComponent() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <RadioGroup
-                    value={paymentMethod}
-                    onValueChange={setPaymentMethod}
-                  >
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between p-4 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
-                        <div className="flex items-center space-x-3">
-                          <RadioGroupItem value="cod" id="cod" />
-                          <Label htmlFor="cod" className="cursor-pointer">
-                            <div className="flex items-center gap-2">
-                              <Wallet className="h-5 w-5 text-muted-foreground" />
-                              <div>
-                                <p className="font-semibold">
-                                  Thanh toán khi nhận hàng (COD)
-                                </p>
-                                <p className="text-sm text-muted-foreground">
-                                  Thanh toán bằng tiền mặt khi nhận hàng
-                                </p>
-                              </div>
+                  <Controller
+                    name="paymentMethod"
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field }) => (
+                      <RadioGroup
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between p-4 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
+                            <div className="flex items-center space-x-3">
+                              <RadioGroupItem value="cod" id="cod" />
+                              <Label htmlFor="cod" className="cursor-pointer">
+                                <div className="flex items-center gap-2">
+                                  <Wallet className="h-5 w-5 text-muted-foreground" />
+                                  <div>
+                                    <p className="font-semibold">
+                                      Thanh toán khi nhận hàng (COD)
+                                    </p>
+                                    <p className="text-sm text-muted-foreground">
+                                      Thanh toán bằng tiền mặt khi nhận hàng
+                                    </p>
+                                  </div>
+                                </div>
+                              </Label>
                             </div>
-                          </Label>
-                        </div>
-                        <Badge variant="secondary">Phổ biến</Badge>
-                      </div>
-                      {/* 
+                            <Badge variant="secondary">Phổ biến</Badge>
+                          </div>
+                          {/* 
                       <div className="flex items-center justify-between p-4 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
                         <div className="flex items-center space-x-3">
                           <RadioGroupItem value="bank" id="bank" />
@@ -433,45 +442,47 @@ function RouteComponent() {
                         </div>
                       </div> */}
 
-                      <div className="flex items-center justify-between p-4 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
-                        <div className="flex items-center space-x-3">
-                          <RadioGroupItem value="momo" id="momo" />
-                          <Label htmlFor="momo" className="cursor-pointer">
-                            <div className="flex items-center gap-2">
-                              <div className="h-5 w-5 bg-pink-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                                M
-                              </div>
-                              <div>
-                                <p className="font-semibold">Ví MoMo</p>
-                                <p className="text-sm text-muted-foreground">
-                                  Thanh toán qua ví điện tử MoMo
-                                </p>
-                              </div>
+                          <div className="flex items-center justify-between p-4 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
+                            <div className="flex items-center space-x-3">
+                              <RadioGroupItem value="momo" id="momo" />
+                              <Label htmlFor="momo" className="cursor-pointer">
+                                <div className="flex items-center gap-2">
+                                  <div className="h-5 w-5 bg-pink-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                                    M
+                                  </div>
+                                  <div>
+                                    <p className="font-semibold">Ví MoMo</p>
+                                    <p className="text-sm text-muted-foreground">
+                                      Thanh toán qua ví điện tử MoMo
+                                    </p>
+                                  </div>
+                                </div>
+                              </Label>
                             </div>
-                          </Label>
-                        </div>
-                      </div>
+                          </div>
 
-                      <div className="flex items-center justify-between p-4 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
-                        <div className="flex items-center space-x-3">
-                          <RadioGroupItem value="vnpay" id="vnpay" />
-                          <Label htmlFor="vnpay" className="cursor-pointer">
-                            <div className="flex items-center gap-2">
-                              <CreditCard className="h-5 w-5 text-blue-600" />
-                              <div>
-                                <p className="font-semibold">VNPAY</p>
-                                <p className="text-sm text-muted-foreground">
-                                  Thanh toán qua cổng VNPAY
-                                </p>
-                              </div>
+                          <div className="flex items-center justify-between p-4 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
+                            <div className="flex items-center space-x-3">
+                              <RadioGroupItem value="vnpay" id="vnpay" />
+                              <Label htmlFor="vnpay" className="cursor-pointer">
+                                <div className="flex items-center gap-2">
+                                  <CreditCard className="h-5 w-5 text-blue-600" />
+                                  <div>
+                                    <p className="font-semibold">VNPAY</p>
+                                    <p className="text-sm text-muted-foreground">
+                                      Thanh toán qua cổng VNPAY
+                                    </p>
+                                  </div>
+                                </div>
+                              </Label>
                             </div>
-                          </Label>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                  </RadioGroup>
+                      </RadioGroup>
+                    )}
+                  />
 
-                  {paymentMethod === "bank" && (
+                  {watch("paymentMethod") === "bank" && (
                     <div className="mt-4 p-4 bg-muted rounded-lg space-y-2">
                       <p className="font-semibold">Thông tin chuyển khoản:</p>
                       <div className="text-sm space-y-1">
@@ -574,10 +585,8 @@ function RouteComponent() {
                         Phí vận chuyển
                       </span>
                       <span className="font-medium">
-                        {shippingFee === 0 ? (
+                        {shippingFee === 0 && (
                           <span className="text-green-600">Miễn phí</span>
-                        ) : (
-                          `${shippingFee.toLocaleString("vi-VN")}đ`
                         )}
                       </span>
                     </div>
@@ -596,8 +605,10 @@ function RouteComponent() {
                   <Button
                     size="lg"
                     className="w-full"
-                    onClick={handleSubmitOrder}
-                    disabled={!isFormValid()}
+                    onClick={handleSubmit(onSubmit)}
+                    disabled={
+                      !selectedAddressId || createOrderMutation.isPending
+                    }
                   >
                     <CheckCircle2 className="h-5 w-5 mr-2" />
                     Đặt hàng
@@ -635,6 +646,7 @@ function RouteComponent() {
       <Footer />
 
       {/* Address Dialog */}
+
       <AddressDialog
         open={addressDialogOpen}
         onOpenChange={setAddressDialogOpen}

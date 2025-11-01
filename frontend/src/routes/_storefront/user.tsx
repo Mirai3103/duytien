@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, MapPin, Package } from "lucide-react";
 import Header from "@/components/Header";
 import Navbar from "@/components/Navbar";
@@ -7,6 +6,13 @@ import Footer from "@/components/Footer";
 import { ProfileTab } from "@/components/user/profile-tab";
 import { AddressesTab } from "@/components/user/addresses-tab";
 import { OrdersTab } from "@/components/user/orders-tab";
+import {
+  Tabs,
+  TabsContent,
+  TabsContents,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/shadcn-io/tabs";
 
 export const Route = createFileRoute("/_storefront/user")({
   component: RouteComponent,
@@ -47,18 +53,19 @@ function RouteComponent() {
                 <span className="hidden sm:inline">Đơn hàng</span>
               </TabsTrigger>
             </TabsList>
+            <TabsContents>
+              <TabsContent value="profile" className="space-y-4">
+                <ProfileTab />
+              </TabsContent>
 
-            <TabsContent value="profile" className="space-y-4">
-              <ProfileTab />
-            </TabsContent>
+              <TabsContent value="addresses" className="space-y-4">
+                <AddressesTab />
+              </TabsContent>
 
-            <TabsContent value="addresses" className="space-y-4">
-              <AddressesTab />
-            </TabsContent>
-
-            <TabsContent value="orders" className="space-y-4">
-              <OrdersTab />
-            </TabsContent>
+              <TabsContent value="orders" className="space-y-4">
+                <OrdersTab />
+              </TabsContent>
+            </TabsContents>
           </Tabs>
         </div>
       </main>

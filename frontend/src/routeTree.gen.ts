@@ -8,6 +8,8 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
+import { createFileRoute } from '@tanstack/react-router'
+
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as PrivacyRouteImport } from './routes/privacy'
@@ -33,6 +35,13 @@ import { Route as AdminAdminProductsIdVariantsIndexRouteImport } from './routes/
 import { Route as AdminAdminProductsIdVariantsCreateRouteImport } from './routes/admin/_admin/products/$id.variants/create'
 import { Route as AdminAdminProductsIdVariantsVariantIdEditRouteImport } from './routes/admin/_admin/products/$id.variants/$variantId.edit'
 
+const AdminRouteImport = createFileRoute('/admin')()
+
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
@@ -211,6 +220,7 @@ export interface FileRoutesById {
   '/_storefront/checkout': typeof StorefrontCheckoutRoute
   '/_storefront/search': typeof StorefrontSearchRoute
   '/_storefront/user': typeof StorefrontUserRoute
+  '/admin': typeof AdminRouteWithChildren
   '/admin/_admin': typeof AdminAdminRouteWithChildren
   '/product/$id': typeof ProductIdRoute
   '/_storefront/': typeof StorefrontIndexRoute
@@ -286,6 +296,7 @@ export interface FileRouteTypes {
     | '/_storefront/checkout'
     | '/_storefront/search'
     | '/_storefront/user'
+    | '/admin'
     | '/admin/_admin'
     | '/product/$id'
     | '/_storefront/'
@@ -308,11 +319,19 @@ export interface RootRouteChildren {
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   PrivacyRoute: typeof PrivacyRoute
   TermsRoute: typeof TermsRoute
+  AdminRoute: typeof AdminRouteWithChildren
   ProductIdRoute: typeof ProductIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/terms': {
       id: '/terms'
       path: '/terms'
@@ -364,7 +383,7 @@ declare module '@tanstack/react-router' {
     }
     '/admin/_admin': {
       id: '/admin/_admin'
-      path: ''
+      path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminAdminRouteImport
       parentRoute: typeof AdminRoute
@@ -497,12 +516,58 @@ const StorefrontRouteWithChildren = StorefrontRoute._addFileChildren(
   StorefrontRouteChildren,
 )
 
+interface AdminAdminRouteChildren {
+  AdminAdminBrandsRoute: typeof AdminAdminBrandsRoute
+  AdminAdminCategoriesRoute: typeof AdminAdminCategoriesRoute
+  AdminAdminCustomersRoute: typeof AdminAdminCustomersRoute
+  AdminAdminDashboardRoute: typeof AdminAdminDashboardRoute
+  AdminAdminOrdersRoute: typeof AdminAdminOrdersRoute
+  AdminAdminProductsCreateRoute: typeof AdminAdminProductsCreateRoute
+  AdminAdminProductsIndexRoute: typeof AdminAdminProductsIndexRoute
+  AdminAdminProductsIdEditRoute: typeof AdminAdminProductsIdEditRoute
+  AdminAdminProductsIdVariantsCreateRoute: typeof AdminAdminProductsIdVariantsCreateRoute
+  AdminAdminProductsIdVariantsIndexRoute: typeof AdminAdminProductsIdVariantsIndexRoute
+  AdminAdminProductsIdVariantsVariantIdEditRoute: typeof AdminAdminProductsIdVariantsVariantIdEditRoute
+}
+
+const AdminAdminRouteChildren: AdminAdminRouteChildren = {
+  AdminAdminBrandsRoute: AdminAdminBrandsRoute,
+  AdminAdminCategoriesRoute: AdminAdminCategoriesRoute,
+  AdminAdminCustomersRoute: AdminAdminCustomersRoute,
+  AdminAdminDashboardRoute: AdminAdminDashboardRoute,
+  AdminAdminOrdersRoute: AdminAdminOrdersRoute,
+  AdminAdminProductsCreateRoute: AdminAdminProductsCreateRoute,
+  AdminAdminProductsIndexRoute: AdminAdminProductsIndexRoute,
+  AdminAdminProductsIdEditRoute: AdminAdminProductsIdEditRoute,
+  AdminAdminProductsIdVariantsCreateRoute:
+    AdminAdminProductsIdVariantsCreateRoute,
+  AdminAdminProductsIdVariantsIndexRoute:
+    AdminAdminProductsIdVariantsIndexRoute,
+  AdminAdminProductsIdVariantsVariantIdEditRoute:
+    AdminAdminProductsIdVariantsVariantIdEditRoute,
+}
+
+const AdminAdminRouteWithChildren = AdminAdminRoute._addFileChildren(
+  AdminAdminRouteChildren,
+)
+
+interface AdminRouteChildren {
+  AdminAdminRoute: typeof AdminAdminRouteWithChildren
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminAdminRoute: AdminAdminRouteWithChildren,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   StorefrontRoute: StorefrontRouteWithChildren,
   AuthRoute: AuthRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   PrivacyRoute: PrivacyRoute,
   TermsRoute: TermsRoute,
+  AdminRoute: AdminRouteWithChildren,
   ProductIdRoute: ProductIdRoute,
 }
 export const routeTree = rootRouteImport

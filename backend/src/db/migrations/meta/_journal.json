@@ -50,6 +50,13 @@
       "when": 1761998393844,
       "tag": "0006_married_black_tarantula",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1762017857936,
+      "tag": "0007_faithful_slyde",
+      "breakpoints": true
     }
   ]
 }

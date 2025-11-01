@@ -107,13 +107,9 @@ const Header = () => {
                 <DropdownMenuContent className="w-56" align="end">
                   <DropdownMenuLabel>Tài khoản của tôi</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigate({ to: "/admin" })}>
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Cài đặt</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate({ to: "/orders" })}>
-                    <Package className="mr-2 h-4 w-4" />
-                    <span>Đơn hàng</span>
+                  <DropdownMenuItem onClick={() => navigate({ to: "/user" })}>
+                    <User2 className="mr-2 h-4 w-4" />
+                    <span>Hồ sơ của tôi</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
