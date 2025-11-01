@@ -317,6 +317,7 @@ export const orders = pgTable(
     deliveryAddressId: integer("delivery_address_id"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     voucherId: integer("voucher_id"),
+    note: text("note"),
   },
   (t) => [
     index("orders_user_idx").on(t.userId),

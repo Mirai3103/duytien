@@ -1,15 +1,10 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import {
   ArrowLeft,
-  Building2,
   CheckCircle2,
   ChevronRight,
   CreditCard,
-  Mail,
   MapPin,
-  Phone,
-  Truck,
-  User,
   Wallet,
   Plus,
 } from "lucide-react";
