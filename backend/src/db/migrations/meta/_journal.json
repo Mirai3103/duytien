@@ -57,6 +57,20 @@
       "when": 1762017857936,
       "tag": "0007_faithful_slyde",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1762422115495,
+      "tag": "0008_silky_carnage",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1762426137727,
+      "tag": "0009_bizarre_namora",
+      "breakpoints": true
     }
   ]
 }

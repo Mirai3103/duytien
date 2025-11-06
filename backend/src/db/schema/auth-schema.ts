@@ -1,5 +1,12 @@
-import { pgTable, text, timestamp, boolean } from "drizzle-orm/pg-core";
-
+import {
+  pgTable,
+  text,
+  timestamp,
+  boolean,
+  integer,
+  decimal,
+} from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
@@ -10,6 +17,12 @@ export const user = pgTable("user", {
   dateOfBirth: timestamp("date_of_birth"),
   image: text("image"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  totalOrders: integer("total_orders").default(0).notNull(),
+  totalAmount: decimal("total_amount", { precision: 14, scale: 2 })
+    .default(sql`0`)
+    .notNull(),
+  status: text("status").default("active").notNull(),
+  role: text("role").default("customer").notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
     .$onUpdate(() => /* @__PURE__ */ new Date())

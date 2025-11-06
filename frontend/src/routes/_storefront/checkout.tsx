@@ -104,16 +104,16 @@ function RouteComponent() {
     if (addresses.length > 0 && !selectedAddressId) {
       const defaultAddress = addresses.find((a) => a.isDefault);
       const addressToSelect = defaultAddress || addresses[0];
-
-      if (addressToSelect) {
-        setValue("selectedAddressId", addressToSelect.id, {
-          shouldValidate: true,
-        });
-        // Auto-fill note from address
-        if (addressToSelect.note) {
-          setValue("note", addressToSelect.note);
+      const timeOut = setTimeout(() => {
+        if (addressToSelect) {
+          setValue("selectedAddressId", addressToSelect.id);
+          // Auto-fill note from address
+          if (addressToSelect.note) {
+            setValue("note", addressToSelect.note);
+          }
         }
-      }
+      }, 1000); // 1s delay to prevent flashing
+      return () => clearTimeout(timeOut);
     }
   }, [addresses, selectedAddressId, setValue]);
 

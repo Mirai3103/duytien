@@ -1,4 +1,4 @@
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import {
   boolean,
   decimal,
@@ -305,11 +305,27 @@ export const vouchers = pgTable(
   (t) => [uniqueIndex("voucher_code_unique").on(t.code)]
 );
 
+// ===== PAYMENTS =====
+export const payments = pgTable(
+  "payments",
+  {
+    id: integer("id").primaryKey().notNull().generatedAlwaysAsIdentity(),
+    orderId: integer("order_id").notNull(),
+    amount: decimal("amount", { precision: 14, scale: 2 }).notNull(),
+    method: varchar("method", { length: 50 }),
+    status: paymentStatusEnum("status").default("pending").notNull(),
+    paymentDate: timestamp("payment_date"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => [index("payments_order_idx").on(t.orderId)]
+);
+
 // ===== ORDERS =====
 export const orders = pgTable(
   "orders",
   {
     id: integer("id").primaryKey().notNull().generatedAlwaysAsIdentity(),
+    code: varchar("code", { length: 255 }).default(sql`gen_order_code()`),
     userId: text("user_id").notNull(),
     status: orderStatusEnum("status").default("pending").notNull(),
     totalAmount: decimal("total_amount", { precision: 14, scale: 2 }).notNull(),
@@ -317,6 +333,8 @@ export const orders = pgTable(
     deliveryAddressId: integer("delivery_address_id"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     voucherId: integer("voucher_id"),
+    totalItems: integer("total_items").default(0).notNull(),
+    lastPaymentId: integer("last_payment_id"),
     note: text("note"),
   },
   (t) => [
@@ -338,6 +356,12 @@ export const orders = pgTable(
     foreignKey({
       columns: [t.deliveryAddressId],
       foreignColumns: [addresses.id],
+    })
+      .onDelete("set null")
+      .onUpdate("cascade"),
+    foreignKey({
+      columns: [t.lastPaymentId],
+      foreignColumns: [payments.id],
     })
       .onDelete("set null")
       .onUpdate("cascade"),
@@ -364,29 +388,6 @@ export const orderItems = pgTable(
     foreignKey({
       columns: [t.variantId],
       foreignColumns: [productVariants.id],
-    })
-      .onDelete("cascade")
-      .onUpdate("cascade"),
-  ]
-);
-
-// ===== PAYMENTS =====
-export const payments = pgTable(
-  "payments",
-  {
-    id: integer("id").primaryKey().notNull().generatedAlwaysAsIdentity(),
-    orderId: integer("order_id").notNull(),
-    amount: decimal("amount", { precision: 14, scale: 2 }).notNull(),
-    method: varchar("method", { length: 50 }),
-    status: paymentStatusEnum("status").default("pending").notNull(),
-    paymentDate: timestamp("payment_date"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-  },
-  (t) => [
-    index("payments_order_idx").on(t.orderId),
-    foreignKey({
-      columns: [t.orderId],
-      foreignColumns: [orders.id],
     })
       .onDelete("cascade")
       .onUpdate("cascade"),
@@ -651,7 +652,10 @@ export const ordersRelations = relations(orders, ({ one, many }) => ({
     references: [vouchers.id],
   }),
   items: many(orderItems),
-  payments: many(payments),
+  lastPayment: one(payments, {
+    fields: [orders.lastPaymentId],
+    references: [payments.id],
+  }),
 }));
 
 export const orderItemsRelations = relations(orderItems, ({ one }) => ({

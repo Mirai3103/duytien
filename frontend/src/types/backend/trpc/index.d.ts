@@ -75,6 +75,7 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
                 id: number;
                 name: string;
                 createdAt: Date;
+                status: "active" | "inactive";
                 slug: string;
                 isFeatured: boolean;
                 metadata: any;
@@ -82,7 +83,6 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
                 brandId: number | null;
                 categoryId: number | null;
                 thumbnail: string | null;
-                status: "active" | "inactive";
                 price: string;
                 brand: {
                     id: number;
@@ -148,12 +148,12 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
                 id: number;
                 name: string;
                 createdAt: Date;
+                status: "active" | "inactive";
                 slug: string;
                 isFeatured: boolean;
                 brandId: number | null;
                 categoryId: number | null;
                 thumbnail: string | null;
-                status: "active" | "inactive";
                 price: string;
                 brand: {
                     id: number;
@@ -178,8 +178,8 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
                     name: string;
                     image: string | null;
                     createdAt: Date;
-                    metadata: any;
                     status: "active" | "inactive";
+                    metadata: any;
                     price: string;
                     productId: number | null;
                     sku: string;
@@ -209,6 +209,7 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
                 id: number;
                 name: string;
                 createdAt: Date;
+                status: "active" | "inactive";
                 slug: string;
                 isFeatured: boolean;
                 metadata: any;
@@ -216,7 +217,6 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
                 brandId: number | null;
                 categoryId: number | null;
                 thumbnail: string | null;
-                status: "active" | "inactive";
                 price: string;
                 brand: {
                     id: number;
@@ -241,8 +241,8 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
                     name: string;
                     image: string | null;
                     createdAt: Date;
-                    metadata: any;
                     status: "active" | "inactive";
+                    metadata: any;
                     price: string;
                     productId: number | null;
                     sku: string;
@@ -287,8 +287,8 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
         createProduct: import("@trpc/server").TRPCMutationProcedure<{
             input: {
                 name: string;
-                slug: string;
                 status: import("../schemas/product").ProductStatus;
+                slug: string;
                 price: number;
                 description?: any;
                 brandId?: number | undefined;
@@ -304,8 +304,8 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
             input: {
                 id: number;
                 name: string;
-                slug: string;
                 status: import("../schemas/product").ProductStatus;
+                slug: string;
                 price: number;
                 description?: any;
                 brandId?: number | undefined;
@@ -341,6 +341,7 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
                 id: number;
                 name: string;
                 createdAt: Date;
+                status: "active" | "inactive";
                 slug: string;
                 isFeatured: boolean;
                 metadata: any;
@@ -348,7 +349,6 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
                 brandId: number | null;
                 categoryId: number | null;
                 thumbnail: string | null;
-                status: "active" | "inactive";
                 price: string;
                 brand: {
                     id: number;
@@ -381,6 +381,7 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
                 id: number;
                 name: string;
                 createdAt: Date;
+                status: "active" | "inactive";
                 slug: string;
                 isFeatured: boolean;
                 metadata: any;
@@ -388,7 +389,6 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
                 brandId: number | null;
                 categoryId: number | null;
                 thumbnail: string | null;
-                status: "active" | "inactive";
                 price: string;
             }[];
             meta: object;
@@ -459,8 +459,8 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
                 name: string;
                 image: string | null;
                 createdAt: Date;
-                metadata: any;
                 status: "active" | "inactive";
+                metadata: any;
                 price: string;
                 productId: number | null;
                 sku: string;
@@ -513,8 +513,8 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
                 name: string;
                 image: string | null;
                 createdAt: Date;
-                metadata: any;
                 status: "active" | "inactive";
+                metadata: any;
                 price: string;
                 productId: number | null;
                 sku: string;
@@ -1136,6 +1136,37 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
         errorShape: import("@trpc/server").TRPCDefaultErrorShape;
         transformer: false;
     }, import("@trpc/server").TRPCDecorateCreateRouterOptions<{
+        searchUsers: import("@trpc/server").TRPCQueryProcedure<{
+            input: {
+                page?: number | undefined;
+                limit?: number | undefined;
+                search?: string | undefined;
+                emailVerified?: boolean | undefined;
+                dateRange?: {
+                    from?: Date | undefined;
+                    to?: Date | undefined;
+                } | null | undefined;
+                orderBy?: "name" | "createdAt" | undefined;
+                orderDirection?: "asc" | "desc" | undefined;
+            };
+            output: {
+                users: {
+                    id: string;
+                    name: string;
+                    email: string;
+                    phone: string | null;
+                    image: string | null;
+                    emailVerified: boolean;
+                    createdAt: Date;
+                    orderCount: number;
+                }[];
+                total: number;
+                page: number;
+                limit: number;
+                totalPages: number;
+            };
+            meta: object;
+        }>;
         getMyProfile: import("@trpc/server").TRPCQueryProcedure<{
             input: void;
             output: {
@@ -1207,8 +1238,8 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
                     name: string;
                     image: string | null;
                     createdAt: Date;
-                    metadata: any;
                     status: "active" | "inactive";
+                    metadata: any;
                     price: string;
                     productId: number | null;
                     sku: string;
@@ -1282,8 +1313,8 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
                     name: string;
                     image: string | null;
                     createdAt: Date;
-                    metadata: any;
                     status: "active" | "inactive";
+                    metadata: any;
                     price: string;
                     productId: number | null;
                     sku: string;
@@ -1458,22 +1489,29 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
                 orders: {
                     id: number;
                     createdAt: Date;
-                    userId: string;
-                    status: "pending" | "confirmed" | "shipping" | "delivered" | "cancelled";
                     totalAmount: string;
+                    status: "pending" | "confirmed" | "shipping" | "delivered" | "cancelled";
+                    userId: string;
+                    code: string | null;
                     paymentMethod: "cod" | "vnpay" | "momo";
                     deliveryAddressId: number | null;
                     voucherId: number | null;
+                    totalItems: number;
+                    lastPaymentId: number | null;
                     note: string | null;
-                    payments: {
+                    voucher: {
                         id: number;
                         createdAt: Date;
-                        status: "pending" | "success" | "failed";
-                        orderId: number;
-                        amount: string;
-                        method: string | null;
-                        paymentDate: Date | null;
-                    }[];
+                        code: string;
+                        type: "fixed" | "percentage";
+                        discount: string;
+                        maxDiscount: string | null;
+                        minOrderAmount: string | null;
+                        maxOrderAmount: string | null;
+                        maxUsage: number | null;
+                        isActive: boolean;
+                        usageCount: number;
+                    } | null;
                     items: {
                         price: string;
                         variantId: number;
@@ -1484,19 +1522,243 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
                             name: string;
                             image: string | null;
                             createdAt: Date;
-                            metadata: any;
                             status: "active" | "inactive";
+                            metadata: any;
                             price: string;
                             productId: number | null;
                             sku: string;
                             stock: number;
                             isDefault: boolean | null;
+                            product: {
+                                id: number;
+                                name: string;
+                                createdAt: Date;
+                                status: "active" | "inactive";
+                                slug: string;
+                                isFeatured: boolean;
+                                metadata: any;
+                                description: string | null;
+                                brandId: number | null;
+                                categoryId: number | null;
+                                thumbnail: string | null;
+                                price: string;
+                            } | null;
+                            variantValues: {
+                                variantId: number;
+                                attributeValueId: number;
+                                value: {
+                                    id: number;
+                                    value: string;
+                                    metadata: unknown;
+                                    attributeId: number;
+                                };
+                            }[];
                         };
                     }[];
+                    lastPayment: {
+                        id: number;
+                        createdAt: Date;
+                        status: "pending" | "success" | "failed";
+                        orderId: number;
+                        amount: string;
+                        method: string | null;
+                        paymentDate: Date | null;
+                    } | null;
                 }[];
                 total: number;
                 page: number;
                 limit: number;
+                totalPages: number;
+            };
+            meta: object;
+        }>;
+        getStatusStats: import("@trpc/server").TRPCQueryProcedure<{
+            input: void;
+            output: {
+                statusStats: {
+                    status: "pending" | "confirmed" | "shipping" | "delivered" | "cancelled";
+                    count: number;
+                }[];
+                totalOrders: number;
+            };
+            meta: object;
+        }>;
+        searchOrders: import("@trpc/server").TRPCQueryProcedure<{
+            input: {
+                page?: number | undefined;
+                limit?: number | undefined;
+                search?: string | undefined;
+                status?: ("pending" | "shipping" | "delivered" | "cancelled")[] | undefined;
+                paymentMethod?: "cod" | "vnpay" | "momo" | "all" | undefined;
+                paymentStatus?: "pending" | "success" | "failed" | undefined;
+                dateRange?: {
+                    from?: Date | undefined;
+                    to?: Date | undefined;
+                } | null | undefined;
+                orderBy?: "createdAt" | "totalAmount" | undefined;
+                orderDirection?: "asc" | "desc" | undefined;
+            };
+            output: {
+                orders: {
+                    vouchers: {
+                        id: number;
+                        code: string;
+                        type: "fixed" | "percentage";
+                        discount: string;
+                        maxDiscount: string | null;
+                        minOrderAmount: string | null;
+                        maxOrderAmount: string | null;
+                        maxUsage: number | null;
+                        isActive: boolean;
+                        usageCount: number;
+                        createdAt: Date;
+                    } | null;
+                    payments: {
+                        id: number;
+                        orderId: number;
+                        amount: string;
+                        method: string | null;
+                        status: "pending" | "success" | "failed";
+                        paymentDate: Date | null;
+                        createdAt: Date;
+                    } | null;
+                    orders: {
+                        id: number;
+                        code: string | null;
+                        userId: string;
+                        status: "pending" | "confirmed" | "shipping" | "delivered" | "cancelled";
+                        totalAmount: string;
+                        paymentMethod: "cod" | "vnpay" | "momo";
+                        deliveryAddressId: number | null;
+                        createdAt: Date;
+                        voucherId: number | null;
+                        totalItems: number;
+                        lastPaymentId: number | null;
+                        note: string | null;
+                    };
+                    u_table: {
+                        id: string;
+                        name: string;
+                        email: string;
+                        emailVerified: boolean;
+                        phone: string | null;
+                        gender: string | null;
+                        dateOfBirth: Date | null;
+                        image: string | null;
+                        createdAt: Date;
+                        totalOrders: number;
+                        totalAmount: string;
+                        status: string;
+                        role: string;
+                        updatedAt: Date;
+                    } | null;
+                }[];
+                total: number;
+                page: number;
+                limit: number;
+                totalPages: number;
+            };
+            meta: object;
+        }>;
+        getOrder: import("@trpc/server").TRPCQueryProcedure<{
+            input: {
+                id: number;
+            };
+            output: {
+                id: number;
+                createdAt: Date;
+                totalAmount: string;
+                status: "pending" | "confirmed" | "shipping" | "delivered" | "cancelled";
+                userId: string;
+                code: string | null;
+                paymentMethod: "cod" | "vnpay" | "momo";
+                deliveryAddressId: number | null;
+                voucherId: number | null;
+                totalItems: number;
+                lastPaymentId: number | null;
+                note: string | null;
+                user: {
+                    id: string;
+                    name: string;
+                    email: string;
+                    emailVerified: boolean;
+                    phone: string | null;
+                    gender: string | null;
+                    dateOfBirth: Date | null;
+                    image: string | null;
+                    createdAt: Date;
+                    totalOrders: number;
+                    totalAmount: string;
+                    status: string;
+                    role: string;
+                    updatedAt: Date;
+                };
+                voucher: {
+                    id: number;
+                    createdAt: Date;
+                    code: string;
+                    type: "fixed" | "percentage";
+                    discount: string;
+                    maxDiscount: string | null;
+                    minOrderAmount: string | null;
+                    maxOrderAmount: string | null;
+                    maxUsage: number | null;
+                    isActive: boolean;
+                    usageCount: number;
+                } | null;
+                items: {
+                    price: string;
+                    variantId: number;
+                    quantity: number;
+                    orderId: number;
+                    variant: {
+                        id: number;
+                        name: string;
+                        image: string | null;
+                        createdAt: Date;
+                        status: "active" | "inactive";
+                        metadata: any;
+                        price: string;
+                        productId: number | null;
+                        sku: string;
+                        stock: number;
+                        isDefault: boolean | null;
+                        product: {
+                            id: number;
+                            name: string;
+                        } | null;
+                        variantValues: {
+                            variantId: number;
+                            attributeValueId: number;
+                            value: {
+                                id: number;
+                                value: string;
+                                metadata: unknown;
+                                attributeId: number;
+                            };
+                        }[];
+                    };
+                }[];
+                lastPayment: {
+                    id: number;
+                    createdAt: Date;
+                    status: "pending" | "success" | "failed";
+                    orderId: number;
+                    amount: string;
+                    method: string | null;
+                    paymentDate: Date | null;
+                } | null;
+            } | undefined;
+            meta: object;
+        }>;
+        updateStatus: import("@trpc/server").TRPCMutationProcedure<{
+            input: {
+                id: number;
+                status: "pending" | "shipping" | "delivered" | "cancelled";
+            };
+            output: {
+                success: boolean;
+                message: string;
             };
             meta: object;
         }>;

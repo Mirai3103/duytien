@@ -49,6 +49,7 @@ export declare const productsRoute: import("@trpc/server").TRPCBuiltRouter<{
             id: number;
             name: string;
             createdAt: Date;
+            status: "active" | "inactive";
             slug: string;
             isFeatured: boolean;
             metadata: any;
@@ -56,7 +57,6 @@ export declare const productsRoute: import("@trpc/server").TRPCBuiltRouter<{
             brandId: number | null;
             categoryId: number | null;
             thumbnail: string | null;
-            status: "active" | "inactive";
             price: string;
             brand: {
                 id: number;
@@ -122,12 +122,12 @@ export declare const productsRoute: import("@trpc/server").TRPCBuiltRouter<{
             id: number;
             name: string;
             createdAt: Date;
+            status: "active" | "inactive";
             slug: string;
             isFeatured: boolean;
             brandId: number | null;
             categoryId: number | null;
             thumbnail: string | null;
-            status: "active" | "inactive";
             price: string;
             brand: {
                 id: number;
@@ -152,8 +152,8 @@ export declare const productsRoute: import("@trpc/server").TRPCBuiltRouter<{
                 name: string;
                 image: string | null;
                 createdAt: Date;
-                metadata: any;
                 status: "active" | "inactive";
+                metadata: any;
                 price: string;
                 productId: number | null;
                 sku: string;
@@ -183,6 +183,7 @@ export declare const productsRoute: import("@trpc/server").TRPCBuiltRouter<{
             id: number;
             name: string;
             createdAt: Date;
+            status: "active" | "inactive";
             slug: string;
             isFeatured: boolean;
             metadata: any;
@@ -190,7 +191,6 @@ export declare const productsRoute: import("@trpc/server").TRPCBuiltRouter<{
             brandId: number | null;
             categoryId: number | null;
             thumbnail: string | null;
-            status: "active" | "inactive";
             price: string;
             brand: {
                 id: number;
@@ -215,8 +215,8 @@ export declare const productsRoute: import("@trpc/server").TRPCBuiltRouter<{
                 name: string;
                 image: string | null;
                 createdAt: Date;
-                metadata: any;
                 status: "active" | "inactive";
+                metadata: any;
                 price: string;
                 productId: number | null;
                 sku: string;
@@ -261,8 +261,8 @@ export declare const productsRoute: import("@trpc/server").TRPCBuiltRouter<{
     createProduct: import("@trpc/server").TRPCMutationProcedure<{
         input: {
             name: string;
-            slug: string;
             status: ProductStatus;
+            slug: string;
             price: number;
             description?: any;
             brandId?: number | undefined;
@@ -278,8 +278,8 @@ export declare const productsRoute: import("@trpc/server").TRPCBuiltRouter<{
         input: {
             id: number;
             name: string;
-            slug: string;
             status: ProductStatus;
+            slug: string;
             price: number;
             description?: any;
             brandId?: number | undefined;
@@ -315,6 +315,7 @@ export declare const productsRoute: import("@trpc/server").TRPCBuiltRouter<{
             id: number;
             name: string;
             createdAt: Date;
+            status: "active" | "inactive";
             slug: string;
             isFeatured: boolean;
             metadata: any;
@@ -322,7 +323,6 @@ export declare const productsRoute: import("@trpc/server").TRPCBuiltRouter<{
             brandId: number | null;
             categoryId: number | null;
             thumbnail: string | null;
-            status: "active" | "inactive";
             price: string;
             brand: {
                 id: number;
@@ -355,6 +355,7 @@ export declare const productsRoute: import("@trpc/server").TRPCBuiltRouter<{
             id: number;
             name: string;
             createdAt: Date;
+            status: "active" | "inactive";
             slug: string;
             isFeatured: boolean;
             metadata: any;
@@ -362,7 +363,6 @@ export declare const productsRoute: import("@trpc/server").TRPCBuiltRouter<{
             brandId: number | null;
             categoryId: number | null;
             thumbnail: string | null;
-            status: "active" | "inactive";
             price: string;
         }[];
         meta: object;

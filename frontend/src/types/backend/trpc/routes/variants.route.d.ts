@@ -65,8 +65,8 @@ export declare const variantsRoute: import("@trpc/server").TRPCBuiltRouter<{
             name: string;
             image: string | null;
             createdAt: Date;
-            metadata: any;
             status: "active" | "inactive";
+            metadata: any;
             price: string;
             productId: number | null;
             sku: string;
@@ -119,8 +119,8 @@ export declare const variantsRoute: import("@trpc/server").TRPCBuiltRouter<{
             name: string;
             image: string | null;
             createdAt: Date;
-            metadata: any;
             status: "active" | "inactive";
+            metadata: any;
             price: string;
             productId: number | null;
             sku: string;

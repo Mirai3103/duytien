@@ -898,6 +898,25 @@ declare const db: import("drizzle-orm/node-postgres").NodePgDatabase<{
                 identity: "always";
                 generated: undefined;
             }, {}, {}>;
+            code: import("drizzle-orm/pg-core").PgColumn<{
+                name: "code";
+                tableName: "orders";
+                dataType: "string";
+                columnType: "PgVarchar";
+                data: string;
+                driverParam: string;
+                notNull: false;
+                hasDefault: true;
+                isPrimaryKey: false;
+                isAutoincrement: false;
+                hasRuntimeDefault: false;
+                enumValues: [string, ...string[]];
+                baseColumn: never;
+                identity: undefined;
+                generated: undefined;
+            }, {}, {
+                length: 255;
+            }>;
             userId: import("drizzle-orm/pg-core").PgColumn<{
                 name: "user_id";
                 tableName: "orders";
@@ -1002,6 +1021,40 @@ declare const db: import("drizzle-orm/node-postgres").NodePgDatabase<{
             }, {}, {}>;
             voucherId: import("drizzle-orm/pg-core").PgColumn<{
                 name: "voucher_id";
+                tableName: "orders";
+                dataType: "number";
+                columnType: "PgInteger";
+                data: number;
+                driverParam: string | number;
+                notNull: false;
+                hasDefault: false;
+                isPrimaryKey: false;
+                isAutoincrement: false;
+                hasRuntimeDefault: false;
+                enumValues: undefined;
+                baseColumn: never;
+                identity: undefined;
+                generated: undefined;
+            }, {}, {}>;
+            totalItems: import("drizzle-orm/pg-core").PgColumn<{
+                name: "total_items";
+                tableName: "orders";
+                dataType: "number";
+                columnType: "PgInteger";
+                data: number;
+                driverParam: string | number;
+                notNull: true;
+                hasDefault: true;
+                isPrimaryKey: false;
+                isAutoincrement: false;
+                hasRuntimeDefault: false;
+                enumValues: undefined;
+                baseColumn: never;
+                identity: undefined;
+                generated: undefined;
+            }, {}, {}>;
+            lastPaymentId: import("drizzle-orm/pg-core").PgColumn<{
+                name: "last_payment_id";
                 tableName: "orders";
                 dataType: "number";
                 columnType: "PgInteger";
@@ -1834,7 +1887,7 @@ declare const db: import("drizzle-orm/node-postgres").NodePgDatabase<{
         user: import("drizzle-orm").One<"user", true>;
         voucher: import("drizzle-orm").One<"vouchers", false>;
         items: import("drizzle-orm").Many<"order_items">;
-        payments: import("drizzle-orm").Many<"payments">;
+        lastPayment: import("drizzle-orm").One<"payments", false>;
     }>;
     orderItemsRelations: import("drizzle-orm").Relations<"order_items", {
         order: import("drizzle-orm").One<"orders", true>;
@@ -2150,6 +2203,74 @@ declare const db: import("drizzle-orm/node-postgres").NodePgDatabase<{
                 isAutoincrement: false;
                 hasRuntimeDefault: false;
                 enumValues: undefined;
+                baseColumn: never;
+                identity: undefined;
+                generated: undefined;
+            }, {}, {}>;
+            totalOrders: import("drizzle-orm/pg-core").PgColumn<{
+                name: "total_orders";
+                tableName: "user";
+                dataType: "number";
+                columnType: "PgInteger";
+                data: number;
+                driverParam: string | number;
+                notNull: true;
+                hasDefault: true;
+                isPrimaryKey: false;
+                isAutoincrement: false;
+                hasRuntimeDefault: false;
+                enumValues: undefined;
+                baseColumn: never;
+                identity: undefined;
+                generated: undefined;
+            }, {}, {}>;
+            totalAmount: import("drizzle-orm/pg-core").PgColumn<{
+                name: "total_amount";
+                tableName: "user";
+                dataType: "string";
+                columnType: "PgNumeric";
+                data: string;
+                driverParam: string;
+                notNull: true;
+                hasDefault: true;
+                isPrimaryKey: false;
+                isAutoincrement: false;
+                hasRuntimeDefault: false;
+                enumValues: undefined;
+                baseColumn: never;
+                identity: undefined;
+                generated: undefined;
+            }, {}, {}>;
+            status: import("drizzle-orm/pg-core").PgColumn<{
+                name: "status";
+                tableName: "user";
+                dataType: "string";
+                columnType: "PgText";
+                data: string;
+                driverParam: string;
+                notNull: true;
+                hasDefault: true;
+                isPrimaryKey: false;
+                isAutoincrement: false;
+                hasRuntimeDefault: false;
+                enumValues: [string, ...string[]];
+                baseColumn: never;
+                identity: undefined;
+                generated: undefined;
+            }, {}, {}>;
+            role: import("drizzle-orm/pg-core").PgColumn<{
+                name: "role";
+                tableName: "user";
+                dataType: "string";
+                columnType: "PgText";
+                data: string;
+                driverParam: string;
+                notNull: true;
+                hasDefault: true;
+                isPrimaryKey: false;
+                isAutoincrement: false;
+                hasRuntimeDefault: false;
+                enumValues: [string, ...string[]];
                 baseColumn: never;
                 identity: undefined;
                 generated: undefined;

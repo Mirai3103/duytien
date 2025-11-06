@@ -26,6 +26,37 @@ declare const usersRoute: import("@trpc/server").TRPCBuiltRouter<{
     errorShape: import("@trpc/server").TRPCDefaultErrorShape;
     transformer: false;
 }, import("@trpc/server").TRPCDecorateCreateRouterOptions<{
+    searchUsers: import("@trpc/server").TRPCQueryProcedure<{
+        input: {
+            page?: number | undefined;
+            limit?: number | undefined;
+            search?: string | undefined;
+            emailVerified?: boolean | undefined;
+            dateRange?: {
+                from?: Date | undefined;
+                to?: Date | undefined;
+            } | null | undefined;
+            orderBy?: "name" | "createdAt" | undefined;
+            orderDirection?: "asc" | "desc" | undefined;
+        };
+        output: {
+            users: {
+                id: string;
+                name: string;
+                email: string;
+                phone: string | null;
+                image: string | null;
+                emailVerified: boolean;
+                createdAt: Date;
+                orderCount: number;
+            }[];
+            total: number;
+            page: number;
+            limit: number;
+            totalPages: number;
+        };
+        meta: object;
+    }>;
     getMyProfile: import("@trpc/server").TRPCQueryProcedure<{
         input: void;
         output: {
