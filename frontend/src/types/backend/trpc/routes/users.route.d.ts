@@ -48,7 +48,10 @@ declare const usersRoute: import("@trpc/server").TRPCBuiltRouter<{
                 image: string | null;
                 emailVerified: boolean;
                 createdAt: Date;
-                orderCount: number;
+                totalOrders: number;
+                totalAmount: string;
+                status: string;
+                role: string;
             }[];
             total: number;
             page: number;

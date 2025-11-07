@@ -33,7 +33,7 @@ const navigation = [
   { name: "Đơn hàng", href: "/admin/orders", icon: ShoppingCart },
   { name: "Khách hàng", href: "/admin/customers", icon: Users },
   { name: "Thống kê", href: "/admin/analytics", icon: BarChart3 },
-  { name: "Khuyến mãi", href: "/admin/promotions", icon: Tag },
+  { name: "Khuyến mãi", href: "/admin/vouchers", icon: Tag },
   { name: "Cài đặt", href: "/admin/settings", icon: Settings },
 ];
 

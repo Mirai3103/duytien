@@ -62,6 +62,7 @@ export declare const ordersRoute: import("@trpc/server").TRPCBuiltRouter<{
                 note: string | null;
                 voucher: {
                     id: number;
+                    name: string;
                     createdAt: Date;
                     code: string;
                     type: "fixed" | "percentage";
@@ -163,6 +164,7 @@ export declare const ordersRoute: import("@trpc/server").TRPCBuiltRouter<{
             orders: {
                 vouchers: {
                     id: number;
+                    name: string;
                     code: string;
                     type: "fixed" | "percentage";
                     discount: string;
@@ -256,6 +258,7 @@ export declare const ordersRoute: import("@trpc/server").TRPCBuiltRouter<{
             };
             voucher: {
                 id: number;
+                name: string;
                 createdAt: Date;
                 code: string;
                 type: "fixed" | "percentage";

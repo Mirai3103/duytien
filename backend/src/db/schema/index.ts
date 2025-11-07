@@ -6,8 +6,11 @@ import {
   index,
   integer,
   jsonb,
+  numeric,
   pgEnum,
+  pgMaterializedView,
   pgTable,
+  pgView,
   primaryKey,
   text,
   timestamp,
@@ -108,6 +111,7 @@ export const products = pgTable(
     status: productStatusEnum("status").default("active").notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     price: decimal("price", { precision: 12, scale: 2 }).notNull(),
+    discount: decimal("discount", { precision: 12, scale: 2 }), // percentage if discount is < 100
     isFeatured: boolean("is_featured").default(false).notNull(),
     metadata: jsonb("metadata").$type<any>(),
   },
@@ -140,6 +144,7 @@ export const productVariants = pgTable(
     productId: integer("product_id"),
     sku: varchar("sku", { length: 100 }).notNull(),
     price: decimal("price", { precision: 12, scale: 2 }).notNull(),
+    discount: decimal("discount", { precision: 12, scale: 2 }), // percentage if discount is < 100
     stock: integer("stock").default(0).notNull(),
     image: varchar("image", { length: 255 }),
     isDefault: boolean("is_default").default(false),
@@ -291,6 +296,7 @@ export const vouchers = pgTable(
   "vouchers",
   {
     id: integer("id").primaryKey().notNull().generatedAlwaysAsIdentity(),
+    name: varchar("name", { length: 255 }).notNull(),
     code: varchar("code", { length: 255 }).notNull(),
     type: voucherTypes("type").notNull(),
     discount: decimal("discount", { precision: 12, scale: 2 }).notNull(),
@@ -538,6 +544,25 @@ export const addresses = pgTable(
   ]
 );
 
+//= ===== VIEWS =====
+
+// export const productsCache = pgTable("products_cache", {
+//   id: integer("id").primaryKey(), // cùng id với products
+//   name: text("name").notNull(),
+//   slug: text("slug").notNull(),
+//   description: text("description"),
+//   brandId: integer("brand_id"),
+//   categoryId: integer("category_id"),
+//   thumbnail: text("thumbnail"),
+//   status: text("status").default("draft"),
+//   createdAt: timestamp("created_at").defaultNow(),
+//   price: numeric("price"),
+//   isFeatured: boolean("is_featured").default(false),
+//   metadata: jsonb("metadata"),
+//   brand: jsonb("brand"), // dữ liệu JSON gộp sẵn
+//   category: jsonb("category"), // dữ liệu JSON gộp sẵn
+//   variants: jsonb("variants"), // mảng JSON variant
+// });
 // ===== USERS =====
 export const usersRelations = relations(user, ({ many }) => ({
   cartItems: many(cartItems),

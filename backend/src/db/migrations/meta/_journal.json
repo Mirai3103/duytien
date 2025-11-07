@@ -71,6 +71,13 @@
       "when": 1762426137727,
       "tag": "0009_bizarre_namora",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1762503143838,
+      "tag": "0010_same_micromax",
+      "breakpoints": true
     }
   ]
 }

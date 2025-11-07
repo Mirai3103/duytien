@@ -26,7 +26,8 @@ export const productsRoute = router({
   getProducts: publicProcedure
     .input(productsQuerySchema)
     .query(async ({ input }) => {
-      return await db.query.products.findMany({
+      const timeStart = performance.now();
+      const res = await db.query.products.findMany({
         limit: input.limit,
         offset: (input.page - 1) * input.limit,
         with: {
@@ -86,6 +87,10 @@ export const productsRoute = router({
           return [asc(fields.createdAt)];
         },
       });
+      const timeEnd = performance.now();
+      console.log(`Time taken: ${timeEnd - timeStart} milliseconds`);
+      console.log(`Total products: ${res.length}`);
+      return res;
     }),
   countProducts: publicProcedure
     .input(productsQuerySchema)
@@ -127,7 +132,8 @@ export const productsRoute = router({
   getProductsWithVariants: publicProcedure
     .input(productsQuerySchema)
     .query(async ({ input }) => {
-      return await db.query.products.findMany({
+      const timeStart = performance.now();
+      const res = await db.query.products.findMany({
         limit: input.limit,
         offset: (input.page - 1) * input.limit,
         columns: {
@@ -199,6 +205,9 @@ export const productsRoute = router({
           return desc(field);
         },
       });
+      const timeEnd = performance.now();
+      console.log(`Time taken: ${timeEnd - timeStart} milliseconds`);
+      return res;
     }),
 
   getProductDetail: publicProcedure
