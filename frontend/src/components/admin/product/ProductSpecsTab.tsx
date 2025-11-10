@@ -27,8 +27,15 @@ import {
 } from "@/components/ui/table";
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
-import { Plus, Trash2, FileText, List } from "lucide-react";
+import { Plus, Trash2, FileText, List, Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface ProductSpecsTabProps {
   productId: number;
@@ -108,6 +115,18 @@ export function ProductSpecsTab({ productId }: ProductSpecsTabProps) {
       },
       onError: () => {
         toast.error("Có lỗi xảy ra khi xóa thông số");
+      },
+    })
+  );
+
+  const toggleFeaturedMutation = useMutation(
+    trpc.specs.toggleFeaturedProductSpec.mutationOptions({
+      onSuccess: async () => {
+        toast.success("Cập nhật thông số đặc biệt thành công");
+        await invalidate();
+      },
+      onError: () => {
+        toast.error("Có lỗi xảy ra khi cập nhật");
       },
     })
   );
@@ -324,6 +343,9 @@ export function ProductSpecsTab({ productId }: ProductSpecsTabProps) {
                             <TableHead className="w-[60px]">#</TableHead>
                             <TableHead>Tên thông số</TableHead>
                             <TableHead>Giá trị</TableHead>
+                            <TableHead className="w-[120px]">
+                              Đặc biệt
+                            </TableHead>
                             <TableHead className="w-[100px] text-right">
                               Thao tác
                             </TableHead>
@@ -335,10 +357,40 @@ export function ProductSpecsTab({ productId }: ProductSpecsTabProps) {
                               <TableCell className="font-medium">
                                 {idx + 1}
                               </TableCell>
-                              <TableCell className="font-medium">
-                                {spec.value?.key?.name}
+                              <TableCell>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium">
+                                    {spec.value?.key?.name}
+                                  </span>
+                                  {spec.isFeatured && (
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p>Thông số đặc biệt</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                  )}
+                                </div>
                               </TableCell>
                               <TableCell>{spec.value?.value}</TableCell>
+                              <TableCell>
+                                <div className="flex items-center gap-2">
+                                  <Switch
+                                    checked={spec.isFeatured || false}
+                                    onCheckedChange={() =>
+                                      toggleFeaturedMutation.mutate({
+                                        productId,
+                                        specValueId: spec.value?.id,
+                                      })
+                                    }
+                                    disabled={toggleFeaturedMutation.isPending}
+                                  />
+                                </div>
+                              </TableCell>
                               <TableCell className="text-right">
                                 <Button
                                   variant="ghost"

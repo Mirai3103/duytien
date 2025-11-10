@@ -43,6 +43,7 @@ declare const cartRoute: import("@trpc/server").TRPCBuiltRouter<{
                 status: "active" | "inactive";
                 metadata: any;
                 price: string;
+                discount: string | null;
                 productId: number | null;
                 sku: string;
                 stock: number;
@@ -118,6 +119,7 @@ declare const cartRoute: import("@trpc/server").TRPCBuiltRouter<{
                 status: "active" | "inactive";
                 metadata: any;
                 price: string;
+                discount: string | null;
                 productId: number | null;
                 sku: string;
                 stock: number;

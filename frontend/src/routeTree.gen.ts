@@ -16,11 +16,13 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as StorefrontRouteImport } from './routes/_storefront'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as StorefrontIndexRouteImport } from './routes/_storefront/index'
 import { Route as ProductIdRouteImport } from './routes/product/$id'
 import { Route as AdminAdminRouteImport } from './routes/admin/_admin'
 import { Route as StorefrontUserRouteImport } from './routes/_storefront/user'
 import { Route as StorefrontSearchRouteImport } from './routes/_storefront/search'
+import { Route as StorefrontCompareRouteImport } from './routes/_storefront/compare'
 import { Route as StorefrontCheckoutRouteImport } from './routes/_storefront/checkout'
 import { Route as StorefrontCartRouteImport } from './routes/_storefront/cart'
 import { Route as AdminAdminVouchersRouteImport } from './routes/admin/_admin/vouchers'
@@ -67,6 +69,11 @@ const StorefrontRoute = StorefrontRouteImport.update({
   id: '/_storefront',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
 const StorefrontIndexRoute = StorefrontIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -89,6 +96,11 @@ const StorefrontUserRoute = StorefrontUserRouteImport.update({
 const StorefrontSearchRoute = StorefrontSearchRouteImport.update({
   id: '/search',
   path: '/search',
+  getParentRoute: () => StorefrontRoute,
+} as any)
+const StorefrontCompareRoute = StorefrontCompareRouteImport.update({
+  id: '/compare',
+  path: '/compare',
   getParentRoute: () => StorefrontRoute,
 } as any)
 const StorefrontCheckoutRoute = StorefrontCheckoutRouteImport.update({
@@ -174,11 +186,13 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/cart': typeof StorefrontCartRoute
   '/checkout': typeof StorefrontCheckoutRoute
+  '/compare': typeof StorefrontCompareRoute
   '/search': typeof StorefrontSearchRoute
   '/user': typeof StorefrontUserRoute
   '/admin': typeof AdminAdminRouteWithChildren
   '/product/$id': typeof ProductIdRoute
   '/': typeof StorefrontIndexRoute
+  '/admin/': typeof AdminIndexRoute
   '/admin/brands': typeof AdminAdminBrandsRoute
   '/admin/categories': typeof AdminAdminCategoriesRoute
   '/admin/customers': typeof AdminAdminCustomersRoute
@@ -199,9 +213,10 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/cart': typeof StorefrontCartRoute
   '/checkout': typeof StorefrontCheckoutRoute
+  '/compare': typeof StorefrontCompareRoute
   '/search': typeof StorefrontSearchRoute
   '/user': typeof StorefrontUserRoute
-  '/admin': typeof AdminAdminRouteWithChildren
+  '/admin': typeof AdminIndexRoute
   '/product/$id': typeof ProductIdRoute
   '/': typeof StorefrontIndexRoute
   '/admin/brands': typeof AdminAdminBrandsRoute
@@ -226,12 +241,14 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/_storefront/cart': typeof StorefrontCartRoute
   '/_storefront/checkout': typeof StorefrontCheckoutRoute
+  '/_storefront/compare': typeof StorefrontCompareRoute
   '/_storefront/search': typeof StorefrontSearchRoute
   '/_storefront/user': typeof StorefrontUserRoute
   '/admin': typeof AdminRouteWithChildren
   '/admin/_admin': typeof AdminAdminRouteWithChildren
   '/product/$id': typeof ProductIdRoute
   '/_storefront/': typeof StorefrontIndexRoute
+  '/admin/': typeof AdminIndexRoute
   '/admin/_admin/brands': typeof AdminAdminBrandsRoute
   '/admin/_admin/categories': typeof AdminAdminCategoriesRoute
   '/admin/_admin/customers': typeof AdminAdminCustomersRoute
@@ -254,11 +271,13 @@ export interface FileRouteTypes {
     | '/terms'
     | '/cart'
     | '/checkout'
+    | '/compare'
     | '/search'
     | '/user'
     | '/admin'
     | '/product/$id'
     | '/'
+    | '/admin/'
     | '/admin/brands'
     | '/admin/categories'
     | '/admin/customers'
@@ -279,6 +298,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/cart'
     | '/checkout'
+    | '/compare'
     | '/search'
     | '/user'
     | '/admin'
@@ -305,12 +325,14 @@ export interface FileRouteTypes {
     | '/terms'
     | '/_storefront/cart'
     | '/_storefront/checkout'
+    | '/_storefront/compare'
     | '/_storefront/search'
     | '/_storefront/user'
     | '/admin'
     | '/admin/_admin'
     | '/product/$id'
     | '/_storefront/'
+    | '/admin/'
     | '/admin/_admin/brands'
     | '/admin/_admin/categories'
     | '/admin/_admin/customers'
@@ -379,6 +401,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StorefrontRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/_storefront/': {
       id: '/_storefront/'
       path: '/'
@@ -412,6 +441,13 @@ declare module '@tanstack/react-router' {
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof StorefrontSearchRouteImport
+      parentRoute: typeof StorefrontRoute
+    }
+    '/_storefront/compare': {
+      id: '/_storefront/compare'
+      path: '/compare'
+      fullPath: '/compare'
+      preLoaderRoute: typeof StorefrontCompareRouteImport
       parentRoute: typeof StorefrontRoute
     }
     '/_storefront/checkout': {
@@ -518,6 +554,7 @@ declare module '@tanstack/react-router' {
 interface StorefrontRouteChildren {
   StorefrontCartRoute: typeof StorefrontCartRoute
   StorefrontCheckoutRoute: typeof StorefrontCheckoutRoute
+  StorefrontCompareRoute: typeof StorefrontCompareRoute
   StorefrontSearchRoute: typeof StorefrontSearchRoute
   StorefrontUserRoute: typeof StorefrontUserRoute
   StorefrontIndexRoute: typeof StorefrontIndexRoute
@@ -526,6 +563,7 @@ interface StorefrontRouteChildren {
 const StorefrontRouteChildren: StorefrontRouteChildren = {
   StorefrontCartRoute: StorefrontCartRoute,
   StorefrontCheckoutRoute: StorefrontCheckoutRoute,
+  StorefrontCompareRoute: StorefrontCompareRoute,
   StorefrontSearchRoute: StorefrontSearchRoute,
   StorefrontUserRoute: StorefrontUserRoute,
   StorefrontIndexRoute: StorefrontIndexRoute,
@@ -574,10 +612,12 @@ const AdminAdminRouteWithChildren = AdminAdminRoute._addFileChildren(
 
 interface AdminRouteChildren {
   AdminAdminRoute: typeof AdminAdminRouteWithChildren
+  AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAdminRoute: AdminAdminRouteWithChildren,
+  AdminIndexRoute: AdminIndexRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)

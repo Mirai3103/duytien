@@ -13,6 +13,7 @@ import {
   VariantStatus,
 } from "@/schemas/variant";
 import type { inferProcedureOutput } from "@trpc/server";
+import { updateProductVariantsAggregateHook } from "@/db/hook";
 async function upsertAttributeValue(attributeId: number, value: string) {
   const existingAttributeValue = await db.query.attributeValues.findFirst({
     where: (fields, { and, eq }) =>
@@ -126,6 +127,7 @@ export const variantsRoute = router({
         });
       }
 
+      updateProductVariantsAggregateHook(rest.productId);
       return { success: true };
     }),
   updateVariant: publicProcedure
@@ -139,6 +141,7 @@ export const variantsRoute = router({
           price: rest.price.toString(),
         })
         .where(eq(productVariants.id, id));
+      updateProductVariantsAggregateHook(rest.productId);
       return { success: true };
     }),
   setVariantAttributes: publicProcedure
@@ -154,7 +157,12 @@ export const variantsRoute = router({
       await db
         .delete(productVariantValuesTable)
         .where(eq(productVariantValuesTable.variantId, input.variantId));
-
+      const productId = await db.query.productVariants.findFirst({
+        where: eq(productVariants.id, input.variantId),
+        columns: {
+          productId: true,
+        },
+      });
       for await (const av of input.attributeValues) {
         const attributeValueId = await upsertAttributeValue(
           av.attributeId,
@@ -165,12 +173,20 @@ export const variantsRoute = router({
           attributeValueId,
         });
       }
+      updateProductVariantsAggregateHook(productId!.productId! as number);
       return { success: true };
     }),
   deleteVariant: publicProcedure
     .input(z.number())
     .mutation(async ({ input }) => {
+      const productId = await db.query.productVariants.findFirst({
+        where: eq(productVariants.id, input),
+        columns: {
+          productId: true,
+        },
+      });
       await db.delete(productVariants).where(eq(productVariants.id, input));
+      updateProductVariantsAggregateHook(productId!.productId! as number);
       return { success: true };
     }),
 
@@ -190,6 +206,7 @@ export const variantsRoute = router({
         .update(productVariants)
         .set({ isDefault: true })
         .where(eq(productVariants.id, input.variantId));
+      updateProductVariantsAggregateHook(input.productId);
       return { success: true };
     }),
   toggleVariantStatus: publicProcedure
@@ -208,6 +225,13 @@ export const variantsRoute = router({
               : VariantStatus.ACTIVE,
         })
         .where(eq(productVariants.id, input.variantId));
+      const productId = await db.query.productVariants.findFirst({
+        where: eq(productVariants.id, input.variantId),
+        columns: {
+          productId: true,
+        },
+      });
+      updateProductVariantsAggregateHook(productId!.productId! as number);
       return { success: true };
     }),
 
@@ -223,6 +247,13 @@ export const variantsRoute = router({
         .update(productVariants)
         .set({ stock: input.stock })
         .where(eq(productVariants.id, input.variantId));
+      const productId = await db.query.productVariants.findFirst({
+        where: eq(productVariants.id, input.variantId),
+        columns: {
+          productId: true,
+        },
+      });
+      updateProductVariantsAggregateHook(productId!.productId! as number);
       return { success: true };
     }),
   setPrice: publicProcedure
@@ -237,6 +268,13 @@ export const variantsRoute = router({
         .update(productVariants)
         .set({ price: input.price.toString() })
         .where(eq(productVariants.id, input.variantId));
+      const productId = await db.query.productVariants.findFirst({
+        where: eq(productVariants.id, input.variantId),
+        columns: {
+          productId: true,
+        },
+      });
+      updateProductVariantsAggregateHook(productId!.productId! as number);
       return { success: true };
     }),
 });

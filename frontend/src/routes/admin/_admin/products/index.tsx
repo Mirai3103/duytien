@@ -9,6 +9,7 @@ import {
   Eye,
   EyeOff,
   Layers,
+  Percent,
 } from "lucide-react";
 import { useTRPC } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
@@ -52,6 +53,7 @@ import { ProductStatus } from "@/types/backend/schemas/product";
 import { toast } from "sonner";
 import { Link } from "@tanstack/react-router";
 import { Edit, Plus } from "lucide-react";
+import { DiscountModal } from "@/components/admin/products/DiscountModal";
 
 export const Route = createFileRoute("/admin/_admin/products/")({
   component: RouteComponent,
@@ -68,6 +70,7 @@ type ProductRow = {
   categoryName?: string | null;
   createdAt: string | Date;
   price: number;
+  discount?: string | null;
 };
 
 function RouteComponent() {
@@ -90,6 +93,9 @@ function RouteComponent() {
   >(undefined);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<number | null>(null);
+  const [discountModalOpen, setDiscountModalOpen] = useState(false);
+  const [productForDiscount, setProductForDiscount] =
+    useState<ProductRow | null>(null);
 
   const { data: products = [] } = useQuery(
     trpc.products.getProducts.queryOptions({
@@ -184,8 +190,14 @@ function RouteComponent() {
       status: p.status,
       createdAt: p.createdAt,
       price: Number(p.price),
+      discount: p.discount ?? null,
     }));
   }, [safeProducts]);
+
+  const handleDiscountClick = (product: ProductRow) => {
+    setProductForDiscount(product);
+    setDiscountModalOpen(true);
+  };
 
   const handleSort = (field: "price" | "name" | "status" | "createdAt") => {
     if (sortField !== field) {
@@ -350,6 +362,7 @@ function RouteComponent() {
                   <ArrowUpDown className="h-4 w-4" />
                 </Button>
               </TableHead>
+              <TableHead>Giảm giá</TableHead>
               <TableHead>
                 <Button
                   variant="ghost"
@@ -391,6 +404,22 @@ function RouteComponent() {
                 <TableCell>{row.categoryName}</TableCell>
                 <TableCell>{row.price.toLocaleString("vi-VN")}₫</TableCell>
                 <TableCell>
+                  {row.discount && Number(row.discount) > 0 ? (
+                    <div className="flex flex-col gap-1">
+                      <Badge
+                        variant="outline"
+                        className="bg-red-50 text-red-700 border-red-200"
+                      >
+                        {Number(row.discount) < 1
+                          ? `${(Number(row.discount) * 100).toFixed(0)}%`
+                          : `${Number(row.discount).toLocaleString("vi-VN")}₫`}
+                      </Badge>
+                    </div>
+                  ) : (
+                    <span className="text-muted-foreground text-sm">-</span>
+                  )}
+                </TableCell>
+                <TableCell>
                   {row.status === "active" ? (
                     <Badge className="bg-green-600 hover:bg-green-600">
                       Active
@@ -429,6 +458,13 @@ function RouteComponent() {
                         </DropdownMenuItem>
                       </Link>
                       <DropdownMenuItem
+                        onClick={() => handleDiscountClick(row)}
+                        className="gap-2"
+                      >
+                        <Percent className="h-4 w-4" />
+                        Cập nhật khuyến mãi
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
                         onClick={() => mutateToggle.mutate(row.id)}
                         className="gap-2"
                       >
@@ -460,7 +496,7 @@ function RouteComponent() {
             {rows.length === 0 && (
               <TableRow>
                 <TableCell
-                  colSpan={7}
+                  colSpan={8}
                   className="text-center text-muted-foreground"
                 >
                   Không có dữ liệu
@@ -507,6 +543,18 @@ function RouteComponent() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Discount Modal */}
+      {productForDiscount && (
+        <DiscountModal
+          open={discountModalOpen}
+          onOpenChange={setDiscountModalOpen}
+          productId={productForDiscount.id}
+          productName={productForDiscount.name}
+          productPrice={productForDiscount.price}
+          currentDiscount={productForDiscount.discount}
+        />
+      )}
     </div>
   );
 }

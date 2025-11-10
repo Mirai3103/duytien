@@ -390,6 +390,23 @@ export declare const products: import("drizzle-orm/pg-core").PgTableWithColumns<
             identity: undefined;
             generated: undefined;
         }, {}, {}>;
+        discount: import("drizzle-orm/pg-core").PgColumn<{
+            name: "discount";
+            tableName: "products";
+            dataType: "string";
+            columnType: "PgNumeric";
+            data: string;
+            driverParam: string;
+            notNull: false;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
         isFeatured: import("drizzle-orm/pg-core").PgColumn<{
             name: "is_featured";
             tableName: "products";
@@ -425,6 +442,77 @@ export declare const products: import("drizzle-orm/pg-core").PgTableWithColumns<
             generated: undefined;
         }, {}, {
             $type: any;
+        }>;
+        variantsAggregate: import("drizzle-orm/pg-core").PgColumn<{
+            name: "variants_aggregate";
+            tableName: "products";
+            dataType: "json";
+            columnType: "PgJson";
+            data: {
+                id: number;
+                name: string;
+                image: string | null;
+                createdAt: Date;
+                status: "active" | "inactive";
+                metadata: any;
+                price: string;
+                productId: number | null;
+                sku: string;
+                stock: number;
+                isDefault: boolean | null;
+                variantValues: {
+                    variantId: number;
+                    attributeValueId: number;
+                    value: {
+                        id: number;
+                        value: string;
+                        metadata: unknown;
+                        attributeId: number;
+                        attribute: {
+                            id: number;
+                            name: string;
+                        };
+                    };
+                }[];
+            }[];
+            driverParam: unknown;
+            notNull: false;
+            hasDefault: true;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {
+            $type: {
+                id: number;
+                name: string;
+                image: string | null;
+                createdAt: Date;
+                status: "active" | "inactive";
+                metadata: any;
+                price: string;
+                productId: number | null;
+                sku: string;
+                stock: number;
+                isDefault: boolean | null;
+                variantValues: {
+                    variantId: number;
+                    attributeValueId: number;
+                    value: {
+                        id: number;
+                        value: string;
+                        metadata: unknown;
+                        attributeId: number;
+                        attribute: {
+                            id: number;
+                            name: string;
+                        };
+                    };
+                }[];
+            }[];
         }>;
     };
     dialect: "pg";
@@ -513,6 +601,23 @@ export declare const productVariants: import("drizzle-orm/pg-core").PgTableWithC
             data: string;
             driverParam: string;
             notNull: true;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+        discount: import("drizzle-orm/pg-core").PgColumn<{
+            name: "discount";
+            tableName: "product_variants";
+            dataType: "string";
+            columnType: "PgNumeric";
+            data: string;
+            driverParam: string;
+            notNull: false;
             hasDefault: false;
             isPrimaryKey: false;
             isAutoincrement: false;
@@ -1945,6 +2050,23 @@ export declare const productSpecs: import("drizzle-orm/pg-core").PgTableWithColu
             identity: undefined;
             generated: undefined;
         }, {}, {}>;
+        isFeatured: import("drizzle-orm/pg-core").PgColumn<{
+            name: "is_featured";
+            tableName: "product_specs";
+            dataType: "boolean";
+            columnType: "PgBoolean";
+            data: boolean;
+            driverParam: boolean;
+            notNull: true;
+            hasDefault: true;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
     };
     dialect: "pg";
 }>;
@@ -1978,6 +2100,23 @@ export declare const productVariantSpecs: import("drizzle-orm/pg-core").PgTableW
             driverParam: string | number;
             notNull: true;
             hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+        isFeatured: import("drizzle-orm/pg-core").PgColumn<{
+            name: "is_featured";
+            tableName: "product_variant_specs";
+            dataType: "boolean";
+            columnType: "PgBoolean";
+            data: boolean;
+            driverParam: boolean;
+            notNull: true;
+            hasDefault: true;
             isPrimaryKey: false;
             isAutoincrement: false;
             hasRuntimeDefault: false;
@@ -2629,6 +2768,23 @@ declare const _default: {
                 identity: undefined;
                 generated: undefined;
             }, {}, {}>;
+            discount: import("drizzle-orm/pg-core").PgColumn<{
+                name: "discount";
+                tableName: "products";
+                dataType: "string";
+                columnType: "PgNumeric";
+                data: string;
+                driverParam: string;
+                notNull: false;
+                hasDefault: false;
+                isPrimaryKey: false;
+                isAutoincrement: false;
+                hasRuntimeDefault: false;
+                enumValues: undefined;
+                baseColumn: never;
+                identity: undefined;
+                generated: undefined;
+            }, {}, {}>;
             isFeatured: import("drizzle-orm/pg-core").PgColumn<{
                 name: "is_featured";
                 tableName: "products";
@@ -2664,6 +2820,77 @@ declare const _default: {
                 generated: undefined;
             }, {}, {
                 $type: any;
+            }>;
+            variantsAggregate: import("drizzle-orm/pg-core").PgColumn<{
+                name: "variants_aggregate";
+                tableName: "products";
+                dataType: "json";
+                columnType: "PgJson";
+                data: {
+                    id: number;
+                    name: string;
+                    image: string | null;
+                    createdAt: Date;
+                    status: "active" | "inactive";
+                    metadata: any;
+                    price: string;
+                    productId: number | null;
+                    sku: string;
+                    stock: number;
+                    isDefault: boolean | null;
+                    variantValues: {
+                        variantId: number;
+                        attributeValueId: number;
+                        value: {
+                            id: number;
+                            value: string;
+                            metadata: unknown;
+                            attributeId: number;
+                            attribute: {
+                                id: number;
+                                name: string;
+                            };
+                        };
+                    }[];
+                }[];
+                driverParam: unknown;
+                notNull: false;
+                hasDefault: true;
+                isPrimaryKey: false;
+                isAutoincrement: false;
+                hasRuntimeDefault: false;
+                enumValues: undefined;
+                baseColumn: never;
+                identity: undefined;
+                generated: undefined;
+            }, {}, {
+                $type: {
+                    id: number;
+                    name: string;
+                    image: string | null;
+                    createdAt: Date;
+                    status: "active" | "inactive";
+                    metadata: any;
+                    price: string;
+                    productId: number | null;
+                    sku: string;
+                    stock: number;
+                    isDefault: boolean | null;
+                    variantValues: {
+                        variantId: number;
+                        attributeValueId: number;
+                        value: {
+                            id: number;
+                            value: string;
+                            metadata: unknown;
+                            attributeId: number;
+                            attribute: {
+                                id: number;
+                                name: string;
+                            };
+                        };
+                    }[];
+                }[];
             }>;
         };
         dialect: "pg";
@@ -2752,6 +2979,23 @@ declare const _default: {
                 data: string;
                 driverParam: string;
                 notNull: true;
+                hasDefault: false;
+                isPrimaryKey: false;
+                isAutoincrement: false;
+                hasRuntimeDefault: false;
+                enumValues: undefined;
+                baseColumn: never;
+                identity: undefined;
+                generated: undefined;
+            }, {}, {}>;
+            discount: import("drizzle-orm/pg-core").PgColumn<{
+                name: "discount";
+                tableName: "product_variants";
+                dataType: "string";
+                columnType: "PgNumeric";
+                data: string;
+                driverParam: string;
+                notNull: false;
                 hasDefault: false;
                 isPrimaryKey: false;
                 isAutoincrement: false;
@@ -3849,6 +4093,23 @@ declare const _default: {
                 identity: undefined;
                 generated: undefined;
             }, {}, {}>;
+            isFeatured: import("drizzle-orm/pg-core").PgColumn<{
+                name: "is_featured";
+                tableName: "product_specs";
+                dataType: "boolean";
+                columnType: "PgBoolean";
+                data: boolean;
+                driverParam: boolean;
+                notNull: true;
+                hasDefault: true;
+                isPrimaryKey: false;
+                isAutoincrement: false;
+                hasRuntimeDefault: false;
+                enumValues: undefined;
+                baseColumn: never;
+                identity: undefined;
+                generated: undefined;
+            }, {}, {}>;
         };
         dialect: "pg";
     }>;
@@ -3882,6 +4143,23 @@ declare const _default: {
                 driverParam: string | number;
                 notNull: true;
                 hasDefault: false;
+                isPrimaryKey: false;
+                isAutoincrement: false;
+                hasRuntimeDefault: false;
+                enumValues: undefined;
+                baseColumn: never;
+                identity: undefined;
+                generated: undefined;
+            }, {}, {}>;
+            isFeatured: import("drizzle-orm/pg-core").PgColumn<{
+                name: "is_featured";
+                tableName: "product_variant_specs";
+                dataType: "boolean";
+                columnType: "PgBoolean";
+                data: boolean;
+                driverParam: boolean;
+                notNull: true;
+                hasDefault: true;
                 isPrimaryKey: false;
                 isAutoincrement: false;
                 hasRuntimeDefault: false;

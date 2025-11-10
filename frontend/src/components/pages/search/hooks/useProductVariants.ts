@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import _ from "lodash";
+import type { GetProductsWithVariantsResponse } from "@/types/backend/trpc/routes/products.route";
 
 interface VariantValue {
   value: {
@@ -27,11 +28,15 @@ interface ProductAttribute {
   }>;
 }
 
-export function useProductVariants(product: any) {
-  const [selectedVariant, setSelectedVariant] = useState(product.variants[0]);
+export function useProductVariants(
+  product: GetProductsWithVariantsResponse[number]
+) {
+  const [selectedVariant, setSelectedVariant] = useState(
+    product.variantsAggregate![0]
+  );
 
   const attrs = useMemo<ProductAttribute[]>(() => {
-    const grouped = _.flatMap(product.variants, "variantValues");
+    const grouped = _.flatMap(product.variantsAggregate!, "variantValues");
     const groupedByAttr = _.groupBy(grouped, (vv) => vv.value.attribute.name);
     return _.map(groupedByAttr, (arr, attrName) => ({
       name: attrName,
@@ -54,7 +59,7 @@ export function useProductVariants(product: any) {
   };
 
   const findMatchingVariant = (selection: Record<string, string>) => {
-    return product.variants.find((variant: Variant) => {
+    return product.variantsAggregate!.find((variant: any) => {
       const variantAttrs = getCurrentSelection(variant);
       return Object.keys(selection).every(
         (key) => variantAttrs[key] === selection[key]
@@ -63,7 +68,7 @@ export function useProductVariants(product: any) {
   };
 
   const handleAttributeChange = (attrName: string, attrValue: string) => {
-    const currentSelection = getCurrentSelection(selectedVariant);
+    const currentSelection = getCurrentSelection(selectedVariant as Variant);
     currentSelection[attrName] = attrValue;
 
     const matchingVariant = findMatchingVariant(currentSelection);
@@ -73,7 +78,7 @@ export function useProductVariants(product: any) {
   };
 
   const isAttributeAvailable = (attrName: string, attrValue: string) => {
-    const currentSelection = getCurrentSelection(selectedVariant);
+    const currentSelection = getCurrentSelection(selectedVariant as Variant);
     const tempSelection = { ...currentSelection, [attrName]: attrValue };
     return !!findMatchingVariant(tempSelection);
   };

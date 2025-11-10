@@ -5,6 +5,7 @@ import {
   foreignKey,
   index,
   integer,
+  json,
   jsonb,
   numeric,
   pgEnum,
@@ -114,6 +115,35 @@ export const products = pgTable(
     discount: decimal("discount", { precision: 12, scale: 2 }), // percentage if discount is < 100
     isFeatured: boolean("is_featured").default(false).notNull(),
     metadata: jsonb("metadata").$type<any>(),
+    variantsAggregate: json("variants_aggregate").default({}).$type<
+      {
+        id: number;
+        name: string;
+        image: string | null;
+        createdAt: Date;
+        status: "active" | "inactive";
+        metadata: any;
+        price: string;
+        productId: number | null;
+        sku: string;
+        stock: number;
+        isDefault: boolean | null;
+        variantValues: {
+          variantId: number;
+          attributeValueId: number;
+          value: {
+            id: number;
+            value: string;
+            metadata: unknown;
+            attributeId: number;
+            attribute: {
+              id: number;
+              name: string;
+            };
+          };
+        }[];
+      }[]
+    >(), // for query faster
   },
   (t) => [
     uniqueIndex("products_slug_unique").on(t.slug),
@@ -480,6 +510,7 @@ export const productSpecs = pgTable(
   {
     productId: integer("product_id").notNull(),
     specValueId: integer("spec_value_id").notNull(),
+    isFeatured: boolean("is_featured").default(false).notNull(),
   },
   (t) => [
     primaryKey({ columns: [t.productId, t.specValueId] }),
@@ -503,6 +534,7 @@ export const productVariantSpecs = pgTable(
   {
     variantId: integer("variant_id").notNull(),
     specValueId: integer("spec_value_id").notNull(),
+    isFeatured: boolean("is_featured").default(false).notNull(),
   },
   (t) => [
     primaryKey({ columns: [t.variantId, t.specValueId] }),

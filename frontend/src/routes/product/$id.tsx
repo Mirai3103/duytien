@@ -16,6 +16,7 @@ import {
   ShoppingCart,
   Star,
   Truck,
+  GitCompare,
 } from "lucide-react";
 import React, { useState } from "react";
 import Footer from "@/components/Footer";
@@ -158,17 +159,36 @@ import { useTRPC } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { RippleButton } from "@/components/ui/shadcn-io/ripple-button";
+import { useCompareStore } from "@/store/compare";
+import { useSession } from "@/lib/auth-client";
+import {
+  getDiscountPercentage,
+  getFinalPrice,
+  getReducePrice,
+} from "@/lib/utils";
 
 function RouteComponent() {
   const { product, variant } = Route.useLoaderData(); // TODO: Use this to fetch actual product data
-  const reducedPrice = Number(variant.metadata?.reducedPrice) || 0;
-  const reducePrice = Number(variant.price) - reducedPrice;
-  const discountPercentage = Number(variant.metadata?.discountPercentage) || 0;
+  const reducedPrice = getFinalPrice(
+    Number(variant.price),
+    Number(product.discount)
+  );
+  const reducePrice = getReducePrice(
+    Number(variant.price),
+    Number(product.discount)
+  );
+  const discountPercentage = getDiscountPercentage(
+    Number(variant.price),
+    Number(product.discount)
+  );
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const navigate = useNavigate();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
+  const { addVariantId, isVariantIdSelected, variantIds } = useCompareStore();
+  const user = useSession();
+
   const mutateAddToCart = useMutation(
     trpc.cart.addToCart.mutationOptions({
       onSuccess: () => {
@@ -190,11 +210,28 @@ function RouteComponent() {
   };
 
   const handleAddToCart = () => {
+    if (!user.data?.session?.id) {
+      toast.error("Vui lòng đăng nhập để thêm vào giỏ hàng");
+      navigate({ to: "/auth", search: { redirect: window.location.pathname } });
+      return;
+    }
     mutateAddToCart.mutate({
       variantId: variant.id,
       quantity: quantity,
     });
   };
+
+  const handleAddToCompare = () => {
+    if (variantIds.length >= 3 && !isVariantIdSelected(variant.id)) {
+      toast.error("Chỉ có thể so sánh tối đa 3 sản phẩm");
+      return;
+    }
+    addVariantId(variant.id);
+    toast.success("Đã thêm vào danh sách so sánh");
+    navigate({ to: "/compare" });
+  };
+
+  const isInCompare = isVariantIdSelected(variant.id);
   console.log(product.specs);
 
   const attrs = React.useMemo(() => {
@@ -267,7 +304,7 @@ function RouteComponent() {
               <Card className="overflow-hidden">
                 <CardContent className="p-4">
                   <div className="relative aspect-square bg-muted/30 rounded-lg overflow-hidden mb-4">
-                    {discountPercentage > 0 && (
+                    {discountPercentage != 0 && (
                       <Badge className="absolute top-4 left-4 z-10 bg-primary text-lg px-3 py-1">
                         -{discountPercentage}%
                       </Badge>
@@ -300,7 +337,7 @@ function RouteComponent() {
                 </CardContent>
               </Card>
 
-              {/* Share & Favorite */}
+              {/* Share & Favorite & Compare */}
               <div className="flex gap-2">
                 <Button variant="outline" className="flex-1">
                   <Heart className="h-4 w-4 mr-2" />
@@ -309,6 +346,14 @@ function RouteComponent() {
                 <Button variant="outline" className="flex-1">
                   <Share2 className="h-4 w-4 mr-2" />
                   Chia sẻ
+                </Button>
+                <Button
+                  variant={isInCompare ? "default" : "outline"}
+                  className="flex-1"
+                  onClick={handleAddToCompare}
+                >
+                  <GitCompare className="h-4 w-4 mr-2" />
+                  {isInCompare ? "Đã thêm" : "So sánh"}
                 </Button>
               </div>
             </div>
@@ -347,7 +392,7 @@ function RouteComponent() {
                     <span className="text-4xl font-bold text-primary">
                       {Number(variant.price).toLocaleString("vi-VN")}đ
                     </span>
-                    {discountPercentage > 0 && (
+                    {discountPercentage != 0 && (
                       <span className="text-xl text-muted-foreground line-through">
                         {Number(reducedPrice).toLocaleString("vi-VN")}đ
                       </span>

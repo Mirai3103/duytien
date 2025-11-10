@@ -1,4 +1,4 @@
-declare const db: import("drizzle-orm/node-postgres").NodePgDatabase<{
+declare const db: import("drizzle-orm/neon-http").NeonHttpDatabase<{
     brands: import("drizzle-orm/pg-core").PgTableWithColumns<{
         name: "brands";
         schema: undefined;
@@ -383,6 +383,23 @@ declare const db: import("drizzle-orm/node-postgres").NodePgDatabase<{
                 identity: undefined;
                 generated: undefined;
             }, {}, {}>;
+            discount: import("drizzle-orm/pg-core").PgColumn<{
+                name: "discount";
+                tableName: "products";
+                dataType: "string";
+                columnType: "PgNumeric";
+                data: string;
+                driverParam: string;
+                notNull: false;
+                hasDefault: false;
+                isPrimaryKey: false;
+                isAutoincrement: false;
+                hasRuntimeDefault: false;
+                enumValues: undefined;
+                baseColumn: never;
+                identity: undefined;
+                generated: undefined;
+            }, {}, {}>;
             isFeatured: import("drizzle-orm/pg-core").PgColumn<{
                 name: "is_featured";
                 tableName: "products";
@@ -418,6 +435,77 @@ declare const db: import("drizzle-orm/node-postgres").NodePgDatabase<{
                 generated: undefined;
             }, {}, {
                 $type: any;
+            }>;
+            variantsAggregate: import("drizzle-orm/pg-core").PgColumn<{
+                name: "variants_aggregate";
+                tableName: "products";
+                dataType: "json";
+                columnType: "PgJson";
+                data: {
+                    id: number;
+                    name: string;
+                    image: string | null;
+                    createdAt: Date;
+                    status: "active" | "inactive";
+                    metadata: any;
+                    price: string;
+                    productId: number | null;
+                    sku: string;
+                    stock: number;
+                    isDefault: boolean | null;
+                    variantValues: {
+                        variantId: number;
+                        attributeValueId: number;
+                        value: {
+                            id: number;
+                            value: string;
+                            metadata: unknown;
+                            attributeId: number;
+                            attribute: {
+                                id: number;
+                                name: string;
+                            };
+                        };
+                    }[];
+                }[];
+                driverParam: unknown;
+                notNull: false;
+                hasDefault: true;
+                isPrimaryKey: false;
+                isAutoincrement: false;
+                hasRuntimeDefault: false;
+                enumValues: undefined;
+                baseColumn: never;
+                identity: undefined;
+                generated: undefined;
+            }, {}, {
+                $type: {
+                    id: number;
+                    name: string;
+                    image: string | null;
+                    createdAt: Date;
+                    status: "active" | "inactive";
+                    metadata: any;
+                    price: string;
+                    productId: number | null;
+                    sku: string;
+                    stock: number;
+                    isDefault: boolean | null;
+                    variantValues: {
+                        variantId: number;
+                        attributeValueId: number;
+                        value: {
+                            id: number;
+                            value: string;
+                            metadata: unknown;
+                            attributeId: number;
+                            attribute: {
+                                id: number;
+                                name: string;
+                            };
+                        };
+                    }[];
+                }[];
             }>;
         };
         dialect: "pg";
@@ -506,6 +594,23 @@ declare const db: import("drizzle-orm/node-postgres").NodePgDatabase<{
                 data: string;
                 driverParam: string;
                 notNull: true;
+                hasDefault: false;
+                isPrimaryKey: false;
+                isAutoincrement: false;
+                hasRuntimeDefault: false;
+                enumValues: undefined;
+                baseColumn: never;
+                identity: undefined;
+                generated: undefined;
+            }, {}, {}>;
+            discount: import("drizzle-orm/pg-core").PgColumn<{
+                name: "discount";
+                tableName: "product_variants";
+                dataType: "string";
+                columnType: "PgNumeric";
+                data: string;
+                driverParam: string;
+                notNull: false;
                 hasDefault: false;
                 isPrimaryKey: false;
                 isAutoincrement: false;
@@ -1603,6 +1708,23 @@ declare const db: import("drizzle-orm/node-postgres").NodePgDatabase<{
                 identity: undefined;
                 generated: undefined;
             }, {}, {}>;
+            isFeatured: import("drizzle-orm/pg-core").PgColumn<{
+                name: "is_featured";
+                tableName: "product_specs";
+                dataType: "boolean";
+                columnType: "PgBoolean";
+                data: boolean;
+                driverParam: boolean;
+                notNull: true;
+                hasDefault: true;
+                isPrimaryKey: false;
+                isAutoincrement: false;
+                hasRuntimeDefault: false;
+                enumValues: undefined;
+                baseColumn: never;
+                identity: undefined;
+                generated: undefined;
+            }, {}, {}>;
         };
         dialect: "pg";
     }>;
@@ -1636,6 +1758,23 @@ declare const db: import("drizzle-orm/node-postgres").NodePgDatabase<{
                 driverParam: string | number;
                 notNull: true;
                 hasDefault: false;
+                isPrimaryKey: false;
+                isAutoincrement: false;
+                hasRuntimeDefault: false;
+                enumValues: undefined;
+                baseColumn: never;
+                identity: undefined;
+                generated: undefined;
+            }, {}, {}>;
+            isFeatured: import("drizzle-orm/pg-core").PgColumn<{
+                name: "is_featured";
+                tableName: "product_variant_specs";
+                dataType: "boolean";
+                columnType: "PgBoolean";
+                data: boolean;
+                driverParam: boolean;
+                notNull: true;
+                hasDefault: true;
                 isPrimaryKey: false;
                 isAutoincrement: false;
                 hasRuntimeDefault: false;
@@ -2963,6 +3102,6 @@ declare const db: import("drizzle-orm/node-postgres").NodePgDatabase<{
         dialect: "pg";
     }>;
 }> & {
-    $client: import("drizzle-orm/node-postgres").NodePgClient extends TClient ? Pool : TClient;
+    $client: import("@neondatabase/serverless").NeonQueryFunction<false, false>;
 };
 export default db;

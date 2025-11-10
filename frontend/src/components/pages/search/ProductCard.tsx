@@ -2,9 +2,11 @@ import { useNavigate } from "@tanstack/react-router";
 import { Check } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useProductVariants } from "./hooks/useProductVariants";
+import type { GetProductsWithVariantsResponse } from "@/types/backend/trpc/routes/products.route";
+import { getDiscountPercentage, getFinalPrice } from "@/lib/utils";
 
 interface ProductCardProps {
-  product: any;
+  product: GetProductsWithVariantsResponse[number];
 }
 
 export function ProductCard({ product }: ProductCardProps) {
@@ -16,17 +18,21 @@ export function ProductCard({ product }: ProductCardProps) {
     isAttributeAvailable,
   } = useProductVariants(product);
 
-  if (product.variants.length === 0) {
+  if (product.variantsAggregate!.length === 0) {
     console.log(product);
   }
 
   const originalPrice = parseInt(selectedVariant.price, 10);
-  const totalVariants = product.variants.length;
+  const totalVariants = product.variantsAggregate!.length;
+  const discountPercentage = getDiscountPercentage(
+    originalPrice,
+    Number(product.discount)
+  );
 
   const handleCardClick = () => {
     navigate({
       to: "/product/$id",
-      params: { id: selectedVariant.id },
+      params: { id: selectedVariant.id.toString() },
       search: { isSpu: false },
     });
   };
@@ -43,10 +49,13 @@ export function ProductCard({ product }: ProductCardProps) {
       onClick={handleCardClick}
       className="group hover:shadow-lg transition-all duration-300 hover:border-primary cursor-pointer overflow-hidden"
     >
-      <CardContent className="p-3">
+      <CardContent className="p-3 relative">
         <ProductImage src={selectedVariant.image!} alt={selectedVariant.name} />
 
-        <ProductInfo name={selectedVariant.name} price={originalPrice} />
+        <ProductInfo
+          name={selectedVariant.name}
+          price={getFinalPrice(originalPrice, Number(product.discount))}
+        />
 
         {totalVariants > 1 && (
           <VariantSelector

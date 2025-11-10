@@ -124,10 +124,15 @@ export const productsRoute = router({
           )
         );
       }
-      return await db
-        .select({ count: count() })
-        .from(products)
-        .where(and(...conditions));
+      try {
+        return await db
+          .select({ count: count() })
+          .from(products)
+          .where(and(...conditions));
+      } catch (error) {
+        console.error(error);
+        return 0;
+      }
     }),
   getProductsWithVariants: publicProcedure
     .input(productsQuerySchema)
@@ -181,19 +186,6 @@ export const productsRoute = router({
         with: {
           brand: true,
           category: true,
-          variants: {
-            with: {
-              variantValues: {
-                with: {
-                  value: {
-                    with: {
-                      attribute: true,
-                    },
-                  },
-                },
-              },
-            },
-          },
         },
         orderBy(fields, operators) {
           const field =
@@ -215,6 +207,9 @@ export const productsRoute = router({
     .query(async ({ input }) => {
       return await db.query.products.findFirst({
         where: eq(products.id, input),
+        columns: {
+          variantsAggregate: false,
+        },
         with: {
           brand: true,
           category: true,
@@ -311,6 +306,11 @@ export const productsRoute = router({
         where: eq(products.categoryId, input.categoryId),
         limit: input.limit,
         offset: input.offset,
+        columns: {
+          variantsAggregate: false,
+          metadata: false,
+          description: false,
+        },
         with: {
           brand: true,
           category: true,
@@ -346,9 +346,28 @@ export const productsRoute = router({
           }
           return and(...conditions);
         },
+        columns: {
+          variantsAggregate: false,
+          metadata: false,
+          description: false,
+        },
         limit: input.limit,
         offset: input.offset,
       });
+    }),
+  setDiscount: publicProcedure
+    .input(
+      z.object({
+        productId: z.number(),
+        discount: z.number(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      await db
+        .update(products)
+        .set({ discount: input.discount.toString() })
+        .where(eq(products.id, input.productId));
+      return { success: true };
     }),
 });
 

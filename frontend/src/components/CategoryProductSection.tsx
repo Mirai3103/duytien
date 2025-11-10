@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { useTRPC } from "@/lib/trpc";
 import { useQuery } from "@tanstack/react-query";
 import { RippleButton } from "./ui/shadcn-io/ripple-button";
+import { getFinalPrice } from "@/lib/utils";
 
 interface Product {
   id: number;
@@ -70,12 +71,21 @@ const CategoryProductSection = ({
                 alt={product.name}
                 className="w-full h-56 object-contain mx-auto"
               />
-              <div className="p-4 space-y-3">
+              <div className="p-4 space-y-1">
                 <h3 className="font-semibold text-sm line-clamp-2 h-10">
                   {product.name}
                 </h3>
+
+                <p className="text-xs text-muted-foreground line-through min-h-4">
+                  {product.discount &&
+                    ` ${Number(product.price).toLocaleString("vi-VN")}đ`}
+                </p>
                 <p className="text-lg font-bold text-primary">
-                  {Number(product.price).toLocaleString("vi-VN")}đ
+                  {getFinalPrice(
+                    Number(product.price),
+                    Number(product.discount)
+                  ).toLocaleString("vi-VN")}
+                  đ
                 </p>
                 <RippleButton
                   size="sm"

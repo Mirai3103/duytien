@@ -77,6 +77,26 @@ export declare const specsRoute: import("@trpc/server").TRPCBuiltRouter<{
         };
         meta: object;
     }>;
+    toggleFeaturedProductSpec: import("@trpc/server").TRPCMutationProcedure<{
+        input: {
+            productId: number;
+            specValueId: number;
+        };
+        output: {
+            success: boolean;
+        };
+        meta: object;
+    }>;
+    toggleFeaturedProductVariantSpec: import("@trpc/server").TRPCMutationProcedure<{
+        input: {
+            variantId: number;
+            specValueId: number;
+        };
+        output: {
+            success: boolean;
+        };
+        meta: object;
+    }>;
     getSpecGroups: import("@trpc/server").TRPCQueryProcedure<{
         input: void;
         output: {
@@ -115,6 +135,7 @@ export declare const specsRoute: import("@trpc/server").TRPCBuiltRouter<{
     getProductSpecs: import("@trpc/server").TRPCQueryProcedure<{
         input: number;
         output: {
+            isFeatured: boolean;
             productId: number;
             specValueId: number;
             value: {
@@ -137,6 +158,7 @@ export declare const specsRoute: import("@trpc/server").TRPCBuiltRouter<{
     getProductVariantSpecs: import("@trpc/server").TRPCQueryProcedure<{
         input: number;
         output: {
+            isFeatured: boolean;
             variantId: number;
             specValueId: number;
             value: {

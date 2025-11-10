@@ -37,6 +37,7 @@ export declare const variantsRoute: import("@trpc/server").TRPCBuiltRouter<{
             createdAt: Date;
             status: "active" | "inactive";
             price: string;
+            discount: string | null;
             productId: number | null;
             sku: string;
             stock: number;
@@ -68,11 +69,13 @@ export declare const variantsRoute: import("@trpc/server").TRPCBuiltRouter<{
             status: "active" | "inactive";
             metadata: any;
             price: string;
+            discount: string | null;
             productId: number | null;
             sku: string;
             stock: number;
             isDefault: boolean | null;
             specs: {
+                isFeatured: boolean;
                 variantId: number;
                 specValueId: number;
                 value: {
@@ -122,6 +125,7 @@ export declare const variantsRoute: import("@trpc/server").TRPCBuiltRouter<{
             status: "active" | "inactive";
             metadata: any;
             price: string;
+            discount: string | null;
             productId: number | null;
             sku: string;
             stock: number;

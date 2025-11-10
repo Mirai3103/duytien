@@ -40,9 +40,9 @@ export declare const vouchersRoute: import("@trpc/server").TRPCBuiltRouter<{
                 id: number;
                 name: string;
                 createdAt: Date;
+                discount: string;
                 code: string;
                 type: "fixed" | "percentage";
-                discount: string;
                 maxDiscount: string | null;
                 minOrderAmount: string | null;
                 maxOrderAmount: string | null;
@@ -62,9 +62,9 @@ export declare const vouchersRoute: import("@trpc/server").TRPCBuiltRouter<{
             id: number;
             name: string;
             createdAt: Date;
+            discount: string;
             code: string;
             type: "fixed" | "percentage";
-            discount: string;
             maxDiscount: string | null;
             minOrderAmount: string | null;
             maxOrderAmount: string | null;
@@ -99,9 +99,9 @@ export declare const vouchersRoute: import("@trpc/server").TRPCBuiltRouter<{
             id: number;
             name: string;
             createdAt: Date;
+            discount: string;
             code: string;
             type: "fixed" | "percentage";
-            discount: string;
             maxDiscount: string | null;
             minOrderAmount: string | null;
             maxOrderAmount: string | null;

@@ -64,9 +64,9 @@ export declare const ordersRoute: import("@trpc/server").TRPCBuiltRouter<{
                     id: number;
                     name: string;
                     createdAt: Date;
+                    discount: string;
                     code: string;
                     type: "fixed" | "percentage";
-                    discount: string;
                     maxDiscount: string | null;
                     minOrderAmount: string | null;
                     maxOrderAmount: string | null;
@@ -87,6 +87,7 @@ export declare const ordersRoute: import("@trpc/server").TRPCBuiltRouter<{
                         status: "active" | "inactive";
                         metadata: any;
                         price: string;
+                        discount: string | null;
                         productId: number | null;
                         sku: string;
                         stock: number;
@@ -104,6 +105,34 @@ export declare const ordersRoute: import("@trpc/server").TRPCBuiltRouter<{
                             categoryId: number | null;
                             thumbnail: string | null;
                             price: string;
+                            discount: string | null;
+                            variantsAggregate: {
+                                id: number;
+                                name: string;
+                                image: string | null;
+                                createdAt: Date;
+                                status: "active" | "inactive";
+                                metadata: any;
+                                price: string;
+                                productId: number | null;
+                                sku: string;
+                                stock: number;
+                                isDefault: boolean | null;
+                                variantValues: {
+                                    variantId: number;
+                                    attributeValueId: number;
+                                    value: {
+                                        id: number;
+                                        value: string;
+                                        metadata: unknown;
+                                        attributeId: number;
+                                        attribute: {
+                                            id: number;
+                                            name: string;
+                                        };
+                                    };
+                                }[];
+                            }[] | null;
                         } | null;
                         variantValues: {
                             variantId: number;
@@ -260,9 +289,9 @@ export declare const ordersRoute: import("@trpc/server").TRPCBuiltRouter<{
                 id: number;
                 name: string;
                 createdAt: Date;
+                discount: string;
                 code: string;
                 type: "fixed" | "percentage";
-                discount: string;
                 maxDiscount: string | null;
                 minOrderAmount: string | null;
                 maxOrderAmount: string | null;
@@ -283,6 +312,7 @@ export declare const ordersRoute: import("@trpc/server").TRPCBuiltRouter<{
                     status: "active" | "inactive";
                     metadata: any;
                     price: string;
+                    discount: string | null;
                     productId: number | null;
                     sku: string;
                     stock: number;

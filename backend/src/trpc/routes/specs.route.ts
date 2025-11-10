@@ -12,7 +12,7 @@ import {
   specKeys,
   specValues,
 } from "@/db/schema";
-import { and, eq } from "drizzle-orm";
+import { and, eq, not } from "drizzle-orm";
 import z from "zod";
 
 async function upsertSpecGroup(name: string) {
@@ -107,6 +107,36 @@ export const specsRoute = router({
       const { variantId, specValueId } = input;
       await db
         .delete(productVariantSpecs)
+        .where(
+          and(
+            eq(productVariantSpecs.variantId, variantId),
+            eq(productVariantSpecs.specValueId, specValueId)
+          )
+        );
+      return { success: true };
+    }),
+  toggleFeaturedProductSpec: publicProcedure
+    .input(z.object({ productId: z.number(), specValueId: z.number() }))
+    .mutation(async ({ input }) => {
+      const { productId, specValueId } = input;
+      await db
+        .update(productSpecs)
+        .set({ isFeatured: not(productSpecs.isFeatured) })
+        .where(
+          and(
+            eq(productSpecs.productId, productId),
+            eq(productSpecs.specValueId, specValueId)
+          )
+        );
+      return { success: true };
+    }),
+  toggleFeaturedProductVariantSpec: publicProcedure
+    .input(z.object({ variantId: z.number(), specValueId: z.number() }))
+    .mutation(async ({ input }) => {
+      const { variantId, specValueId } = input;
+      await db
+        .update(productVariantSpecs)
+        .set({ isFeatured: not(productVariantSpecs.isFeatured) })
         .where(
           and(
             eq(productVariantSpecs.variantId, variantId),
