@@ -48,6 +48,10 @@ declare const cartRoute: import("@trpc/server").TRPCBuiltRouter<{
                 sku: string;
                 stock: number;
                 isDefault: boolean | null;
+                product: {
+                    id: number;
+                    discount: string | null;
+                } | null;
                 variantValues: {
                     variantId: number;
                     attributeValueId: number;
@@ -124,6 +128,10 @@ declare const cartRoute: import("@trpc/server").TRPCBuiltRouter<{
                 sku: string;
                 stock: number;
                 isDefault: boolean | null;
+                product: {
+                    id: number;
+                    discount: string | null;
+                } | null;
                 variantValues: {
                     variantId: number;
                     attributeValueId: number;

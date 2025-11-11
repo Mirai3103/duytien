@@ -76,6 +76,7 @@ const statusConfig = {
   shipping: { label: "Đang giao", variant: "default" as const },
   delivered: { label: "Hoàn thành", variant: "default" as const },
   cancelled: { label: "Đã hủy", variant: "destructive" as const },
+  confirmed: { label: "Đã xác nhận", variant: "default" as const },
 };
 
 const paymentStatusConfig = {

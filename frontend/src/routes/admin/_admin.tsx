@@ -26,15 +26,15 @@ export const Route = createFileRoute("/admin/_admin")({
 });
 
 const navigation = [
-  { name: "Tổng quan", href: "/admin", icon: LayoutDashboard },
+  { name: "Tổng quan", href: "/admin/dashboard", icon: LayoutDashboard },
   { name: "Danh mục", href: "/admin/categories", icon: FolderTree },
   { name: "Thương hiệu", href: "/admin/brands", icon: Tags },
   { name: "Sản phẩm (SPU)", href: "/admin/products", icon: Package },
   { name: "Đơn hàng", href: "/admin/orders", icon: ShoppingCart },
   { name: "Khách hàng", href: "/admin/customers", icon: Users },
-  { name: "Thống kê", href: "/admin/analytics", icon: BarChart3 },
+  // { name: "Thống kê", href: "/admin/analytics", icon: BarChart3 },
   { name: "Khuyến mãi", href: "/admin/vouchers", icon: Tag },
-  { name: "Cài đặt", href: "/admin/settings", icon: Settings },
+  // { name: "Cài đặt", href: "/admin/settings", icon: Settings },
 ];
 
 export default function AdminLayout({

@@ -7,6 +7,7 @@ import {
   MapPin,
   Wallet,
   Plus,
+  Tag,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
@@ -25,6 +26,7 @@ import { useTRPC } from "@/lib/trpc";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { AddressDialog, type Address } from "@/components/user/address-dialog";
 import { toast } from "sonner";
+import { getFinalPrice } from "@/lib/utils";
 
 export const Route = createFileRoute("/_storefront/checkout")({
   component: RouteComponent,
@@ -37,13 +39,16 @@ interface CheckoutFormData {
 }
 
 function RouteComponent() {
-  const { selectedIds } = useCartStore();
+  const { selectedIds,voucherCode } = useCartStore();
 
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
   // Address dialog state
   const [addressDialogOpen, setAddressDialogOpen] = useState(false);
+  const { data: voucher = null } = useQuery(trpc.vouchers.getVoucherByCode.queryOptions({ code: voucherCode || "" },{
+    enabled: !!voucherCode,
+  }));
 
   // React Hook Form setup
   const { control, handleSubmit, watch, setValue } = useForm<CheckoutFormData>({
@@ -83,7 +88,7 @@ function RouteComponent() {
   );
   const createOrderMutation = useMutation(
     trpc.orders.createOrder.mutationOptions({
-      onSuccess: async () => {
+      onSuccess: async (data) => {
         await queryClient.invalidateQueries(
           trpc.cart.getCartItemsInIds.queryOptions(selectedIds)
         );
@@ -91,7 +96,11 @@ function RouteComponent() {
         await queryClient.invalidateQueries(
           trpc.cart.countCartItems.queryOptions()
         );
-        navigate({ to: "/", replace: true });
+        if(data?.redirectUrl) {
+          window.location.href = data.redirectUrl;
+        } else {
+          navigate({ to: "/", replace: true });
+        }
       },
       onError: (error) => {
         toast.error(error.message);
@@ -112,25 +121,39 @@ function RouteComponent() {
             setValue("note", addressToSelect.note);
           }
         }
-      }, 1000); // 1s delay to prevent flashing
+      }, 2000); // 1s delay to prevent flashing
       return () => clearTimeout(timeOut);
     }
   }, [addresses, selectedAddressId, setValue]);
 
   const subtotal =
     cartItems?.reduce<number>(
-      (sum, item) => sum + Number(item.variant.price) * Number(item.quantity),
+      (sum, item) => sum + getFinalPrice(Number(item.variant.price), Number(item.variant.product?.discount || 0)) * Number(item.quantity),
       0
     ) || 0;
-  const discount = 0; // Can be calculated based on coupons
+  
+  // Calculate discount from voucher
+  const reducePrice = React.useMemo(() => {
+    if (!voucher) return 0;
+    
+    if (voucher.type === "percentage") {
+      const percentDiscount = (subtotal * Number(voucher.discount)) / 100;
+   
+      const reducePrice = subtotal - percentDiscount;
+      return Math.min(reducePrice, Number(voucher.maxDiscount || Infinity));
+    } else {
+      const reducePrice = subtotal - Number(voucher.discount);
+      return Math.min(reducePrice, Number(voucher.maxDiscount || Infinity));
+    }
+  }, [voucher, subtotal]);
+  
   const shippingFee = 0;
-  const total = subtotal - discount + shippingFee;
+  const total = subtotal - reducePrice + shippingFee;
 
   // Handle address selection
   const handleSelectAddress = (address: Address) => {
     setValue("selectedAddressId", address.id, { shouldValidate: true });
     // Auto-fill note from selected address
-    setValue("note", address.note || "");
   };
 
   // Handle save new address
@@ -166,10 +189,11 @@ function RouteComponent() {
       shippingAddressId: data.selectedAddressId,
       note: data.note,
       paymentMethod: data.paymentMethod as "cod" | "momo" | "vnpay",
+      voucherId: voucher?.id || undefined,
     });
     toast.success("Đặt hàng thành công");
   };
-
+  console.log("reducePrice", reducePrice);
   React.useEffect(() => {
     if (selectedIds.length === 0) {
       navigate({ to: "/cart", replace: true });
@@ -562,6 +586,40 @@ function RouteComponent() {
 
                   <Separator />
 
+                  {/* Voucher Info */}
+                  {voucher && (
+                    <div className="p-3 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Tag className="h-4 w-4 text-green-600" />
+                        <span className="font-semibold text-green-600 text-sm">
+                          {voucher.name}
+                        </span>
+                      </div>
+                      {voucher.maxDiscount && (
+                          <Badge
+                            variant="outline"
+                            className="bg-green-100 mb-2 text-green-700 border-green-300 text-xs"
+                          >
+                            {`Tối đa ${Number(voucher.maxDiscount).toLocaleString("vi-VN")}đ`}
+                          </Badge>
+                        )}
+                      <div className="flex items-center justify-between">
+                        <Badge
+                          variant="outline"
+                          className="bg-green-100 text-green-700 border-green-300 text-xs"
+                        >
+                          {voucher.type === "percentage"
+                            ? `${voucher.discount}%`
+                            : `${Number(voucher.discount).toLocaleString("vi-VN")}đ`}
+                        </Badge>
+                      
+                        <span className="text-xs text-muted-foreground">
+                          Mã: {voucher.code}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Summary Calculations */}
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
@@ -571,11 +629,11 @@ function RouteComponent() {
                       </span>
                     </div>
 
-                    {discount > 0 && (
+                    {reducePrice > 0 && (
                       <div className="flex justify-between text-sm text-green-600">
-                        <span>Giảm giá</span>
+                        <span>Giảm giá {voucher && `(${voucher.code})`}</span>
                         <span className="font-medium">
-                          -{discount.toLocaleString("vi-VN")}đ
+                          -{reducePrice.toLocaleString("vi-VN")}đ
                         </span>
                       </div>
                     )}

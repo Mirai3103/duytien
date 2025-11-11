@@ -7,6 +7,7 @@ import {
   Package,
   Settings,
   User2,
+  ShieldCheck,
 } from "lucide-react";
 import MegaMenu from "@/components/MegaMenu";
 import { Badge } from "@/components/ui/badge";
@@ -43,6 +44,11 @@ const Header = () => {
   );
   const count = countCartItems.data ?? 0;
   const location = useLocation();
+  const myProfile = useQuery(
+    trpc.users.getMyProfile.queryOptions(undefined, {
+      enabled: isAuth,
+    })
+  );
   useEffect(() => {
     // add enter key listener to search input
     const handleEnterKey = (e: KeyboardEvent) => {
@@ -111,6 +117,17 @@ const Header = () => {
                     <User2 className="mr-2 h-4 w-4" />
                     <span>Hồ sơ của tôi</span>
                   </DropdownMenuItem>
+                  {myProfile.data?.role === "admin" && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => navigate({ to: "/admin/dashboard" })}
+                      >
+                        <ShieldCheck className="mr-2 h-4 w-4" />
+                        <span>Quản trị viên</span>
+                      </DropdownMenuItem>
+                    </>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={async () => {

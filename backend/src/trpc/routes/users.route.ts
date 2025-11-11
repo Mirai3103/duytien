@@ -142,6 +142,7 @@ const usersRoute = router({
         createdAt: true,
         emailVerified: true,
         updatedAt: true,
+        role: true,
       },
     });
   }),

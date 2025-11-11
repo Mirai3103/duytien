@@ -70,6 +70,29 @@ const statusConfig: Record<
     variant: "destructive",
   },
 };
+const paymentStatusConfig: Record<
+  "pending" | "success" | "failed",
+  { label: string; color: string; icon: any; variant: any }
+> = {
+  pending: {
+    label: "Chờ thanh toán",
+    color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+    icon: Clock,
+    variant: "secondary",
+  },
+  success: {
+    label: "Đã thanh toán",
+    color: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+    icon: CheckCircle2,
+    variant: "default",
+  },
+  failed: {
+    label:  "Chưa thanh toán",
+    color: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+    icon: XCircle,
+    variant: "destructive",
+  },
+};
 
 export function OrdersTab() {
   const trpc = useTRPC();
@@ -191,12 +214,15 @@ export function OrdersTab() {
             </Card>
           ) : (
             filteredOrders.map((order: any) => {
+              console.log(order);
               const config =
                 statusConfig[order.status as OrderStatus] ||
                 statusConfig.pending;
               const StatusIcon = config.icon;
               const orderNumber = `DH${order.id.toString().padStart(8, "0")}`;
-
+              const paymentConfig =
+                paymentStatusConfig[order.lastPayment?.status as "pending" | "success" | "failed"] ||
+                paymentStatusConfig.pending;
               return (
                 <Card key={order.id}>
                   <CardContent className="p-6">
@@ -220,7 +246,12 @@ export function OrdersTab() {
                           </div>
                         </div>
                       </div>
-                      <Badge className={config.color}>{config.label}</Badge>
+                      <div className="flex flex-col gap-2 items-end">
+                        <Badge className={config.color}>{config.label}</Badge>
+                        <Badge className={paymentConfig.color} variant={paymentConfig.variant as any}>
+                          {paymentConfig.label}
+                        </Badge>
+                      </div>
                     </div>
 
                     <Separator className="mb-4" />
@@ -281,14 +312,24 @@ export function OrdersTab() {
                     <Separator className="mb-4" />
 
                     {/* Order Footer */}
-                    <div className="flex items-center justify-between">
-                      <div>
+                    <div className="flex items-center justify-between flex-wrap gap-4">
+                      <div className="space-y-1">
                         <p className="text-sm text-muted-foreground">
                           Tổng tiền
                         </p>
                         <p className="text-xl font-bold text-primary">
                           {Number(order.totalAmount).toLocaleString("vi-VN")}đ
                         </p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-xs text-muted-foreground uppercase">
+                            {order.paymentMethod}
+                          </p>
+                          {order.voucher && (
+                            <Badge variant="secondary" className="text-xs">
+                              🎫 {order.voucher.code}
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                       <div className="flex gap-2">
                         <Button
@@ -393,23 +434,43 @@ export function OrdersTab() {
           {selectedOrder && (
             <div className="space-y-4">
               {/* Status */}
-              <div>
-                <p className="text-sm font-medium mb-2">Trạng thái</p>
-                <Badge
-                  className={
-                    (
-                      statusConfig[selectedOrder.status as OrderStatus] ||
-                      statusConfig.pending
-                    ).color
-                  }
-                >
-                  {
-                    (
-                      statusConfig[selectedOrder.status as OrderStatus] ||
-                      statusConfig.pending
-                    ).label
-                  }
-                </Badge>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm font-medium mb-2">Trạng thái đơn hàng</p>
+                  <Badge
+                    className={
+                      (
+                        statusConfig[selectedOrder.status as OrderStatus] ||
+                        statusConfig.pending
+                      ).color
+                    }
+                  >
+                    {
+                      (
+                        statusConfig[selectedOrder.status as OrderStatus] ||
+                        statusConfig.pending
+                      ).label
+                    }
+                  </Badge>
+                </div>
+                <div>
+                  <p className="text-sm font-medium mb-2">Trạng thái thanh toán</p>
+                  <Badge
+                    className={
+                      (
+                        paymentStatusConfig[selectedOrder.lastPayment?.status as "pending" | "success" | "failed"] ||
+                        paymentStatusConfig.pending
+                      ).color
+                    }
+                  >
+                    {
+                      (
+                        paymentStatusConfig[selectedOrder.lastPayment?.status as "pending" | "success" | "failed"] ||
+                        paymentStatusConfig.pending
+                      ).label
+                    }
+                  </Badge>
+                </div>
               </div>
 
               <Separator />
@@ -470,31 +531,26 @@ export function OrdersTab() {
 
               <Separator />
 
-              {/* Payment */}
-              <div>
-                <p className="text-sm font-medium mb-2">
-                  Phương thức thanh toán
-                </p>
-                <p className="text-sm text-muted-foreground uppercase">
-                  {selectedOrder.paymentMethod}
-                </p>
-                {selectedOrder.payments &&
-                  selectedOrder.payments.length > 0 && (
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Trạng thái:{" "}
-                      <span
-                        className={
-                          selectedOrder.payments[0].status === "completed"
-                            ? "text-green-600"
-                            : "text-yellow-600"
-                        }
-                      >
-                        {selectedOrder.payments[0].status === "completed"
-                          ? "Đã thanh toán"
-                          : "Chưa thanh toán"}
-                      </span>
+              {/* Payment & Voucher */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm font-medium mb-2">
+                    Phương thức thanh toán
+                  </p>
+                  <p className="text-sm uppercase">
+                    {selectedOrder.paymentMethod}
+                  </p>
+                </div>
+                {selectedOrder.voucher && (
+                  <div>
+                    <p className="text-sm font-medium mb-2">
+                      Mã giảm giá
                     </p>
-                  )}
+                    <Badge variant="secondary" className="text-xs">
+                      {selectedOrder.voucher.code}
+                    </Badge>
+                  </div>
+                )}
               </div>
 
               <Separator />

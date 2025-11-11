@@ -10,6 +10,9 @@ interface CartStore {
   isAny: boolean;
   isNone: boolean;
   isAll: (totalItems: number) => boolean;
+  voucherCode: string | null;
+  setVoucherCode: (voucherCode: string) => void;
+  clearVoucherCode: () => void;
 }
 
 export const useCartStore = create<CartStore>((set, get) => ({
@@ -43,4 +46,7 @@ export const useCartStore = create<CartStore>((set, get) => ({
   },
 
   isAll: (total) => get().selectedIds.length === total,
+  voucherCode: null,
+  setVoucherCode: (voucherCode) => set({ voucherCode }),
+  clearVoucherCode: () => set({ voucherCode: null }),
 }));

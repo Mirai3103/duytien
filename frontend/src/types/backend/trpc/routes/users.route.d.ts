@@ -72,6 +72,7 @@ declare const usersRoute: import("@trpc/server").TRPCBuiltRouter<{
             dateOfBirth: Date | null;
             image: string | null;
             createdAt: Date;
+            role: string;
             updatedAt: Date;
         } | undefined;
         meta: object;
@@ -80,7 +81,7 @@ declare const usersRoute: import("@trpc/server").TRPCBuiltRouter<{
         input: {
             name?: string | undefined;
             phone?: string | undefined;
-            gender?: "male" | "female" | "other" | undefined;
+            gender?: "other" | "male" | "female" | undefined;
             dateOfBirth?: string | undefined;
             avatar?: string | undefined;
         };

@@ -24,6 +24,11 @@ import {
 } from "drizzle-orm";
 import { TRPCError, type inferProcedureOutput } from "@trpc/server";
 import { alias } from "drizzle-orm/pg-core";
+import { getFinalPrice, getReducePrice } from "@/utils/utils";
+import { getVoucherReducePrice } from "@/services/vouchers";
+import { momoSdk } from "@/services/payment";
+import { generateOrderCode } from "@/utils/gen_order_code";
+import { useVoucherHook } from "@/db/hook";
 const createOrderSchema = z.object({
   cartItems: z.array(z.number()),
   shippingAddressId: z.number(),
@@ -62,13 +67,25 @@ export const ordersRoute = router({
   createOrder: protectedProcedure
     .input(createOrderSchema)
     .mutation(async ({ ctx, input }) => {
+      let paymentAmount = 0;
+      let orderCode = "";
+      let paymentId = 0;
       await db
         .transaction(async (tx) => {
           // get cart items
           const cartItems = await tx.query.cartItems.findMany({
             where: inArray(cartItemsTable.id, input.cartItems),
             with: {
-              variant: true,
+              variant: {
+                with: {
+                  product: {
+                    columns: {
+                      id: true,
+                      discount: true,
+                    },
+                  },
+                },
+              },
             },
           });
           if (cartItems.length !== input.cartItems.length) {
@@ -80,23 +97,31 @@ export const ordersRoute = router({
           // calculate total amount
           const totalAmount = cartItems.reduce(
             (acc, item) =>
-              acc + Number(item.variant.price) * Number(item.quantity),
+              acc + getFinalPrice(Number(item.variant.price), Number(item.variant.product?.discount || 0)) * Number(item.quantity),
             0
           );
+          const voucher = input.voucherId ? await tx.query.vouchers.findFirst({
+            where: eq(vouchersTable.id, input.voucherId),
+          }) : null;
+          const reducePrice = voucher ? getVoucherReducePrice(totalAmount, Number(voucher.discount || 0), Number(voucher.maxDiscount || null), voucher.type!) : 0;
           // create order
           const [order] = await tx
             .insert(ordersTable)
             .values({
               userId: ctx.session!.session.userId,
               paymentMethod: input.paymentMethod,
-              totalAmount: totalAmount.toString(),
+              totalAmount: (totalAmount - reducePrice).toString(),
               createdAt: new Date(),
               deliveryAddressId: input.shippingAddressId,
               status: "pending",
-              voucherId: input.voucherId, // TODO: add voucher
+              voucherId: input.voucherId, 
               totalItems: cartItems.length,
+              code: generateOrderCode(new Date()),
+              
             })
             .returning();
+          paymentAmount = Number(order!.totalAmount);
+          orderCode = order!.code!;
           // create order items
           await tx.insert(orderItemsTable).values(
             cartItems.map((item) => ({
@@ -104,35 +129,48 @@ export const ordersRoute = router({
               variantId: item.variantId,
               quantity: item.quantity,
               price: (
-                Number(item.variant.price) * Number(item.quantity)
+                getFinalPrice(Number(item.variant.price), Number(item.variant.product?.discount || 0)) * Number(item.quantity)
               ).toString(),
             }))
           );
           // create payment
-          await tx.insert(paymentsTable).values({
+        const [payment] = await tx.insert(paymentsTable).values({
             orderId: order!.id,
-            amount: totalAmount.toString(),
+            amount: order!.totalAmount,
             method: input.paymentMethod,
             status: "pending",
             createdAt: new Date(),
-          });
+          }).returning();
+          paymentId = payment?.id!;
+          await tx.update(ordersTable).set({
+            lastPaymentId: payment!.id,
+          }).where(eq(ordersTable.id, order!.id));
           // update cart items
           await tx
             .delete(cartItemsTable)
             .where(inArray(cartItemsTable.id, input.cartItems));
           // return order id
+          if(order?.voucherId){
+            useVoucherHook(order?.voucherId);
+          }
           return order!.id;
         })
-        .catch((error) => {
-          console.log(error);
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message: "Failed to create order",
-          });
+      let redirectUrl = "";
+      if(input.paymentMethod === "momo") {
+        const payment = await momoSdk.createPayment({
+          amount: paymentAmount,
+          orderInfo: "Đơn hàng " + orderCode,
+          lang: "vi",
+          orderId: orderCode,
+          requestId: paymentId.toString(),
         });
+        redirectUrl = payment.payUrl!;
+      }
+     
       return {
         success: true,
         message: "Order created successfully",
+        redirectUrl,
       };
     }),
   getOrders: protectedProcedure

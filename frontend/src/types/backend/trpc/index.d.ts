@@ -433,6 +433,26 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
             };
             meta: object;
         }>;
+        getFlashSaleProducts: import("@trpc/server").TRPCQueryProcedure<{
+            input: {
+                limit?: number | undefined;
+                offset?: number | undefined;
+            };
+            output: {
+                id: number;
+                name: string;
+                createdAt: Date;
+                status: "active" | "inactive";
+                slug: string;
+                isFeatured: boolean;
+                brandId: number | null;
+                categoryId: number | null;
+                thumbnail: string | null;
+                price: string;
+                discount: string | null;
+            }[];
+            meta: object;
+        }>;
     }>>;
     variants: import("@trpc/server").TRPCBuiltRouter<{
         ctx: {
@@ -1248,6 +1268,7 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
                 dateOfBirth: Date | null;
                 image: string | null;
                 createdAt: Date;
+                role: string;
                 updatedAt: Date;
             } | undefined;
             meta: object;
@@ -1256,7 +1277,7 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
             input: {
                 name?: string | undefined;
                 phone?: string | undefined;
-                gender?: "male" | "female" | "other" | undefined;
+                gender?: "other" | "male" | "female" | undefined;
                 dateOfBirth?: string | undefined;
                 avatar?: string | undefined;
             };
@@ -1315,6 +1336,10 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
                     sku: string;
                     stock: number;
                     isDefault: boolean | null;
+                    product: {
+                        id: number;
+                        discount: string | null;
+                    } | null;
                     variantValues: {
                         variantId: number;
                         attributeValueId: number;
@@ -1391,6 +1416,10 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
                     sku: string;
                     stock: number;
                     isDefault: boolean | null;
+                    product: {
+                        id: number;
+                        discount: string | null;
+                    } | null;
                     variantValues: {
                         variantId: number;
                         attributeValueId: number;
@@ -1548,6 +1577,7 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
             output: {
                 success: boolean;
                 message: string;
+                redirectUrl: string;
             };
             meta: object;
         }>;
@@ -2015,6 +2045,112 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
             output: {
                 success: boolean;
                 message: string;
+            };
+            meta: object;
+        }>;
+        checkCanUseVoucher: import("@trpc/server").TRPCQueryProcedure<{
+            input: {
+                voucherCode: string;
+                orderAmount: number;
+            };
+            output: {
+                valid: boolean;
+                message: string;
+                reducePrice?: number;
+                voucher?: {
+                    id: number;
+                    name: string;
+                    discount: string;
+                    type: "percentage" | "fixed";
+                    maxDiscount: string | null;
+                    minOrderAmount: string | null;
+                    maxOrderAmount: string | null;
+                    maxUsage: number | null;
+                    isActive: boolean;
+                    code: string;
+                } | undefined;
+            };
+            meta: object;
+        }>;
+        getVoucherByCode: import("@trpc/server").TRPCQueryProcedure<{
+            input: {
+                code: string;
+            };
+            output: {
+                id: number;
+                name: string;
+                createdAt: Date;
+                discount: string;
+                code: string;
+                type: "fixed" | "percentage";
+                maxDiscount: string | null;
+                minOrderAmount: string | null;
+                maxOrderAmount: string | null;
+                maxUsage: number | null;
+                isActive: boolean;
+                usageCount: number;
+            } | undefined;
+            meta: object;
+        }>;
+    }>>;
+    payment: import("@trpc/server").TRPCBuiltRouter<{
+        ctx: {
+            session: {
+                session: {
+                    id: string;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    userId: string;
+                    expiresAt: Date;
+                    token: string;
+                    ipAddress?: string | null | undefined | undefined;
+                    userAgent?: string | null | undefined | undefined;
+                };
+                user: {
+                    id: string;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    email: string;
+                    emailVerified: boolean;
+                    name: string;
+                    image?: string | null | undefined | undefined;
+                };
+            } | null;
+        };
+        meta: object;
+        errorShape: import("@trpc/server").TRPCDefaultErrorShape;
+        transformer: false;
+    }, import("@trpc/server").TRPCDecorateCreateRouterOptions<{
+        callback: import("@trpc/server").TRPCMutationProcedure<{
+            input: {
+                momo?: any;
+                vnpay?: {
+                    partnerCode: string;
+                    orderId: string;
+                    requestId: string;
+                    amount: number;
+                    orderInfo: string;
+                    orderType: string;
+                } | undefined;
+            };
+            output: {
+                success: boolean;
+                message: string;
+                payment: null;
+                isPaymentSuccess?: undefined;
+            } | {
+                success: boolean;
+                isPaymentSuccess: boolean;
+                message: string;
+                payment: {
+                    id: number;
+                    createdAt: Date;
+                    status: "pending" | "success" | "failed";
+                    orderId: number;
+                    amount: string;
+                    method: string | null;
+                    paymentDate: Date | null;
+                };
             };
             meta: object;
         }>;

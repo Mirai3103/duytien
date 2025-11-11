@@ -23,6 +23,23 @@ const createVoucherSchema = z.object({
   maxOrderAmount: z.number().optional(),
   maxUsage: z.number().optional(),
 });
+type CheckCanUseVoucherOutput = {
+  valid: boolean;
+  message: string;
+  reducePrice?: number;
+  voucher?: {
+    id: number;
+    name: string;
+    discount: string;
+    type: "percentage" | "fixed";
+    maxDiscount: string | null;
+    minOrderAmount: string | null;
+    maxOrderAmount: string | null;
+    maxUsage: number | null;
+    isActive: boolean;
+    code: string;
+  } | undefined;
+};
 export const vouchersRoute = router({
   getVouchers: protectedProcedure
     .input(getVouchersSchema)
@@ -178,5 +195,68 @@ export const vouchersRoute = router({
         success: true,
         message: "Voucher đã được xóa",
       };
+    }),
+    checkCanUseVoucher: protectedProcedure
+    .input(
+      z.object({
+        voucherCode: z.string(),
+        orderAmount: z.number(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const voucher = await db.query.vouchers.findFirst({
+        where: eq(vouchersTable.code, input.voucherCode),
+      });
+      console.log(voucher,input);
+      if (!voucher) {
+       return{
+        valid: false,
+        message: "Voucher không tồn tại",
+        reducePrice: 0,
+        voucher: undefined,
+       } as CheckCanUseVoucherOutput
+      }
+      if(!voucher.isActive) {
+        return{
+          valid: false,
+          message: "Voucher đã bị vô hiệu hóa",
+          reducePrice: 0,
+          voucher: undefined,
+        } as CheckCanUseVoucherOutput
+      }
+      if(voucher.maxUsage && voucher.usageCount >= voucher.maxUsage) {
+        return{
+          valid: false,
+          message: "Voucher đã hết số lần sử dụng",
+          reducePrice: 0,
+          voucher: undefined,
+        } as CheckCanUseVoucherOutput
+      }
+      if(voucher.minOrderAmount && input.orderAmount < Number(voucher.minOrderAmount)) {
+        return{
+          valid: false,
+          message: `Cần tối thiểu ${voucher.minOrderAmount} để sử dụng voucher này`,
+          reducePrice: 0,
+          voucher: undefined,
+        } as CheckCanUseVoucherOutput
+      }
+      const reducePrice = voucher.type === "percentage" ? input.orderAmount * (Number(voucher.discount) / 100) : Number(voucher.discount);
+      return{
+        valid: true,
+        message: "Voucher có thể sử dụng",
+        reducePrice: Math.min(reducePrice, Number(voucher.maxDiscount || Infinity)),
+        voucher,
+      } as CheckCanUseVoucherOutput;
+    }),
+    getVoucherByCode: protectedProcedure
+    .input(
+      z.object({
+        code: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      return await db.query.vouchers.findFirst({
+        where: eq(vouchersTable.code, input.code),
+      });
     }),
 });

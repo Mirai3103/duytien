@@ -38,6 +38,7 @@ export declare const ordersRoute: import("@trpc/server").TRPCBuiltRouter<{
         output: {
             success: boolean;
             message: string;
+            redirectUrl: string;
         };
         meta: object;
     }>;

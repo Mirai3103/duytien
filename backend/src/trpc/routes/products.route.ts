@@ -6,6 +6,8 @@ import {
   desc,
   eq,
   exists,
+  gt,
+  gte,
   ilike,
   inArray,
 } from "drizzle-orm";
@@ -368,6 +370,24 @@ export const productsRoute = router({
         .set({ discount: input.discount.toString() })
         .where(eq(products.id, input.productId));
       return { success: true };
+    }),
+    getFlashSaleProducts: publicProcedure
+    .input(z.object({
+      limit: z.number().default(10),
+      offset: z.number().default(0),
+    }))
+    .query(async ({ input }) => {
+      return await db.query.products.findMany({
+        where: gte(products.discount, "0"),
+        limit: input.limit,
+        offset: input.offset,
+        columns: {
+          description: false,
+          metadata: false,
+          variantsAggregate: false,
+        },
+        orderBy: desc(products.discount),
+      });
     }),
 });
 

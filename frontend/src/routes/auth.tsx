@@ -18,6 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { signIn, useSession } from "@/lib/auth-client";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/auth")({
   component: RouteComponent,
@@ -95,9 +96,18 @@ function RouteComponent() {
     }
 
     // Demo login
-    console.log("Login:", loginForm);
-    alert("Đăng nhập thành công! (Demo)");
-    navigate({ to: "/" });
+    signIn.email({
+      email: loginForm.email,
+      password: loginForm.password,
+      callbackURL: window.location.origin,
+    }).then((data) => {
+      console.log(data);
+      toast.success("Đăng nhập thành công");
+      navigate({ to: "/" });
+    }).catch((error) => {
+      console.error(error);
+      setErrors({ login: "Email hoặc mật khẩu không chính xác" });
+    });
   };
 
   const handleRegister = (e: React.FormEvent) => {
@@ -216,6 +226,7 @@ function RouteComponent() {
                           type="email"
                           placeholder="example@email.com"
                           className="pl-10"
+                          tabIndex={1}
                           value={loginForm.email}
                           onChange={(e) =>
                             updateLoginForm("email", e.target.value)
@@ -241,6 +252,7 @@ function RouteComponent() {
                           type={showPassword ? "text" : "password"}
                           placeholder="••••••••"
                           className="pl-10 pr-10"
+                          tabIndex={2}
                           value={loginForm.password}
                           onChange={(e) =>
                             updateLoginForm("password", e.target.value)

@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import db from ".";
-import { productVariants, products } from "./schema";
+import { productVariants, products, vouchers as vouchersTable } from "./schema";
 
 export async function updateProductVariantsAggregateHook(productId: number) {
   const product = await db.query.products.findFirst({
@@ -33,4 +33,17 @@ export async function updateProductVariantsAggregateHook(productId: number) {
       price: minPrice.toString(),
     })
     .where(eq(products.id, product.id));
+}
+
+export async function useVoucherHook(voucherId: number) {
+  const voucher = await db.query.vouchers.findFirst({
+    where: eq(vouchersTable.id, voucherId),
+  });
+  if (!voucher) {
+    return;
+  }
+  await db.update(vouchersTable).set({
+    usageCount: voucher.usageCount + 1,
+  }).where(eq(vouchersTable.id, voucherId));
+  return voucher;
 }

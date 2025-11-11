@@ -1,3 +1,20 @@
+type CheckCanUseVoucherOutput = {
+    valid: boolean;
+    message: string;
+    reducePrice?: number;
+    voucher?: {
+        id: number;
+        name: string;
+        discount: string;
+        type: "percentage" | "fixed";
+        maxDiscount: string | null;
+        minOrderAmount: string | null;
+        maxOrderAmount: string | null;
+        maxUsage: number | null;
+        isActive: boolean;
+        code: string;
+    } | undefined;
+};
 export declare const vouchersRoute: import("@trpc/server").TRPCBuiltRouter<{
     ctx: {
         session: {
@@ -149,4 +166,33 @@ export declare const vouchersRoute: import("@trpc/server").TRPCBuiltRouter<{
         };
         meta: object;
     }>;
+    checkCanUseVoucher: import("@trpc/server").TRPCQueryProcedure<{
+        input: {
+            voucherCode: string;
+            orderAmount: number;
+        };
+        output: CheckCanUseVoucherOutput;
+        meta: object;
+    }>;
+    getVoucherByCode: import("@trpc/server").TRPCQueryProcedure<{
+        input: {
+            code: string;
+        };
+        output: {
+            id: number;
+            name: string;
+            createdAt: Date;
+            discount: string;
+            code: string;
+            type: "fixed" | "percentage";
+            maxDiscount: string | null;
+            minOrderAmount: string | null;
+            maxOrderAmount: string | null;
+            maxUsage: number | null;
+            isActive: boolean;
+            usageCount: number;
+        } | undefined;
+        meta: object;
+    }>;
 }>>;
+export {};

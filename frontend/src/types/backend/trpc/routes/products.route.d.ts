@@ -407,6 +407,26 @@ export declare const productsRoute: import("@trpc/server").TRPCBuiltRouter<{
         };
         meta: object;
     }>;
+    getFlashSaleProducts: import("@trpc/server").TRPCQueryProcedure<{
+        input: {
+            limit?: number | undefined;
+            offset?: number | undefined;
+        };
+        output: {
+            id: number;
+            name: string;
+            createdAt: Date;
+            status: "active" | "inactive";
+            slug: string;
+            isFeatured: boolean;
+            brandId: number | null;
+            categoryId: number | null;
+            thumbnail: string | null;
+            price: string;
+            discount: string | null;
+        }[];
+        meta: object;
+    }>;
 }>>;
 export type GetProductsResponse = inferProcedureOutput<typeof productsRoute.getProducts>;
 export type GetProductsWithVariantsResponse = inferProcedureOutput<typeof productsRoute.getProductsWithVariants>;

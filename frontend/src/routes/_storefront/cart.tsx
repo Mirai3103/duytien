@@ -1,6 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { ArrowLeft, Minus, Plus, ShoppingBag, Tag, Trash2 } from "lucide-react";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import Navbar from "@/components/Navbar";
@@ -15,6 +15,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { RippleButton } from "@/components/ui/shadcn-io/ripple-button";
 import { useCartStore } from "@/store/cart";
+import { getFinalPrice } from "@/lib/utils";
 
 export const Route = createFileRoute("/_storefront/cart")({
   component: RouteComponent,
@@ -26,10 +27,8 @@ export const Route = createFileRoute("/_storefront/cart")({
 });
 
 function RouteComponent() {
-  const [couponCode, setCouponCode] = useState("");
-  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
-  const { select, toggle, clear, isSelected, isAll } = useCartStore();
-
+  const { select, toggle, clear, isSelected, isAll,voucherCode,clearVoucherCode,setVoucherCode } = useCartStore();
+  const  [voucherInput,setVoucherInput] = useState("");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
@@ -44,6 +43,7 @@ function RouteComponent() {
       },
     })
   );
+
   const mutateRemoveItem = useMutation(
     trpc.cart.removeFromCart.mutationOptions({
       onSuccess: () => {
@@ -78,26 +78,42 @@ function RouteComponent() {
     });
   };
 
-  const applyCoupon = () => {
-    if (couponCode.trim()) {
-      setAppliedCoupon(couponCode.toUpperCase());
-      setCouponCode("");
-    }
-  };
-
-  const removeCoupon = () => {
-    setAppliedCoupon(null);
-  };
-
+ 
   // Tính toán chỉ với các sản phẩm được chọn
   const selectedItems = cartItems?.filter((item) => isSelected(item.id)) || [];
   const subtotal = selectedItems.reduce(
-    (sum, item) => sum + Number(item.price) * Number(item.quantity),
+    (sum, item) => sum + getFinalPrice(Number(item.price), Number(item.variant.product?.discount || 0)) * Number(item.quantity),
     0
   );
-  const discount = appliedCoupon ? subtotal * 0.1 : 0; // 10% discount if coupon applied
-  const shipping = 0; // Free shipping over 10M
-  const total = subtotal - discount + shipping;
+  console
+  const {data:checkVoucherQuery,refetch:refetchCheckVoucher} = useQuery(trpc.vouchers.checkCanUseVoucher.queryOptions({
+      voucherCode: voucherInput,
+    orderAmount: subtotal,
+    
+  },{
+    enabled: false,
+  }));
+  const checkVoucher = () => {
+    refetchCheckVoucher();
+  } 
+  const removeCoupon = () => {
+    clearVoucherCode();
+    setVoucherInput("");
+    refetchCheckVoucher();
+  }
+  React.useEffect(() => {
+    if(checkVoucherQuery?.valid) {
+      setVoucherCode(checkVoucherQuery.voucher?.code || "");
+      toast.success("Áp dụng mã giảm giá thành công!");
+    } else if (checkVoucherQuery?.valid === false) {
+      clearVoucherCode();
+      toast.error(checkVoucherQuery?.message || "Mã giảm giá không hợp lệ");
+    }
+  }, [checkVoucherQuery,clearVoucherCode]);
+
+  const shipping:number = 0; // Free shipping over 10M
+  const reducePrice = checkVoucherQuery?.reducePrice || 0;
+  const total = subtotal - reducePrice + shipping;
 
   // Xử lý select all
   const handleSelectAll = () => {
@@ -115,6 +131,16 @@ function RouteComponent() {
       toast.success("Đã xóa toàn bộ giỏ hàng");
     }
   };
+  const navigate = useNavigate();
+  const handleCheckout = () => {
+    if(checkVoucherQuery?.valid) {
+      setVoucherCode(checkVoucherQuery.voucher?.code || "");
+    } else {
+      setVoucherCode("");
+    }
+    navigate({ to: "/checkout" });
+
+  }
 
   const isEmpty = cartItems?.length === 0;
   const variantsValues = React.useMemo(() => {
@@ -352,18 +378,18 @@ function RouteComponent() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    {appliedCoupon ? (
+                    {checkVoucherQuery?.valid ? (
                       <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg">
                         <div className="flex items-center gap-2">
                           <Tag className="h-4 w-4 text-green-600" />
                           <span className="font-semibold text-green-600">
-                            {appliedCoupon}
+                            {checkVoucherQuery?.voucher?.name}
                           </span>
                           <Badge
                             variant="outline"
                             className="bg-green-100 text-green-700 border-green-300"
                           >
-                            -10%
+                            {checkVoucherQuery?.voucher?.type === "percentage" ?checkVoucherQuery?.voucher?.discount + "%" : checkVoucherQuery?.voucher?.discount + "đ"}
                           </Badge>
                         </div>
                         <Button
@@ -376,21 +402,27 @@ function RouteComponent() {
                         </Button>
                       </div>
                     ) : (
-                      <div className="flex gap-2">
-                        <Input
-                          placeholder="Nhập mã giảm giá"
-                          value={couponCode}
-                          onChange={(e) => setCouponCode(e.target.value)}
-                          onKeyPress={(e) => e.key === "Enter" && applyCoupon()}
-                        />
-                        <Button onClick={applyCoupon} variant="outline">
-                          Áp dụng
-                        </Button>
+                      <div>
+                        <div className="flex gap-2">
+                          <Input
+                            placeholder="Nhập mã giảm giá"
+                            value={voucherInput}
+                            onChange={(e) => setVoucherInput(e.target.value)}
+                            onKeyPress={(e) => e.key === "Enter" && checkVoucher()}
+                            className={checkVoucherQuery?.valid === false ? "border-red-500" : ""}
+                          />
+                          <Button onClick={checkVoucher} variant="outline">
+                            Áp dụng
+                          </Button>
+                        </div>
+                        {checkVoucherQuery?.valid === false && (
+                          <p className="text-sm text-red-500 mt-2">
+                            {checkVoucherQuery?.message || "Mã giảm giá không hợp lệ"}
+                          </p>
+                        )}
                       </div>
                     )}
-                    <p className="text-xs text-muted-foreground mt-2">
-                      Thử mã "SAVE10" để được giảm 10%
-                    </p>
+                
                   </CardContent>
                 </Card>
 
@@ -428,11 +460,11 @@ function RouteComponent() {
                         </span>
                       </div>
 
-                      {discount > 0 && (
+                      {reducePrice > 0 && (
                         <div className="flex justify-between text-green-600">
                           <span>Giảm giá</span>
                           <span className="font-medium">
-                            -{discount.toLocaleString("vi-VN")}đ
+                            -{reducePrice.toLocaleString("vi-VN")}đ
                           </span>
                         </div>
                       )}
@@ -461,15 +493,14 @@ function RouteComponent() {
                     </div>
 
                     {/* Checkout Button */}
-                    <Link to="/checkout" disabled={selectedItems.length === 0}>
                       <Button
                         size="lg"
+                        onClick={handleCheckout}  
                         className="w-full"
                         disabled={selectedItems.length === 0}
                       >
                         Tiến hành thanh toán
                       </Button>
-                    </Link>
 
                     {selectedItems.length === 0 && (
                       <p className="text-xs text-center text-muted-foreground">

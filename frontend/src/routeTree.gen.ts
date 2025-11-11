@@ -25,6 +25,8 @@ import { Route as StorefrontSearchRouteImport } from './routes/_storefront/searc
 import { Route as StorefrontCompareRouteImport } from './routes/_storefront/compare'
 import { Route as StorefrontCheckoutRouteImport } from './routes/_storefront/checkout'
 import { Route as StorefrontCartRouteImport } from './routes/_storefront/cart'
+import { Route as PaymentIdCallbackRouteImport } from './routes/payment.$id.callback'
+import { Route as OrderIdStatusRouteImport } from './routes/order.$id.$status'
 import { Route as AdminAdminVouchersRouteImport } from './routes/admin/_admin/vouchers'
 import { Route as AdminAdminOrdersRouteImport } from './routes/admin/_admin/orders'
 import { Route as AdminAdminDashboardRouteImport } from './routes/admin/_admin/dashboard'
@@ -113,6 +115,16 @@ const StorefrontCartRoute = StorefrontCartRouteImport.update({
   path: '/cart',
   getParentRoute: () => StorefrontRoute,
 } as any)
+const PaymentIdCallbackRoute = PaymentIdCallbackRouteImport.update({
+  id: '/payment/$id/callback',
+  path: '/payment/$id/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrderIdStatusRoute = OrderIdStatusRouteImport.update({
+  id: '/order/$id/$status',
+  path: '/order/$id/$status',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminAdminVouchersRoute = AdminAdminVouchersRouteImport.update({
   id: '/vouchers',
   path: '/vouchers',
@@ -199,6 +211,8 @@ export interface FileRoutesByFullPath {
   '/admin/dashboard': typeof AdminAdminDashboardRoute
   '/admin/orders': typeof AdminAdminOrdersRoute
   '/admin/vouchers': typeof AdminAdminVouchersRoute
+  '/order/$id/$status': typeof OrderIdStatusRoute
+  '/payment/$id/callback': typeof PaymentIdCallbackRoute
   '/admin/products/create': typeof AdminAdminProductsCreateRoute
   '/admin/products': typeof AdminAdminProductsIndexRoute
   '/admin/products/$id/edit': typeof AdminAdminProductsIdEditRoute
@@ -225,6 +239,8 @@ export interface FileRoutesByTo {
   '/admin/dashboard': typeof AdminAdminDashboardRoute
   '/admin/orders': typeof AdminAdminOrdersRoute
   '/admin/vouchers': typeof AdminAdminVouchersRoute
+  '/order/$id/$status': typeof OrderIdStatusRoute
+  '/payment/$id/callback': typeof PaymentIdCallbackRoute
   '/admin/products/create': typeof AdminAdminProductsCreateRoute
   '/admin/products': typeof AdminAdminProductsIndexRoute
   '/admin/products/$id/edit': typeof AdminAdminProductsIdEditRoute
@@ -255,6 +271,8 @@ export interface FileRoutesById {
   '/admin/_admin/dashboard': typeof AdminAdminDashboardRoute
   '/admin/_admin/orders': typeof AdminAdminOrdersRoute
   '/admin/_admin/vouchers': typeof AdminAdminVouchersRoute
+  '/order/$id/$status': typeof OrderIdStatusRoute
+  '/payment/$id/callback': typeof PaymentIdCallbackRoute
   '/admin/_admin/products/create': typeof AdminAdminProductsCreateRoute
   '/admin/_admin/products/': typeof AdminAdminProductsIndexRoute
   '/admin/_admin/products/$id/edit': typeof AdminAdminProductsIdEditRoute
@@ -284,6 +302,8 @@ export interface FileRouteTypes {
     | '/admin/dashboard'
     | '/admin/orders'
     | '/admin/vouchers'
+    | '/order/$id/$status'
+    | '/payment/$id/callback'
     | '/admin/products/create'
     | '/admin/products'
     | '/admin/products/$id/edit'
@@ -310,6 +330,8 @@ export interface FileRouteTypes {
     | '/admin/dashboard'
     | '/admin/orders'
     | '/admin/vouchers'
+    | '/order/$id/$status'
+    | '/payment/$id/callback'
     | '/admin/products/create'
     | '/admin/products'
     | '/admin/products/$id/edit'
@@ -339,6 +361,8 @@ export interface FileRouteTypes {
     | '/admin/_admin/dashboard'
     | '/admin/_admin/orders'
     | '/admin/_admin/vouchers'
+    | '/order/$id/$status'
+    | '/payment/$id/callback'
     | '/admin/_admin/products/create'
     | '/admin/_admin/products/'
     | '/admin/_admin/products/$id/edit'
@@ -355,6 +379,8 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   AdminRoute: typeof AdminRouteWithChildren
   ProductIdRoute: typeof ProductIdRoute
+  OrderIdStatusRoute: typeof OrderIdStatusRoute
+  PaymentIdCallbackRoute: typeof PaymentIdCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -463,6 +489,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/cart'
       preLoaderRoute: typeof StorefrontCartRouteImport
       parentRoute: typeof StorefrontRoute
+    }
+    '/payment/$id/callback': {
+      id: '/payment/$id/callback'
+      path: '/payment/$id/callback'
+      fullPath: '/payment/$id/callback'
+      preLoaderRoute: typeof PaymentIdCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/order/$id/$status': {
+      id: '/order/$id/$status'
+      path: '/order/$id/$status'
+      fullPath: '/order/$id/$status'
+      preLoaderRoute: typeof OrderIdStatusRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/admin/_admin/vouchers': {
       id: '/admin/_admin/vouchers'
@@ -630,6 +670,8 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   AdminRoute: AdminRouteWithChildren,
   ProductIdRoute: ProductIdRoute,
+  OrderIdStatusRoute: OrderIdStatusRoute,
+  PaymentIdCallbackRoute: PaymentIdCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

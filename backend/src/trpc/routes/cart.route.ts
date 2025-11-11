@@ -25,6 +25,12 @@ const cartRoute = router({
                 value: true,
               },
             },
+            product:{
+              columns:{
+                id:true,
+                discount:true,
+              }
+            }
           },
         },
       },
@@ -124,6 +130,12 @@ const cartRoute = router({
                   value: true,
                 },
               },
+              product:{
+                columns:{
+                  id:true,
+                  discount:true,
+                }
+              }
             },
           },
         },
