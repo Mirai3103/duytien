@@ -1,7 +1,7 @@
 import db from "@/db";
 import { publicProcedure, router } from "../trpc";
 import { z } from "zod";
-import { momoSdk } from "@/services/payment";
+import { momoSdk, verifyPayment } from "@/services/payment";
 import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
 import { payments as paymentsTable } from "@/db/schema";
@@ -11,32 +11,33 @@ const callbackSchema = z.object({
     .any()
     .optional(),
   vnpay: z
-    .object({
-      partnerCode: z.string(),
-      orderId: z.string(),
-      requestId: z.string(),
-      amount: z.number(),
-      orderInfo: z.string(),
-      orderType: z.string(),
-    })
+    .any()
     .optional(),
 });
 export const paymentRoute = router({
   callback: publicProcedure
     .input(callbackSchema)
     .mutation(async ({ input }) => {
-      const isValid = momoSdk.validateCallback(input.momo!);
-      if (!isValid) {
+      if(!input.momo && !input.vnpay) {
         return {
           success: false,
           message: "Invalid callback",
           payment: null,
         };
       }
+      const result = verifyPayment({ args: input.momo || input.vnpay!, method: input.momo ? "momo" : "vnpay" });
+      if (!result.success) {
+        return {
+          success: false,
+          message: "Invalid callback",
+          payment: null,
+        };
+      }
+      const id = result.id;
       const payment = await db.query.payments.findFirst({
-        where: eq(paymentsTable.id, Number(input.momo!.requestId)),
+        where: eq(paymentsTable.id, Number(id)),
       });
-      const isSuccess = input.momo!.resultCode === 0;
+      const isSuccess = result.isSuccess;
 
       if (!payment) {
         return {
@@ -50,11 +51,11 @@ export const paymentRoute = router({
         .set({
           status: isSuccess ? "success" : "failed",
         })
-        .where(eq(paymentsTable.id, Number(input.momo!.requestId)));
+        .where(eq(paymentsTable.id, Number(id)));
       return {
         success: true,
         isPaymentSuccess: isSuccess,
-        message: "Chúc mừng bạn đã thanh toán thành công",
+        message: isSuccess ? "Chúc mừng bạn đã thanh toán thành công" : "Thanh toán thất bại",
         payment,
       };
     }),

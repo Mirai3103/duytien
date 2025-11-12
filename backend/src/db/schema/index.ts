@@ -19,6 +19,7 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 import { user, session, account, verification } from "./auth-schema";
+import { generateOrderCode } from "@/utils/gen_order_code";
 export * from "./auth-schema";
 // ===== ENUMS =====
 export const productStatusEnum = pgEnum("product_status", [
@@ -361,7 +362,7 @@ export const orders = pgTable(
   "orders",
   {
     id: integer("id").primaryKey().notNull().generatedAlwaysAsIdentity(),
-    code: varchar("code", { length: 255 }).default(sql`gen_order_code()`),
+    code: varchar("code", { length: 255 }).unique().notNull().$defaultFn(generateOrderCode),
     userId: text("user_id").notNull(),
     status: orderStatusEnum("status").default("pending").notNull(),
     totalAmount: decimal("total_amount", { precision: 14, scale: 2 }).notNull(),

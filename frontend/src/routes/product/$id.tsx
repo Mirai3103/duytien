@@ -22,12 +22,10 @@ import React, { useState } from "react";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import Navbar from "@/components/Navbar";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -105,59 +103,11 @@ const fake_policies: {
     description: "Với sản phẩm lỗi từ nhà sản xuất",
   },
 ];
-const fake_reviews = [
-  {
-    id: 1,
-    user: "Nguyễn Văn A",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=1",
-    rating: 5,
-    date: "2024-10-01",
-    comment:
-      "Sản phẩm tuyệt vời! Hiệu năng mạnh mẽ, camera chụp ảnh đẹp. Rất hài lòng với lựa chọn của mình.",
-    helpful: 45,
-  },
-  {
-    id: 2,
-    user: "Trần Thị B",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=2",
-    rating: 5,
-    date: "2024-09-28",
-    comment:
-      "iPhone 15 Pro Max xứng đáng là flagship 2024. Màn hình đẹp, pin trâu, chip A17 Pro quá mượt.",
-    helpful: 32,
-  },
-  {
-    id: 3,
-    user: "Lê Văn C",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=3",
-    rating: 4,
-    date: "2024-09-25",
-    comment:
-      "Máy đẹp, chạy mượt. Tuy nhiên giá hơi cao. Nhưng chất lượng Apple thì không phải bàn.",
-    helpful: 28,
-  },
-  {
-    id: 4,
-    user: "Phạm Thị D",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=4",
-    rating: 5,
-    date: "2024-09-20",
-    comment:
-      "Camera quá đỉnh, zoom 5x rõ nét lắm. Chơi game cũng không bị nóng máy. 10 điểm!",
-    helpful: 56,
-  },
-];
-const fake_ratingDistribution = {
-  5: 75,
-  4: 15,
-  3: 6,
-  2: 2,
-  1: 2,
-};
+
 import _ from "lodash";
 import { useTRPC } from "@/lib/trpc";
 import { toast } from "sonner";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { RippleButton } from "@/components/ui/shadcn-io/ripple-button";
 import { useCompareStore } from "@/store/compare";
 import { useSession } from "@/lib/auth-client";
@@ -166,6 +116,7 @@ import {
   getFinalPrice,
   getReducePrice,
 } from "@/lib/utils";
+import { ReviewsTab } from "@/components/product/ReviewsTab";
 
 function RouteComponent() {
   const { product, variant } = Route.useLoaderData(); // TODO: Use this to fetch actual product data
@@ -234,6 +185,11 @@ function RouteComponent() {
   const isInCompare = isVariantIdSelected(variant.id);
   console.log(product.specs);
 
+  // Fetch review stats for display
+  const { data: reviewStats } = useQuery(
+    trpc.review.getProductReviewStats.queryOptions({ productId: product.id })
+  );
+
   const attrs = React.useMemo(() => {
     function extractAttrs(product: any) {
       const grouped = _.flatMap(product.variants, "variantValues");
@@ -270,11 +226,6 @@ function RouteComponent() {
     }
     return transformSpecs(combinedSpecs);
   }, [variant.specs, product.specs]);
-
-  const totalReviews = Object.values(fake_ratingDistribution).reduce(
-    (a, b) => a + b,
-    0
-  );
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -363,26 +314,34 @@ function RouteComponent() {
               <div>
                 <h1 className="text-3xl font-bold mb-2">{variant.name}</h1>
                 <div className="flex items-center gap-4 flex-wrap">
-                  <div className="flex items-center gap-1">
-                    <div className="flex">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Star
-                          key={star}
-                          className={`h-5 w-5 ${
-                            true
-                              ? "fill-yellow-500 text-yellow-500"
-                              : "text-muted"
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <span className="font-semibold">4</span>
-                    <span className="text-muted-foreground">
-                      ({2000} đánh giá)
-                    </span>
-                  </div>
-                  <Separator orientation="vertical" className="h-4" />
-                  <span className="text-muted-foreground">Đã bán {2000}</span>
+                  {reviewStats && reviewStats.totalReviews > 0 && (
+                    <>
+                      <div className="flex items-center gap-1">
+                        <div className="flex">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Star
+                              key={star}
+                              className={`h-5 w-5 ${
+                                star <= Math.round(reviewStats.averageRating)
+                                  ? "fill-yellow-500 text-yellow-500"
+                                  : "text-muted"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <span className="font-semibold">
+                          {reviewStats.averageRating.toFixed(1)}
+                        </span>
+                        <span className="text-muted-foreground">
+                          ({reviewStats.totalReviews} đánh giá)
+                        </span>
+                      </div>
+                      <Separator orientation="vertical" className="h-4" />
+                    </>
+                  )}
+                  <span className="text-muted-foreground">
+                    Kho: {variant.stock || 0}
+                  </span>
                 </div>
               </div>
 
@@ -658,7 +617,9 @@ function RouteComponent() {
                   <TabsTrigger value="specifications">
                     Thông số kỹ thuật
                   </TabsTrigger>
-                  <TabsTrigger value="reviews">Đánh giá ({2000})</TabsTrigger>
+                  <TabsTrigger value="reviews">
+                    Đánh giá ({reviewStats?.totalReviews || 0})
+                  </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="description" className="mt-6">
@@ -731,106 +692,7 @@ function RouteComponent() {
                 </TabsContent>
 
                 <TabsContent value="reviews" className="mt-6">
-                  <div className="grid lg:grid-cols-3 gap-8">
-                    {/* Rating Summary */}
-                    <div className="lg:col-span-1">
-                      <Card>
-                        <CardContent className="p-6 text-center">
-                          <div className="text-5xl font-bold mb-2">4</div>
-                          <div className="flex justify-center mb-2">
-                            {[1, 2, 3, 4, 5].map((star) => (
-                              <Star
-                                key={star}
-                                className={`h-5 w-5 ${
-                                  star <= 4
-                                    ? "fill-yellow-500 text-yellow-500"
-                                    : "text-muted"
-                                }`}
-                              />
-                            ))}
-                          </div>
-                          <p className="text-sm text-muted-foreground mb-4">
-                            {totalReviews} đánh giá
-                          </p>
-
-                          <div className="space-y-2">
-                            {[5, 4, 3, 2, 1].map((rating) => (
-                              <div
-                                key={rating}
-                                className="flex items-center gap-2"
-                              >
-                                <span className="text-sm w-6">{rating}★</span>
-                                <Progress
-                                  value={
-                                    (fake_ratingDistribution[
-                                      rating as unknown as keyof typeof fake_ratingDistribution
-                                    ] /
-                                      totalReviews) *
-                                    100
-                                  }
-                                  className="flex-1"
-                                />
-                                <span className="text-sm text-muted-foreground w-12 text-right">
-                                  {
-                                    fake_ratingDistribution[
-                                      rating as unknown as keyof typeof fake_ratingDistribution
-                                    ]
-                                  }
-                                  %
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-
-                    {/* Reviews List */}
-                    <div className="lg:col-span-2 space-y-4">
-                      {fake_reviews.map((review: any) => (
-                        <Card key={review.id}>
-                          <CardContent className="p-6">
-                            <div className="flex items-start gap-4">
-                              <Avatar>
-                                <AvatarImage src={review.avatar} />
-                                <AvatarFallback>
-                                  {review.user[0]}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div className="flex-1">
-                                <div className="flex items-center justify-between mb-2">
-                                  <h4 className="font-semibold">
-                                    {review.user}
-                                  </h4>
-                                  <span className="text-sm text-muted-foreground">
-                                    {review.date}
-                                  </span>
-                                </div>
-                                <div className="flex mb-2">
-                                  {[1, 2, 3, 4, 5].map((star) => (
-                                    <Star
-                                      key={star}
-                                      className={`h-4 w-4 ${
-                                        star <= review.rating
-                                          ? "fill-yellow-500 text-yellow-500"
-                                          : "text-muted"
-                                      }`}
-                                    />
-                                  ))}
-                                </div>
-                                <p className="text-muted-foreground mb-3">
-                                  {review.comment}
-                                </p>
-                                <Button variant="ghost" size="sm">
-                                  👍 Hữu ích ({review.helpful})
-                                </Button>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  </div>
+                  <ReviewsTab productId={product.id} variantId={variant.id} />
                 </TabsContent>
               </Tabs>
             </CardContent>

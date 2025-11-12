@@ -3,118 +3,132 @@ import crypto from "crypto";
 export interface VnpayConfig {
   tmnCode: string;
   hashSecret: string;
-  vnpUrl: string;
   returnUrl: string;
+  vnpUrl?: string; // default sandbox
 }
 
 export interface CreatePaymentParams {
   amount: number;
-  orderId?: string;
   orderInfo: string;
+  orderType?: string;
   bankCode?: string;
   locale?: "vn" | "en";
-  ipAddr: string;
+  ipAddr?: string;
+  txnRef?: string;
+  expireMinutes?: number;
 }
 
-export interface ValidateCallbackResult {
+export interface VerifyReturnResult {
   isValid: boolean;
-  code: string;
   message: string;
+  responseCode?: string;
+  transactionStatus?: string;
+  data?: Record<string, any>;
 }
 
 export class VnpaySDK {
   private config: VnpayConfig;
 
   constructor(config: VnpayConfig) {
-    this.config = config;
+    this.config = {
+      vnpUrl: "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html",
+      ...config,
+    };
   }
 
-  private sortObject(obj: Record<string, any>): Record<string, any> {
-    const sorted: Record<string, any> = {};
-    const keys = Object.keys(obj).sort();
-    for (const k of keys) sorted[k] = obj[k];
-    return sorted;
+  private phpUrlEncode(str: string): string {
+    return encodeURIComponent(str)
+      .replace(/%20/g, "+")
+      .replace(/!/g, "%21")
+      .replace(/'/g, "%27")
+      .replace(/\(/g, "%28")
+      .replace(/\)/g, "%29")
+      .replace(/\*/g, "%2A");
   }
 
-  private createSecureHash(signData: string): string {
-    return crypto
-      .createHmac("sha512", this.config.hashSecret)
-      .update(Buffer.from(signData, "utf-8"))
+  private hmacSHA512(data: string): string {
+    return crypto.createHmac("sha512", this.config.hashSecret)
+      .update(data, "utf-8")
       .digest("hex");
   }
 
+  /** 🧾 Tạo URL thanh toán */
   createPayment(params: CreatePaymentParams): string {
     const date = new Date();
-    const offset = 7 * 60; // GMT+7
-    const local = new Date(date.getTime() + offset * 60000);
-    const pad = (n: number) => (n < 10 ? "0" + n : n);
-  
-    const createDate = `${local.getFullYear()}${pad(local.getMonth() + 1)}${pad(
-      local.getDate()
-    )}${pad(local.getHours())}${pad(local.getMinutes())}${pad(local.getSeconds())}`;
-    const expire = new Date(local.getTime() + 15 * 60 * 1000);
-    const expireDate = `${expire.getFullYear()}${pad(expire.getMonth() + 1)}${pad(
-      expire.getDate()
-    )}${pad(expire.getHours())}${pad(expire.getMinutes())}${pad(expire.getSeconds())}`;
-  
-    const orderId = params.orderId ?? local.getTime().toString().slice(-8);
-  
-    const vnp_Params: Record<string, any> = {
+    const pad = (n: number) => n.toString().padStart(2, "0");
+    const formatDate = `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`;
+    const expire = new Date(date.getTime() + (params.expireMinutes ?? 15) * 60000);
+    const expireDate = `${expire.getFullYear()}${pad(expire.getMonth() + 1)}${pad(expire.getDate())}${pad(expire.getHours())}${pad(expire.getMinutes())}${pad(expire.getSeconds())}`;
+
+    const txnRef = params.txnRef ?? Math.floor(Math.random() * 1000000).toString();
+    const inputData: Record<string, any> = {
       vnp_Version: "2.1.0",
       vnp_Command: "pay",
       vnp_TmnCode: this.config.tmnCode,
       vnp_Amount: params.amount * 100,
       vnp_CurrCode: "VND",
-      vnp_TxnRef: orderId,
-      vnp_OrderInfo: params.orderInfo, // Giữ nguyên, không lọc ký tự
-      vnp_OrderType: "other",
+      vnp_TxnRef: txnRef,
+      vnp_OrderInfo: params.orderInfo,
+      vnp_OrderType: params.orderType ?? "other",
       vnp_Locale: params.locale ?? "vn",
       vnp_ReturnUrl: this.config.returnUrl,
-      vnp_IpAddr: params.ipAddr,
-      vnp_CreateDate: createDate,
+      vnp_IpAddr: params.ipAddr ?? "127.0.0.1",
+      vnp_CreateDate: formatDate,
       vnp_ExpireDate: expireDate,
     };
-  
-    if (params.bankCode) vnp_Params["vnp_BankCode"] = params.bankCode;
-  
-    const sortedParams = this.sortObject(vnp_Params);
-    const signData = Object.entries(sortedParams)
-      .map(([k, v]) => `${k}=${v}`)
+
+    if (params.bankCode) inputData["vnp_BankCode"] = params.bankCode;
+
+    const sortedKeys = Object.keys(inputData).sort();
+    const signData = sortedKeys
+      .map((k) => `${k}=${this.phpUrlEncode(inputData[k])}`)
       .join("&");
-  
-    const secureHash = this.createSecureHash(signData);
-    sortedParams["vnp_SecureHash"] = secureHash;
-  
-    const finalUrl =
-      this.config.vnpUrl +
-      "?" +
-      Object.entries(sortedParams)
-        .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
-        .join("&");
-  
-    console.log("SignData:", signData);
-    console.log("Hash:", secureHash);
-    return finalUrl;
+
+    const secureHash = this.hmacSHA512(signData);
+    const query = `${signData}&vnp_SecureHash=${secureHash}`;
+    return `${this.config.vnpUrl}?${query}`;
   }
-  
 
-  validateCallback(query: Record<string, any>): ValidateCallbackResult {
+  /** 🔍 Kiểm tra chữ ký & kết quả Return URL */
+  verifyReturn(query: Record<string, string>): VerifyReturnResult {
     const receivedHash = query["vnp_SecureHash"];
-    delete query["vnp_SecureHash"];
-    delete query["vnp_SecureHashType"];
+    if (!receivedHash) {
+      return { isValid: false, message: "Thiếu chữ ký (vnp_SecureHash)" };
+    }
 
-    const sorted = this.sortObject(query);
-    const signData = Object.entries(sorted)
-      .map(([k, v]) => `${k}=${v}`)
+    const inputData: Record<string, string> = {};
+    for (const [key, value] of Object.entries(query)) {
+      if (key.startsWith("vnp_") && key !== "vnp_SecureHash") {
+        inputData[key] = value;
+      }
+    }
+
+    const sortedKeys = Object.keys(inputData ).sort();
+    const signData = sortedKeys
+      .map((k) => `${k}=${this.phpUrlEncode(inputData[k] as any)}`)
       .join("&");
 
-    const expectedHash = this.createSecureHash(signData);
+    const expectedHash = this.hmacSHA512(signData);
     const isValid = expectedHash === receivedHash;
+
+    const responseCode = query["vnp_ResponseCode"];
+    const transactionStatus = query["vnp_TransactionStatus"];
+
+    let message = "Chữ ký không hợp lệ";
+    if (isValid) {
+      if (responseCode === "00" && transactionStatus === "00") {
+        message = "Giao dịch thành công";
+      } else {
+        message = `Giao dịch không thành công (${responseCode})`;
+      }
+    }
 
     return {
       isValid,
-      code: isValid ? query["vnp_ResponseCode"] || "00" : "97",
-      message: isValid ? "Checksum OK" : "Checksum failed",
+      message,
+      responseCode,
+      transactionStatus,
+      data: inputData,
     };
   }
 }

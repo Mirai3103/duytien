@@ -17,9 +17,10 @@ export function getDiscountPercentage(originalPrice: number, discount: number) {
     return 0;
   }
   if (discount < 1) {
-    return discount * 100;
+    return (discount * 100).toFixed(0);
   }
   const discountPercentage = (discount / originalPrice) * 100;
+  console.log(discountPercentage);
   return discountPercentage.toFixed(0);
 }
 

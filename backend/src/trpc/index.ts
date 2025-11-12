@@ -6,6 +6,7 @@ import { categoriesRoute } from "./routes/categories.route";
 import { ordersRoute } from "./routes/orders.route";
 import { paymentRoute } from "./routes/payment.route";
 import { productsRoute } from "./routes/products.route";
+import { reviewRoute } from "./routes/review.route";
 import { specsRoute } from "./routes/specs.route";
 import { usersRoute } from "./routes/users.route";
 import { variantImagesRouter } from "./routes/variant-images.route";
@@ -26,6 +27,7 @@ export const appRouter = router({
   orders: ordersRoute,
   vouchers: vouchersRoute,
   payment: paymentRoute,
+  review: reviewRoute,
 });
 // Export type router type signature,
 // NOT the router itself.

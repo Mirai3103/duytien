@@ -14,6 +14,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Loader2,
+  Star,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import {
@@ -25,6 +26,7 @@ import {
 } from "@/components/ui/dialog";
 import { useTRPC } from "@/lib/trpc";
 import { useQuery } from "@tanstack/react-query";
+import { ReviewModal } from "@/components/review/ReviewModal";
 
 type OrderStatus =
   | "pending"
@@ -99,6 +101,8 @@ export function OrdersTab() {
   const [page, setPage] = useState(1);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
+  const [selectedReviewItem, setSelectedReviewItem] = useState<any>(null);
   const [filterStatus, setFilterStatus] = useState<OrderStatus | "all">("all");
   const limit = 10;
 
@@ -125,6 +129,11 @@ export function OrdersTab() {
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleOpenReviewDialog = (item: any) => {
+    setSelectedReviewItem(item);
+    setReviewDialogOpen(true);
   };
 
   return (
@@ -219,7 +228,7 @@ export function OrdersTab() {
                 statusConfig[order.status as OrderStatus] ||
                 statusConfig.pending;
               const StatusIcon = config.icon;
-              const orderNumber = `DH${order.id.toString().padStart(8, "0")}`;
+              const orderNumber = order.code
               const paymentConfig =
                 paymentStatusConfig[order.lastPayment?.status as "pending" | "success" | "failed"] ||
                 paymentStatusConfig.pending;
@@ -492,9 +501,9 @@ export function OrdersTab() {
                     return (
                       <div
                         key={item.variantId || Math.random()}
-                        className="flex gap-4"
+                        className="flex gap-4 items-start"
                       >
-                        <div className="w-20 h-20 bg-muted rounded-lg overflow-hidden">
+                        <div className="w-20 h-20 bg-muted rounded-lg overflow-hidden flex-shrink-0">
                           <img
                             src={
                               item.variant?.image ||
@@ -509,7 +518,7 @@ export function OrdersTab() {
                             className="w-full h-full object-contain"
                           />
                         </div>
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-0">
                           <p className="font-medium">
                             {item.variant?.product?.name ||
                               item.variant?.name ||
@@ -522,6 +531,17 @@ export function OrdersTab() {
                           <p className="font-semibold text-primary">
                             {Number(item.price).toLocaleString("vi-VN")}đ
                           </p>
+                          {selectedOrder.status === "delivered" && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="mt-2"
+                              onClick={() => handleOpenReviewDialog(item)}
+                            >
+                              <Star className="h-4 w-4 mr-1" />
+                              Đánh giá
+                            </Button>
+                          )}
                         </div>
                       </div>
                     );
@@ -566,6 +586,19 @@ export function OrdersTab() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Review Dialog */}
+      <ReviewModal
+        open={reviewDialogOpen}
+        onOpenChange={setReviewDialogOpen}
+        variantId={selectedReviewItem?.variantId || null}
+        productName={
+          selectedReviewItem?.variant?.product?.name ||
+          selectedReviewItem?.variant?.name ||
+          "Sản phẩm"
+        }
+        productId={selectedReviewItem?.variant?.product?.id}
+      />
     </div>
   );
 }

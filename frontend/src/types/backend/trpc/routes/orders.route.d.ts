@@ -54,7 +54,7 @@ export declare const ordersRoute: import("@trpc/server").TRPCBuiltRouter<{
                 totalAmount: string;
                 status: "pending" | "confirmed" | "shipping" | "delivered" | "cancelled";
                 userId: string;
-                code: string | null;
+                code: string;
                 paymentMethod: "cod" | "vnpay" | "momo";
                 deliveryAddressId: number | null;
                 voucherId: number | null;
@@ -217,7 +217,7 @@ export declare const ordersRoute: import("@trpc/server").TRPCBuiltRouter<{
                 } | null;
                 orders: {
                     id: number;
-                    code: string | null;
+                    code: string;
                     userId: string;
                     status: "pending" | "confirmed" | "shipping" | "delivered" | "cancelled";
                     totalAmount: string;
@@ -263,7 +263,7 @@ export declare const ordersRoute: import("@trpc/server").TRPCBuiltRouter<{
             totalAmount: string;
             status: "pending" | "confirmed" | "shipping" | "delivered" | "cancelled";
             userId: string;
-            code: string | null;
+            code: string;
             paymentMethod: "cod" | "vnpay" | "momo";
             deliveryAddressId: number | null;
             voucherId: number | null;

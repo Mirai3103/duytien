@@ -1010,11 +1010,11 @@ declare const db: import("drizzle-orm/node-postgres").NodePgDatabase<{
                 columnType: "PgVarchar";
                 data: string;
                 driverParam: string;
-                notNull: false;
+                notNull: true;
                 hasDefault: true;
                 isPrimaryKey: false;
                 isAutoincrement: false;
-                hasRuntimeDefault: false;
+                hasRuntimeDefault: true;
                 enumValues: [string, ...string[]];
                 baseColumn: never;
                 identity: undefined;

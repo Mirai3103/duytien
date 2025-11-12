@@ -1480,11 +1480,11 @@ export declare const orders: import("drizzle-orm/pg-core").PgTableWithColumns<{
             columnType: "PgVarchar";
             data: string;
             driverParam: string;
-            notNull: false;
+            notNull: true;
             hasDefault: true;
             isPrimaryKey: false;
             isAutoincrement: false;
-            hasRuntimeDefault: false;
+            hasRuntimeDefault: true;
             enumValues: [string, ...string[]];
             baseColumn: never;
             identity: undefined;
@@ -3395,11 +3395,11 @@ declare const _default: {
                 columnType: "PgVarchar";
                 data: string;
                 driverParam: string;
-                notNull: false;
+                notNull: true;
                 hasDefault: true;
                 isPrimaryKey: false;
                 isAutoincrement: false;
-                hasRuntimeDefault: false;
+                hasRuntimeDefault: true;
                 enumValues: [string, ...string[]];
                 baseColumn: never;
                 identity: undefined;

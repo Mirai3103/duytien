@@ -26,7 +26,7 @@ import { TRPCError, type inferProcedureOutput } from "@trpc/server";
 import { alias } from "drizzle-orm/pg-core";
 import { getFinalPrice, getReducePrice } from "@/utils/utils";
 import { getVoucherReducePrice } from "@/services/vouchers";
-import { momoSdk } from "@/services/payment";
+import { createPayment, momoSdk } from "@/services/payment";
 import { generateOrderCode } from "@/utils/gen_order_code";
 import { useVoucherHook } from "@/db/hook";
 const createOrderSchema = z.object({
@@ -156,15 +156,14 @@ export const ordersRoute = router({
           return order!.id;
         })
       let redirectUrl = "";
-      if(input.paymentMethod === "momo") {
-        const payment = await momoSdk.createPayment({
+      if(input.paymentMethod !== "cod") {
+        const payment = await createPayment({
           amount: paymentAmount,
           orderInfo: "Đơn hàng " + orderCode,
-          lang: "vi",
-          orderId: orderCode,
-          requestId: paymentId.toString(),
+          id:paymentId.toString(),
+          method: input.paymentMethod as "momo" | "vnpay",
         });
-        redirectUrl = payment.payUrl!;
+        redirectUrl = payment;
       }
      
       return {

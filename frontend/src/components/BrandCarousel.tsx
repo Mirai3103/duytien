@@ -1,5 +1,6 @@
 import { useTRPC } from "@/lib/trpc";
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 
 const brands = [
   "Apple",
@@ -26,14 +27,18 @@ const BrandCarousel = () => {
         <div className="overflow-hidden">
           <div className="flex gap-12 items-center justify-center flex-wrap">
             {brands?.map((brand, index) => (
-              <div
+              <Link
+                to="/search"
+                search={{
+                  brandId: [brand.id.toString()],
+                }}
                 key={index}
                 className="flex items-center justify-center h-16 px-8 bg-background rounded-lg shadow-md hover-lift cursor-pointer"
               >
                 <span className="text-xl font-bold text-foreground">
                   {brand.name}
                 </span>
-              </div>
+              </Link>
             ))}
           </div>
         </div>

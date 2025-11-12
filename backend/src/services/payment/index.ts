@@ -10,18 +10,72 @@ export const momoSdk = new MomoSDK({
 import { VnpaySDK } from "./vnpay.sdk";
 
 export const vnpaySdk = new VnpaySDK({
-  tmnCode: "U90TT9KS",
-  hashSecret: "9Z6E78DEUXRCJG2OA597K10758WK0I8G",
+  tmnCode: "1ZV0O07W",
+  hashSecret: "3UO4AFJAKL67E7H9WHVJTXMPL6TUQMHN",
   vnpUrl: "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html",
-  returnUrl: "http://localhost:8888/order/vnpay_return",
+  returnUrl: process.env.VNPAY_RETURN_URL!,
 });
+
+interface CreatePaymentParams {
+  id: string;
+  amount: number;
+  orderInfo: string;
+  method: "momo" | "vnpay";
+}
+export async function createPayment({
+  id,
+  amount,
+  orderInfo,
+  method,
+}: CreatePaymentParams) {
+  if (method === "momo") {
+    return await momoSdk.createPayment({
+      amount: amount,
+      orderInfo: orderInfo,
+      requestId: id,
+      lang: "vi",
+    }).then((res) => res.payUrl!);
+  } else if (method === "vnpay") {
+    return vnpaySdk.createPayment({
+      amount: amount,
+      orderInfo: orderInfo,
+      txnRef: id,
+    });
+  }
+  throw new Error("Invalid method");
+}
+
+interface VerifyPaymentParams {
+  args: Record<string, any>;
+  method: "momo" | "vnpay";
+}
+export function verifyPayment({ args, method }: VerifyPaymentParams) {
+  if (method === "momo") {
+    const result = momoSdk.validateCallback(args);
+    return {
+      success: result,
+      isSuccess: args.resultCode === 0,
+      id: args.requestId,
+    };
+  } else if (method === "vnpay") {
+    const result = vnpaySdk.verifyReturn(args);
+    return {
+      success: result.isValid,
+      isSuccess: result.responseCode === "00" && result.transactionStatus === "00",
+      id: args.vnp_TxnRef,
+    };
+  }
+  throw new Error("Invalid method");
+}
+
 // async function test() {
 //   const payment =  vnpaySdk.createPayment({
 //     amount: 100000,
 //     ipAddr: "26.160.38.50",
-//     orderInfo: "Test payment",
+//     orderInfo: "Testpayment",
 //     locale: "vn",
-//     orderId: "1234567890",
+//     txnRef: "1234567890",
+
 //   });
 //   console.log("Pay URL:", payment);
 // }
