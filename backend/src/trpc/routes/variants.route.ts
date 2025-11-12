@@ -151,6 +151,7 @@ export const variantsRoute = router({
         attributeValues: z.array(
           z.object({ attributeId: z.number(), value: z.string() })
         ),
+        
       })
     )
     .mutation(async ({ input }) => {

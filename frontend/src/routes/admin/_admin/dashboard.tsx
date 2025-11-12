@@ -17,44 +17,68 @@ import { RecentOrders } from "@/components/recent-orders";
 import { RevenueChart } from "@/components/revenue-chart";
 import { TopProducts } from "@/components/top-products";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-const stats = [
-	{
-		title: "Tổng doanh thu",
-		value: "₫245,890,000",
-		change: "+12.5%",
-		trend: "up",
-		icon: DollarSign,
-	},
-	{
-		title: "Đơn hàng",
-		value: "1,234",
-		change: "+8.2%",
-		trend: "up",
-		icon: ShoppingCart,
-	},
-	{
-		title: "Sản phẩm",
-		value: "456",
-		change: "+3.1%",
-		trend: "up",
-		icon: Package,
-	},
-	{
-		title: "Khách hàng",
-		value: "8,945",
-		change: "-2.4%",
-		trend: "down",
-		icon: Users,
-	},
-];
+import { useQuery } from "@tanstack/react-query";
+import { useTRPC } from "@/lib/trpc";
 
 export default function AdminDashboard() {
+	const trpc = useTRPC();
+	const { data: stats, isLoading: statsLoading } =
+		useQuery(trpc.dashboard.getStats.queryOptions());
+
+	const statsConfig = [
+		{
+			title: "Tổng doanh thu",
+			value: stats?.totalRevenue
+				? `₫${stats.totalRevenue.toLocaleString()}`
+				: "₫0",
+			change: stats?.revenueChange
+				? `${stats.revenueChange > 0 ? "+" : ""}${stats.revenueChange}%`
+				: "0%",
+			trend: (stats?.revenueChange ?? 0) >= 0 ? "up" : "down",
+			icon: DollarSign,
+		},
+		{
+			title: "Đơn hàng",
+			value: stats?.totalOrders?.toLocaleString() ?? "0",
+			change: stats?.ordersChange
+				? `${stats.ordersChange > 0 ? "+" : ""}${stats.ordersChange}%`
+				: "0%",
+			trend: (stats?.ordersChange ?? 0) >= 0 ? "up" : "down",
+			icon: ShoppingCart,
+		},
+		{
+			title: "Sản phẩm",
+			value: stats?.totalProducts?.toLocaleString() ?? "0",
+			change: stats?.productsChange
+				? `${stats.productsChange > 0 ? "+" : ""}${stats.productsChange}%`
+				: "0%",
+			trend: (stats?.productsChange ?? 0) >= 0 ? "up" : "down",
+			icon: Package,
+		},
+		{
+			title: "Khách hàng",
+			value: stats?.totalCustomers?.toLocaleString() ?? "0",
+			change: stats?.customersChange
+				? `${stats.customersChange > 0 ? "+" : ""}${stats.customersChange}%`
+				: "0%",
+			trend: (stats?.customersChange ?? 0) >= 0 ? "up" : "down",
+			icon: Users,
+		},
+	];
+
+	if (statsLoading) {
+		return (
+			<div className="flex items-center justify-center min-h-screen">
+				<div className="text-muted-foreground">Đang tải...</div>
+			</div>
+		);
+	}
+
 	return (
 		<div className="space-y-6">
 			{/* Stats Grid */}
 			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-				{stats.map((stat) => (
+				{statsConfig.map((stat) => (
 					<Card key={stat.title} className="bg-card border-border">
 						<CardHeader className="flex flex-row items-center justify-between pb-2">
 							<CardTitle className="text-sm font-medium text-muted-foreground">
@@ -73,7 +97,7 @@ export default function AdminDashboard() {
 									<ArrowDownRight className="w-4 h-4 text-red-500" />
 								)}
 								<span
-									className={`text-xs font-medium ${stat.trend === `up` ? `text-green-500` : `text-red-500`}`}
+									className={`text-xs font-medium ${stat.trend === "up" ? "text-green-500" : "text-red-500"}`}
 								>
 									{stat.change}
 								</span>

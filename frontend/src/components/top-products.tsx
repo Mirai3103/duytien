@@ -1,15 +1,29 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-
-const products = [
-	{ name: "iPhone 15 Pro Max", sales: 234, percentage: 85 },
-	{ name: "Samsung Galaxy S24", sales: 189, percentage: 68 },
-	{ name: "AirPods Pro 2", sales: 156, percentage: 56 },
-	{ name: "iPad Air M2", sales: 134, percentage: 48 },
-	{ name: "MacBook Air M3", sales: 98, percentage: 35 },
-];
+import { useQuery } from "@tanstack/react-query";
+import { useTRPC } from "@/lib/trpc";
 
 export function TopProducts() {
+	const trpc = useTRPC();
+	const { data: products, isLoading } = useQuery(
+		trpc.dashboard.getTopProducts.queryOptions()
+	);
+
+	if (isLoading) {
+		return (
+			<Card className="bg-card border-border">
+				<CardHeader>
+					<CardTitle className="text-foreground">Sản phẩm bán chạy</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<div className="flex items-center justify-center py-8">
+						<div className="text-muted-foreground">Đang tải...</div>
+					</div>
+				</CardContent>
+			</Card>
+		);
+	}
+
 	return (
 		<Card className="bg-card border-border">
 			<CardHeader>
@@ -17,7 +31,7 @@ export function TopProducts() {
 			</CardHeader>
 			<CardContent>
 				<div className="space-y-6">
-					{products.map((product) => (
+					{products?.map((product) => (
 						<div key={product.name} className="space-y-2">
 							<div className="flex items-center justify-between">
 								<p className="text-sm font-medium text-foreground">
@@ -30,6 +44,11 @@ export function TopProducts() {
 							<Progress value={product.percentage} className="h-2" />
 						</div>
 					))}
+					{(!products || products.length === 0) && (
+						<div className="text-center py-8 text-muted-foreground">
+							Chưa có dữ liệu bán hàng
+						</div>
+					)}
 				</div>
 			</CardContent>
 		</Card>

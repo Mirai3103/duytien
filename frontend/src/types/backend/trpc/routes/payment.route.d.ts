@@ -29,14 +29,7 @@ export declare const paymentRoute: import("@trpc/server").TRPCBuiltRouter<{
     callback: import("@trpc/server").TRPCMutationProcedure<{
         input: {
             momo?: any;
-            vnpay?: {
-                partnerCode: string;
-                orderId: string;
-                requestId: string;
-                amount: number;
-                orderInfo: string;
-                orderType: string;
-            } | undefined;
+            vnpay?: any;
         };
         output: {
             success: boolean;

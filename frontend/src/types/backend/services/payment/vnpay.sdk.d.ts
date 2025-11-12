@@ -1,27 +1,31 @@
 export interface VnpayConfig {
     tmnCode: string;
     hashSecret: string;
-    vnpUrl: string;
     returnUrl: string;
+    vnpUrl?: string;
 }
 export interface CreatePaymentParams {
     amount: number;
-    orderId?: string;
     orderInfo: string;
+    orderType?: string;
     bankCode?: string;
     locale?: "vn" | "en";
-    ipAddr: string;
+    ipAddr?: string;
+    txnRef?: string;
+    expireMinutes?: number;
 }
-export interface ValidateCallbackResult {
+export interface VerifyReturnResult {
     isValid: boolean;
-    code: string;
     message: string;
+    responseCode?: string;
+    transactionStatus?: string;
+    data?: Record<string, any>;
 }
 export declare class VnpaySDK {
     private config;
     constructor(config: VnpayConfig);
-    private sortObject;
-    private createSecureHash;
+    private phpUrlEncode;
+    private hmacSHA512;
     createPayment(params: CreatePaymentParams): string;
-    validateCallback(query: Record<string, any>): ValidateCallbackResult;
+    verifyReturn(query: Record<string, string>): VerifyReturnResult;
 }

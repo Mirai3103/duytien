@@ -10,23 +10,30 @@ import {
 	YAxis,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-const data = [
-	{ month: "T1", revenue: 45000000 },
-	{ month: "T2", revenue: 52000000 },
-	{ month: "T3", revenue: 48000000 },
-	{ month: "T4", revenue: 61000000 },
-	{ month: "T5", revenue: 55000000 },
-	{ month: "T6", revenue: 67000000 },
-	{ month: "T7", revenue: 72000000 },
-	{ month: "T8", revenue: 68000000 },
-	{ month: "T9", revenue: 75000000 },
-	{ month: "T10", revenue: 82000000 },
-	{ month: "T11", revenue: 88000000 },
-	{ month: "T12", revenue: 95000000 },
-];
+import { useQuery } from "@tanstack/react-query";
+import { useTRPC } from "@/lib/trpc";
 
 export function RevenueChart() {
+	const trpc = useTRPC();
+	const { data: revenueData, isLoading } = useQuery(
+		trpc.dashboard.getRevenueByMonth.queryOptions()
+	);
+
+	if (isLoading) {
+		return (
+			<Card className="bg-card border-border">
+				<CardHeader>
+					<CardTitle className="text-foreground">Doanh thu theo tháng</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<div className="h-[300px] flex items-center justify-center">
+						<div className="text-muted-foreground">Đang tải...</div>
+					</div>
+				</CardContent>
+			</Card>
+		);
+	}
+
 	return (
 		<Card className="bg-card border-border">
 			<CardHeader>
@@ -34,7 +41,7 @@ export function RevenueChart() {
 			</CardHeader>
 			<CardContent>
 				<ResponsiveContainer width="100%" height={300}>
-					<AreaChart data={data}>
+					<AreaChart data={revenueData || []}>
 						<defs>
 							<linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
 								<stop

@@ -1,51 +1,37 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-const orders = [
-	{
-		id: "#ORD-001",
-		customer: "Nguyễn Văn A",
-		product: "iPhone 15 Pro Max",
-		amount: "₫32,990,000",
-		status: "completed",
-	},
-	{
-		id: "#ORD-002",
-		customer: "Trần Thị B",
-		product: "Samsung Galaxy S24",
-		amount: "₫24,990,000",
-		status: "processing",
-	},
-	{
-		id: "#ORD-003",
-		customer: "Lê Văn C",
-		product: "AirPods Pro 2",
-		amount: "₫6,490,000",
-		status: "pending",
-	},
-	{
-		id: "#ORD-004",
-		customer: "Phạm Thị D",
-		product: "iPad Air M2",
-		amount: "₫16,990,000",
-		status: "completed",
-	},
-	{
-		id: "#ORD-005",
-		customer: "Hoàng Văn E",
-		product: "MacBook Air M3",
-		amount: "₫28,990,000",
-		status: "processing",
-	},
-];
+import { useQuery } from "@tanstack/react-query";
+import { useTRPC } from "@/lib/trpc";
 
 const statusConfig = {
-	completed: { label: "Hoàn thành", variant: "default" as const },
-	processing: { label: "Đang xử lý", variant: "secondary" as const },
 	pending: { label: "Chờ xử lý", variant: "outline" as const },
+	confirmed: { label: "Đã xác nhận", variant: "secondary" as const },
+	shipping: { label: "Đang giao", variant: "secondary" as const },
+	delivered: { label: "Hoàn thành", variant: "default" as const },
+	cancelled: { label: "Đã hủy", variant: "destructive" as const },
 };
 
 export function RecentOrders() {
+	const trpc = useTRPC();
+	const { data: orders, isLoading } = useQuery(
+		trpc.dashboard.getRecentOrders.queryOptions()
+	);
+
+	if (isLoading) {
+		return (
+			<Card className="bg-card border-border">
+				<CardHeader>
+					<CardTitle className="text-foreground">Đơn hàng gần đây</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<div className="flex items-center justify-center py-8">
+						<div className="text-muted-foreground">Đang tải...</div>
+					</div>
+				</CardContent>
+			</Card>
+		);
+	}
+
 	return (
 		<Card className="bg-card border-border">
 			<CardHeader>
@@ -53,7 +39,7 @@ export function RecentOrders() {
 			</CardHeader>
 			<CardContent>
 				<div className="space-y-4">
-					{orders.map((order) => (
+					{orders?.map((order) => (
 						<div
 							key={order.id}
 							className="flex items-center justify-between py-3 border-b border-border last:border-0"
@@ -64,13 +50,11 @@ export function RecentOrders() {
 									<Badge
 										variant={
 											statusConfig[order.status as keyof typeof statusConfig]
-												.variant
+												?.variant || "outline"
 										}
 									>
-										{
-											statusConfig[order.status as keyof typeof statusConfig]
-												.label
-										}
+										{statusConfig[order.status as keyof typeof statusConfig]
+											?.label || order.status}
 									</Badge>
 								</div>
 								<p className="text-sm text-muted-foreground mt-1">
@@ -79,10 +63,17 @@ export function RecentOrders() {
 								<p className="text-sm text-muted-foreground">{order.product}</p>
 							</div>
 							<div className="text-right">
-								<p className="font-semibold text-foreground">{order.amount}</p>
+								<p className="font-semibold text-foreground">
+									₫{order.amount.toLocaleString()}
+								</p>
 							</div>
 						</div>
 					))}
+					{(!orders || orders.length === 0) && (
+						<div className="text-center py-8 text-muted-foreground">
+							Chưa có đơn hàng nào
+						</div>
+					)}
 				</div>
 			</CardContent>
 		</Card>

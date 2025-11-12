@@ -3,6 +3,7 @@ import { attributesRoute } from "./routes/attributes.route";
 import { brandRoute } from "./routes/brand.route";
 import cartRoute from "./routes/cart.route";
 import { categoriesRoute } from "./routes/categories.route";
+import { dashboardRoute } from "./routes/dashboard.route";
 import { ordersRoute } from "./routes/orders.route";
 import { paymentRoute } from "./routes/payment.route";
 import { productsRoute } from "./routes/products.route";
@@ -28,6 +29,7 @@ export const appRouter = router({
   vouchers: vouchersRoute,
   payment: paymentRoute,
   review: reviewRoute,
+  dashboard: dashboardRoute,
 });
 // Export type router type signature,
 // NOT the router itself.

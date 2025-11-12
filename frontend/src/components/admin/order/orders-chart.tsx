@@ -8,18 +8,30 @@ import {
 	YAxis,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-const data = [
-	{ day: "T2", orders: 45 },
-	{ day: "T3", orders: 52 },
-	{ day: "T4", orders: 48 },
-	{ day: "T5", orders: 61 },
-	{ day: "T6", orders: 55 },
-	{ day: "T7", orders: 67 },
-	{ day: "CN", orders: 72 },
-];
+import { useQuery } from "@tanstack/react-query";
+import { useTRPC } from "@/lib/trpc";
 
 export function OrdersChart() {
+	const trpc = useTRPC();
+	const { data: ordersData, isLoading } = useQuery(
+		trpc.dashboard.getOrdersByWeek.queryOptions()
+	);
+
+	if (isLoading) {
+		return (
+			<Card className="bg-card border-border">
+				<CardHeader>
+					<CardTitle className="text-foreground">Đơn hàng trong tuần</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<div className="h-[300px] flex items-center justify-center">
+						<div className="text-muted-foreground">Đang tải...</div>
+					</div>
+				</CardContent>
+			</Card>
+		);
+	}
+
 	return (
 		<Card className="bg-card border-border">
 			<CardHeader>
@@ -27,7 +39,7 @@ export function OrdersChart() {
 			</CardHeader>
 			<CardContent>
 				<ResponsiveContainer width="100%" height={300}>
-					<BarChart data={data}>
+					<BarChart data={ordersData || []}>
 						<CartesianGrid strokeDasharray="3 3" stroke="hsl(0 0% 20%)" />
 						<XAxis dataKey="day" stroke="hsl(0 0% 60%)" />
 						<YAxis stroke="hsl(0 0% 60%)" />

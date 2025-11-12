@@ -52,7 +52,6 @@ export class VnpaySDK {
       .digest("hex");
   }
 
-  /** 🧾 Tạo URL thanh toán */
   createPayment(params: CreatePaymentParams): string {
     const date = new Date();
     const pad = (n: number) => n.toString().padStart(2, "0");
@@ -89,7 +88,6 @@ export class VnpaySDK {
     return `${this.config.vnpUrl}?${query}`;
   }
 
-  /** 🔍 Kiểm tra chữ ký & kết quả Return URL */
   verifyReturn(query: Record<string, string>): VerifyReturnResult {
     const receivedHash = query["vnp_SecureHash"];
     if (!receivedHash) {
