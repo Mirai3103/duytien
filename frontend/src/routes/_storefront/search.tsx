@@ -63,7 +63,7 @@ export const Route = createFileRoute("/_storefront/search")({
     const p2 = trpcClient.products.countProducts.query(params);
     return {
       products: p1,
-      total: p2.then((res) => res[0].count),
+      total: p2.then((res) => (Array.isArray(res) ? res[0].count : 0)),
     };
   },
 });

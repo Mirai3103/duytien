@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { ChevronDown, ChevronRight, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -64,12 +64,12 @@ export function FilterContent({
         }
       />
 
-      <RatingFilter
+      {/* <RatingFilter
         minRating={pendingFilters.minRating}
         onRatingChange={(value) =>
           setPendingFilters((prev) => ({ ...prev, minRating: value }))
         }
-      />
+      /> */}
 
       <div className="pt-2 border-t">
         <Button onClick={applyFilters} className="w-full">
@@ -318,25 +318,158 @@ interface PriceRangeFilterProps {
   onPriceRangeChange: (value: number[]) => void;
 }
 
+
+function formatCurrency(value: number): string {
+  return new Intl.NumberFormat("vi-VN").format(value);
+}
+
+function parseCurrency(value: string): number {
+  // Remove all non-digit characters
+  const cleanValue = value.replace(/\D/g, "");
+  return cleanValue ? parseInt(cleanValue, 10) : 0;
+}
+
 function PriceRangeFilter({
   priceRange,
   onPriceRangeChange,
 }: PriceRangeFilterProps) {
+  // Local state for input values (formatted strings)
+  const [minValue, setMinValue] = useState(formatCurrency(priceRange[0]));
+  const [maxValue, setMaxValue] = useState(formatCurrency(priceRange[1]));
+  const [error, setError] = useState<string>("");
+
+  // Update local state when priceRange prop changes
+  useEffect(() => {
+    setMinValue(formatCurrency(priceRange[0]));
+    setMaxValue(formatCurrency(priceRange[1]));
+  }, [priceRange[0], priceRange[1]]);
+
+  const handleMinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setMinValue(value);
+    setError("");
+
+    const numericValue = parseCurrency(value);
+    const maxNumeric = parseCurrency(maxValue);
+
+    if (numericValue > maxNumeric) {
+      setError("Giá tối thiểu không được lớn hơn giá tối đa");
+    }
+  };
+
+  const handleMaxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setMaxValue(value);
+    setError("");
+
+    const minNumeric = parseCurrency(minValue);
+    const numericValue = parseCurrency(value);
+
+    if (numericValue < minNumeric && numericValue !== 0) {
+      setError("Giá tối đa không được nhỏ hơn giá tối thiểu");
+    }
+  };
+
+  const handleMinBlur = () => {
+    const numericValue = parseCurrency(minValue);
+    const maxNumeric = parseCurrency(maxValue);
+
+    // Format the value
+    setMinValue(formatCurrency(numericValue));
+
+    // Validate and update
+    if (numericValue <= maxNumeric) {
+      onPriceRangeChange([numericValue, maxNumeric]);
+      setError("");
+    } else {
+      // Reset to previous valid value
+      setMinValue(formatCurrency(priceRange[0]));
+      setError("");
+    }
+  };
+
+  const handleMaxBlur = () => {
+    const minNumeric = parseCurrency(minValue);
+    const numericValue = parseCurrency(maxValue);
+
+    // Format the value
+    setMaxValue(formatCurrency(numericValue));
+
+    // Validate and update
+    if (numericValue >= minNumeric || numericValue === 0) {
+      onPriceRangeChange([minNumeric, numericValue]);
+      setError("");
+    } else {
+      // Reset to previous valid value
+      setMaxValue(formatCurrency(priceRange[1]));
+      setError("");
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Allow Enter to trigger blur (which will format and validate)
+    if (e.key === "Enter") {
+      e.currentTarget.blur();
+    }
+  };
+
   return (
     <div>
-      <h3 className="font-semibold text-base mb-2">Khoảng giá</h3>
-      <div className="px-2">
-        <Slider
-          value={priceRange}
-          onValueChange={onPriceRangeChange}
-          max={MAX_PRICE}
-          step={PRICE_STEP}
-          className="mb-4"
-        />
-        <div className="flex justify-between text-sm text-muted-foreground">
-          <span>{(priceRange[0] / 1000000).toFixed(0)}tr</span>
-          <span>{(priceRange[1] / 1000000).toFixed(0)}tr</span>
+      <h3 className="font-semibold text-base mb-3">Khoảng giá</h3>
+      <div className="space-y-3">
+        <div className="space-y-2">
+          <Label htmlFor="min-price" className="text-sm text-muted-foreground">
+            Từ
+          </Label>
+          <div className="relative">
+            <Input
+              id="min-price"
+              type="text"
+              inputMode="numeric"
+              value={minValue}
+              onChange={handleMinChange}
+              onBlur={handleMinBlur}
+              onKeyDown={handleKeyDown}
+              placeholder="0"
+              className="pr-12"
+            />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+              ₫
+            </span>
+          </div>
         </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="max-price" className="text-sm text-muted-foreground">
+            Đến
+          </Label>
+          <div className="relative">
+            <Input
+              id="max-price"
+              type="text"
+              inputMode="numeric"
+              value={maxValue}
+              onChange={handleMaxChange}
+              onBlur={handleMaxBlur}
+              onKeyDown={handleKeyDown}
+              placeholder="0"
+              className="pr-12"
+            />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+              ₫
+            </span>
+          </div>
+        </div>
+
+        {error && (
+          <p className="text-xs text-destructive">{error}</p>
+        )}
+
+        {!error && priceRange[0] > 0 && priceRange[1] > 0 && (
+          <p className="text-xs text-muted-foreground">
+            Khoảng giá: {formatCurrency(priceRange[0])}₫ - {formatCurrency(priceRange[1])}₫
+          </p>
+        )}
       </div>
     </div>
   );

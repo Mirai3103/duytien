@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import type { FilterState } from "../types";
 import { DEFAULT_FILTER_STATE, MAX_PRICE } from "../types";
@@ -15,33 +15,59 @@ interface UseFiltersProps {
 
 function getInitialFiltersFromParams(searchParams: any): FilterState {
   return {
-    categories: (searchParams.categoryId?.map(String) ?? []) as string[],
-    brands: (searchParams.brandId?.map(String) ?? []) as string[],
+    categories: Array.isArray(searchParams.categoryId)
+      ? searchParams.categoryId.map(String)
+      : searchParams.categoryId
+      ? [String(searchParams.categoryId)]
+      : [],
+    brands: Array.isArray(searchParams.brandId)
+      ? searchParams.brandId.map(String)
+      : searchParams.brandId
+      ? [String(searchParams.brandId)]
+      : [],
     priceRange: [
-      searchParams.priceMin ?? 0,
-      searchParams.priceMax ?? MAX_PRICE,
+      searchParams.priceMin ?? DEFAULT_FILTER_STATE.priceRange[0],
+      searchParams.priceMax ?? DEFAULT_FILTER_STATE.priceRange[1],
     ] as [number, number],
-    minRating: "0", // Rating filter is not in URL params yet
+    minRating: searchParams.minRating?.toString() ?? DEFAULT_FILTER_STATE.minRating,
+    keyword: "",
   };
 }
 
 function convertFiltersToUrlParams(filters: FilterState) {
-  return {
-    brandId: filters.brands.length > 0 ? filters.brands.map(Number) : undefined,
-    categoryId:
-      filters.categories.length > 0
-        ? filters.categories.map(Number)
-        : undefined,
-    priceMin: filters.priceRange[0] !== 0 ? filters.priceRange[0] : undefined,
-    priceMax:
-      filters.priceRange[1] !== MAX_PRICE ? filters.priceRange[1] : undefined,
-  };
+  const params: Record<string, any> = {};
+
+  if (filters.brands.length > 0) {
+    params.brandId = filters.brands.map(Number);
+  }
+
+  if (filters.categories.length > 0) {
+    params.categoryId = filters.categories.map(Number);
+  }
+
+  if (filters.priceRange[0] !== DEFAULT_FILTER_STATE.priceRange[0]) {
+    params.priceMin = filters.priceRange[0];
+  }
+
+  if (filters.priceRange[1] !== DEFAULT_FILTER_STATE.priceRange[1]) {
+    params.priceMax = filters.priceRange[1];
+  }
+
+  if (filters.minRating !== DEFAULT_FILTER_STATE.minRating) {
+    params.minRating = filters.minRating;
+  }
+  if (filters.keyword) {
+    params.keyword = filters.keyword;
+  }
+
+  return params;
 }
 
 export function useFilters({ categoriesData }: UseFiltersProps) {
   const searchParams = useSearch({ from: "/_storefront/search" });
   const navigate = useNavigate();
 
+  // Initialize state from URL params
   const [pendingFilters, setPendingFilters] = useState<FilterState>(() =>
     getInitialFiltersFromParams(searchParams)
   );
@@ -49,98 +75,125 @@ export function useFilters({ categoriesData }: UseFiltersProps) {
     getInitialFiltersFromParams(searchParams)
   );
 
-  // Restore filters from URL params when they change
+  // Sync state with URL params whenever they change
   useEffect(() => {
     const filtersFromParams = getInitialFiltersFromParams(searchParams);
     setAppliedFilters(filtersFromParams);
     setPendingFilters(filtersFromParams);
   }, [
-    searchParams.categoryId,
-    searchParams.brandId,
+    // Watch all search params that affect filters
+    JSON.stringify(searchParams.categoryId),
+    JSON.stringify(searchParams.brandId),
     searchParams.priceMin,
     searchParams.priceMax,
+    // searchParams,
   ]);
 
-  const togglePendingCategory = (categoryId: string) => {
-    setPendingFilters((prev) => {
-      const isCurrentlySelected = prev.categories.includes(categoryId);
-      let newCategories = [...prev.categories];
+  const togglePendingCategory = useCallback(
+    (categoryId: string) => {
+      setPendingFilters((prev) => {
+        const isCurrentlySelected = prev.categories.includes(categoryId);
+        let newCategories = [...prev.categories];
 
-      const parentCategory = categoriesData?.find(
-        (cat) => cat.id.toString() === categoryId
-      );
-
-      if (parentCategory?.children) {
-        const childrenIds = parentCategory.children.map((child) =>
-          child.id.toString()
+        // Find if this is a parent category
+        const parentCategory = categoriesData?.find(
+          (cat) => cat.id.toString() === categoryId
         );
 
-        if (isCurrentlySelected) {
-          newCategories = newCategories.filter(
-            (c) => c !== categoryId && !childrenIds.includes(c)
+        if (parentCategory?.children) {
+          // This is a parent category
+          const childrenIds = parentCategory.children.map((child) =>
+            child.id.toString()
           );
-        } else {
-          newCategories = [
-            ...newCategories.filter(
+
+          if (isCurrentlySelected) {
+            // Unselect parent and all children
+            newCategories = newCategories.filter(
               (c) => c !== categoryId && !childrenIds.includes(c)
-            ),
-            categoryId,
-            ...childrenIds,
-          ];
-        }
-      } else {
-        if (isCurrentlySelected) {
-          newCategories = newCategories.filter((c) => c !== categoryId);
+            );
+          } else {
+            // Select parent and all children
+            newCategories = [
+              ...newCategories.filter(
+                (c) => c !== categoryId && !childrenIds.includes(c)
+              ),
+              categoryId,
+              ...childrenIds,
+            ];
+          }
         } else {
-          newCategories.push(categoryId);
-        }
+          // This is a child category or standalone category
+          if (isCurrentlySelected) {
+            newCategories = newCategories.filter((c) => c !== categoryId);
+          } else {
+            newCategories.push(categoryId);
+          }
 
-        const parent = categoriesData?.find((parent) =>
-          parent.children?.some((child) => child.id.toString() === categoryId)
-        );
-
-        if (parent) {
-          const parentId = parent.id.toString();
-          const allChildrenIds =
-            parent.children?.map((c) => c.id.toString()) || [];
-          const allChildrenSelected = allChildrenIds.every((id) =>
-            newCategories.includes(id)
+          // Check if we need to update parent selection
+          const parent = categoriesData?.find((parent) =>
+            parent.children?.some((child) => child.id.toString() === categoryId)
           );
 
-          if (allChildrenSelected && !newCategories.includes(parentId)) {
-            newCategories.push(parentId);
-          } else if (!allChildrenSelected && newCategories.includes(parentId)) {
-            newCategories = newCategories.filter((c) => c !== parentId);
+          if (parent) {
+            const parentId = parent.id.toString();
+            const allChildrenIds =
+              parent.children?.map((c) => c.id.toString()) || [];
+            const allChildrenSelected = allChildrenIds.every((id) =>
+              newCategories.includes(id)
+            );
+
+            if (allChildrenSelected && !newCategories.includes(parentId)) {
+              // All children selected, add parent
+              newCategories.push(parentId);
+            } else if (!allChildrenSelected && newCategories.includes(parentId)) {
+              // Not all children selected, remove parent
+              newCategories = newCategories.filter((c) => c !== parentId);
+            }
           }
         }
-      }
 
-      return { ...prev, categories: newCategories };
-    });
-  };
+        return { ...prev, categories: newCategories };
+      });
+    },
+    [categoriesData]
+  );
 
-  const togglePendingBrand = (brandId: string) => {
+  const togglePendingBrand = useCallback((brandId: string) => {
     setPendingFilters((prev) => ({
       ...prev,
       brands: prev.brands.includes(brandId)
         ? prev.brands.filter((b) => b !== brandId)
         : [...prev.brands, brandId],
     }));
-  };
+  }, []);
 
-  const applyFilters = () => {
+  const updatePendingPriceRange = useCallback((priceRange: [number, number]) => {
+    setPendingFilters((prev) => ({
+      ...prev,
+      priceRange,
+    }));
+  }, []);
+
+  const updatePendingRating = useCallback((rating: string) => {
+    setPendingFilters((prev) => ({
+      ...prev,
+      minRating: rating,
+    }));
+  }, []);
+
+  const applyFilters = useCallback(() => {
     setAppliedFilters({ ...pendingFilters });
     navigate({
       to: "/search",
       search: {
         ...searchParams,
         ...convertFiltersToUrlParams(pendingFilters),
-        page: 1,
+        page: 1, // Reset to first page when filters change
       },
     });
-  };
+  }, [pendingFilters, navigate, searchParams]);
 
-  const clearFilters = () => {
+  const clearFilters = useCallback(() => {
     setPendingFilters(DEFAULT_FILTER_STATE);
     setAppliedFilters(DEFAULT_FILTER_STATE);
     navigate({
@@ -148,71 +201,85 @@ export function useFilters({ categoriesData }: UseFiltersProps) {
       search: {
         page: 1,
         limit: searchParams.limit,
+        keyword: searchParams.keyword, // Preserve search query
       },
     });
-  };
+  }, [navigate, searchParams.limit, searchParams.keyword]);
 
-  const removeAppliedFilter = (type: keyof FilterState, value: string) => {
-    const newFilters = { ...appliedFilters };
+  const removeAppliedFilter = useCallback(
+    (type: keyof FilterState, value: string) => {
+      const newFilters = { ...appliedFilters };
 
-    if (type === "categories") {
-      const parentCategory = categoriesData?.find(
-        (cat) => cat.id.toString() === value
-      );
-
-      if (parentCategory?.children) {
-        const childrenIds = parentCategory.children.map((child) =>
-          child.id.toString()
-        );
-        newFilters.categories = newFilters.categories.filter(
-          (c) => c !== value && !childrenIds.includes(c)
-        );
-      } else {
-        newFilters.categories = newFilters.categories.filter(
-          (v) => v !== value
+      if (type === "categories") {
+        // Find if this is a parent category
+        const parentCategory = categoriesData?.find(
+          (cat) => cat.id.toString() === value
         );
 
-        const parent = categoriesData?.find((parent) =>
-          parent.children?.some((child) => child.id.toString() === value)
-        );
-
-        if (parent) {
-          const parentId = parent.id.toString();
-          newFilters.categories = newFilters.categories.filter(
-            (c) => c !== parentId
+        if (parentCategory?.children) {
+          // Remove parent and all children
+          const childrenIds = parentCategory.children.map((child) =>
+            child.id.toString()
           );
+          newFilters.categories = newFilters.categories.filter(
+            (c) => c !== value && !childrenIds.includes(c)
+          );
+        } else {
+          // Remove the category
+          newFilters.categories = newFilters.categories.filter(
+            (v) => v !== value
+          );
+
+          // Check if we need to remove parent
+          const parent = categoriesData?.find((parent) =>
+            parent.children?.some((child) => child.id.toString() === value)
+          );
+
+          if (parent) {
+            const parentId = parent.id.toString();
+            newFilters.categories = newFilters.categories.filter(
+              (c) => c !== parentId
+            );
+          }
         }
+      } else if (type === "brands") {
+        newFilters.brands = newFilters.brands.filter((v) => v !== value);
+      } else if (type === "minRating") {
+        newFilters.minRating = DEFAULT_FILTER_STATE.minRating;
+      } else if (type === "priceRange") {
+        newFilters.priceRange = DEFAULT_FILTER_STATE.priceRange;
       }
-    } else if (type === "brands") {
-      newFilters.brands = newFilters.brands.filter((v) => v !== value);
-    } else if (type === "minRating") {
-      newFilters.minRating = "0";
-    }
 
-    setAppliedFilters(newFilters);
-    setPendingFilters(newFilters);
+      setAppliedFilters(newFilters);
+      setPendingFilters(newFilters);
 
-    // Update URL params
-    navigate({
-      to: "/search",
-      search: {
-        ...searchParams,
-        ...convertFiltersToUrlParams(newFilters),
-        page: 1,
-      },
-    });
-  };
+      // Update URL params
+      navigate({
+        to: "/search",
+        search: {
+          ...searchParams,
+          ...convertFiltersToUrlParams(newFilters),
+          page: 1,
+        },
+      });
+    },
+    [appliedFilters, categoriesData, navigate, searchParams]
+  );
 
-  const hasActiveFilters =
-    appliedFilters.categories.length > 0 ||
-    appliedFilters.brands.length > 0 ||
-    appliedFilters.minRating !== "0" ||
-    appliedFilters.priceRange[0] !== 0 ||
-    appliedFilters.priceRange[1] !== 50000000;
+  const hasActiveFilters = useMemo(
+    () =>
+      appliedFilters.categories.length > 0 ||
+      appliedFilters.brands.length > 0 ||
+      appliedFilters.minRating !== DEFAULT_FILTER_STATE.minRating ||
+      appliedFilters.priceRange[0] !== DEFAULT_FILTER_STATE.priceRange[0] ||
+      appliedFilters.priceRange[1] !== DEFAULT_FILTER_STATE.priceRange[1],
+    [appliedFilters]
+  );
 
   const activeFilterCount = useMemo(() => {
     let count = 0;
 
+    // Count unique categories (don't count children if parent is selected)
     const uniqueCategories = appliedFilters.categories.filter((catId) => {
       const isChild = categoriesData?.some((parent) =>
         parent.children?.some((child) => child.id.toString() === catId)
@@ -222,18 +289,35 @@ export function useFilters({ categoriesData }: UseFiltersProps) {
         const parent = categoriesData?.find((parent) =>
           parent.children?.some((child) => child.id.toString() === catId)
         );
+        // Don't count child if parent is also selected
         return !(
           parent && appliedFilters.categories.includes(parent.id.toString())
         );
       }
       return true;
     });
+
     count += uniqueCategories.length;
     count += appliedFilters.brands.length;
-    if (appliedFilters.minRating !== "0") count += 1;
+
+    if (appliedFilters.minRating !== DEFAULT_FILTER_STATE.minRating) {
+      count += 1;
+    }
+
+    if (
+      appliedFilters.priceRange[0] !== DEFAULT_FILTER_STATE.priceRange[0] ||
+      appliedFilters.priceRange[1] !== DEFAULT_FILTER_STATE.priceRange[1]
+    ) {
+      count += 1;
+    }
 
     return count;
   }, [appliedFilters, categoriesData]);
+
+  const hasPendingChanges = useMemo(
+    () => JSON.stringify(pendingFilters) !== JSON.stringify(appliedFilters),
+    [pendingFilters, appliedFilters]
+  );
 
   return {
     pendingFilters,
@@ -241,10 +325,13 @@ export function useFilters({ categoriesData }: UseFiltersProps) {
     setPendingFilters,
     togglePendingCategory,
     togglePendingBrand,
+    updatePendingPriceRange,
+    updatePendingRating,
     applyFilters,
     clearFilters,
     removeAppliedFilter,
     hasActiveFilters,
     activeFilterCount,
+    hasPendingChanges,
   };
 }

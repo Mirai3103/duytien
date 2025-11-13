@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { SORT_OPTIONS } from "./types";
+import { SORT_OPTIONS, type FilterState } from "./types";
 
 interface SearchBarProps {
   sortBy: string;
@@ -28,6 +28,8 @@ interface SearchBarProps {
   onMobileFiltersChange: (show: boolean) => void;
   onClearFilters: () => void;
   filterContent: React.ReactNode;
+  applyFilters: () => void;
+  setPendingFilters: React.Dispatch<React.SetStateAction<FilterState>>;
 }
 
 export function SearchBar({
@@ -39,8 +41,21 @@ export function SearchBar({
   onMobileFiltersChange,
   onClearFilters,
   filterContent,
+  applyFilters,
+  setPendingFilters,
 }: SearchBarProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setPendingFilters((prev) => ({
+        ...prev,
+        keyword: searchQuery,
+      }));
+      applyFilters();
+    
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   return (
     <div className="flex flex-col md:flex-row gap-4 mb-6">

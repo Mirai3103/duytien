@@ -2,6 +2,7 @@ import {
   createFileRoute,
   Link,
   Outlet,
+  redirect,
   useLocation,
 } from "@tanstack/react-router";
 import {
@@ -20,9 +21,16 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { getSession } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/admin/_admin")({
   component: RouteComponent,
+  beforeLoad: async ({location}) => {
+    const session = await getSession();
+    if (!session?.data?.user?.id) {
+      throw redirect  ({ to: "/auth", search: { redirect: location.href } });
+    }
+  },
 });
 
 const navigation = [

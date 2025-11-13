@@ -5,6 +5,7 @@ export interface FilterState {
   brands: string[];
   priceRange: [number, number];
   minRating: string;
+  keyword: string;
 }
 
 export interface SortOption {
@@ -27,6 +28,7 @@ export const DEFAULT_FILTER_STATE: FilterState = {
   brands: [],
   priceRange: [0, 50000000],
   minRating: "0",
+  keyword: "",
 };
 
 export const MAX_PRICE = 50000000;

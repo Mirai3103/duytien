@@ -1,6 +1,6 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { Chrome, Eye, EyeOff, Lock, Mail, User } from "lucide-react";
-import { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import Navbar from "@/components/Navbar";
@@ -17,153 +17,164 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { signIn, useSession } from "@/lib/auth-client";
 import { toast } from "sonner";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 
 export const Route = createFileRoute("/auth")({
   component: RouteComponent,
 });
 
-interface LoginForm {
-  email: string;
-  password: string;
-  rememberMe: boolean;
-}
+// Zod Schemas
+const loginSchema = z.object({
+  email: z
+    .string()
+    .min(1, "Email là bắt buộc")
+    .email("Email không hợp lệ")
+    .trim(),
+  password: z
+    .string()
+    .min(1, "Mật khẩu là bắt buộc")
+    .min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
+  rememberMe: z.boolean().default(false),
+});
 
-interface RegisterForm {
-  fullName: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-  agreeTerms: boolean;
-}
+const registerSchema = z
+  .object({
+    fullName: z
+      .string()
+      .min(1, "Họ và tên là bắt buộc")
+      .min(2, "Họ và tên phải có ít nhất 2 ký tự")
+      .max(100, "Họ và tên không được quá 100 ký tự")
+      .trim(),
+    email: z
+      .string()
+      .min(1, "Email là bắt buộc")
+      .email("Email không hợp lệ")
+      .trim(),
+    password: z
+      .string()
+      .min(1, "Mật khẩu là bắt buộc")
+      .min(6, "Mật khẩu phải có ít nhất 6 ký tự")
+      .max(100, "Mật khẩu không được quá 100 ký tự"),
+    confirmPassword: z
+      .string()
+      .min(1, "Vui lòng xác nhận mật khẩu"),
+    agreeTerms: z
+      .boolean()
+      .refine((val) => val === true, {
+        message: "Vui lòng đồng ý với điều khoản dịch vụ",
+      }),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Mật khẩu xác nhận không khớp",
+    path: ["confirmPassword"],
+  });
+
+type LoginFormValues = z.infer<typeof loginSchema>;
+type RegisterFormValues = z.infer<typeof registerSchema>;
 
 function RouteComponent() {
   const navigate = useNavigate();
+  const session = useSession();
+  const searchParams = useSearch({ from: "/auth" }) as { redirect?: string };
+  
   const [activeTab, setActiveTab] = useState<"login" | "register">("login");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [loginForm, setLoginForm] = useState<LoginForm>({
-    email: "",
-    password: "",
-    rememberMe: false,
+  // Login Form
+  const loginForm = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema) as any,
+    defaultValues: {
+      email: "",
+      password: "",
+      rememberMe: false,
+    },
   });
 
-  const [registerForm, setRegisterForm] = useState<RegisterForm>({
-    fullName: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    agreeTerms: false,
+  // Register Form
+  const registerForm = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      fullName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      agreeTerms: false,
+    },
   });
 
-  const [errors, setErrors] = useState<{
-    login?: string;
-    register?: string;
-  }>({});
-
-  const updateLoginForm = (field: keyof LoginForm, value: string | boolean) => {
-    setLoginForm((prev) => ({ ...prev, [field]: value }));
-    setErrors((prev) => ({ ...prev, login: undefined }));
-  };
-
-  const updateRegisterForm = (
-    field: keyof RegisterForm,
-    value: string | boolean
-  ) => {
-    setRegisterForm((prev) => ({ ...prev, [field]: value }));
-    setErrors((prev) => ({ ...prev, register: undefined }));
-  };
-
-  const validateEmail = (email: string) => {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
-  };
-
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // Validation
-    if (!loginForm.email || !loginForm.password) {
-      setErrors({ login: "Vui lòng điền đầy đủ thông tin" });
-      return;
+  // Redirect if already logged in
+  useEffect(() => {
+    if (session.data?.user?.id) {
+      navigate({ to: searchParams.redirect ?? "/" });
     }
+  }, [session.data?.user?.id, navigate, searchParams.redirect]);
 
-    if (!validateEmail(loginForm.email)) {
-      setErrors({ login: "Email không hợp lệ" });
-      return;
-    }
-
-    // Demo login
-    signIn.email({
-      email: loginForm.email,
-      password: loginForm.password,
-      callbackURL: window.location.origin,
-    }).then((data) => {
-      console.log(data);
+  const handleLogin = async (data: LoginFormValues) => {
+    setIsSubmitting(true);
+    try {
+      await signIn.email({
+        email: data.email,
+        password: data.password,
+        callbackURL: window.location.origin,
+      });
+      
       toast.success("Đăng nhập thành công");
-      navigate({ to: "/" });
-    }).catch((error) => {
+      navigate({ to: searchParams.redirect ?? "/" });
+    } catch (error) {
       console.error(error);
-      setErrors({ login: "Email hoặc mật khẩu không chính xác" });
-    });
+      loginForm.setError("root", {
+        message: "Email hoặc mật khẩu không chính xác",
+      });
+      toast.error("Đăng nhập thất bại");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleRegister = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // Validation
-    if (
-      !registerForm.fullName ||
-      !registerForm.email ||
-      !registerForm.password ||
-      !registerForm.confirmPassword
-    ) {
-      setErrors({ register: "Vui lòng điền đầy đủ thông tin" });
-      return;
+  const handleRegister = async (data: RegisterFormValues) => {
+    setIsSubmitting(true);
+    try {
+      // Demo register - replace with actual API call
+      console.log("Register:", data);
+      toast.success("Đăng ký thành công!");
+      setActiveTab("login");
+      loginForm.setValue("email", data.email);
+    } catch (error) {
+      console.error(error);
+      registerForm.setError("root", {
+        message: "Đã có lỗi xảy ra. Vui lòng thử lại.",
+      });
+      toast.error("Đăng ký thất bại");
+    } finally {
+      setIsSubmitting(false);
     }
-
-    if (!validateEmail(registerForm.email)) {
-      setErrors({ register: "Email không hợp lệ" });
-      return;
-    }
-
-    if (registerForm.password.length < 6) {
-      setErrors({ register: "Mật khẩu phải có ít nhất 6 ký tự" });
-      return;
-    }
-
-    if (registerForm.password !== registerForm.confirmPassword) {
-      setErrors({ register: "Mật khẩu xác nhận không khớp" });
-      return;
-    }
-
-    if (!registerForm.agreeTerms) {
-      setErrors({ register: "Vui lòng đồng ý với điều khoản dịch vụ" });
-      return;
-    }
-
-    // Demo register
-    console.log("Register:", registerForm);
-    alert("Đăng ký thành công! (Demo)");
-    setActiveTab("login");
   };
-  const session = useSession();
-  console.log(session);
 
   const handleGoogleLogin = async () => {
-    // Demo Google login
-    console.log("Google login initiated");
-    const data = await signIn.social({
-      provider: "google",
-      callbackURL: window.location.origin,
-    });
-    console.log(data);
-    alert(
-      "Đăng nhập bằng Google (Demo)\nTrong production, sẽ redirect đến Google OAuth"
-    );
-    // In production: window.location.href = 'YOUR_GOOGLE_OAUTH_URL'
+    try {
+      await signIn.social({
+        provider: "google",
+        callbackURL: window.location.origin,
+      });
+    } catch (error) {
+      console.error(error);
+      toast.error("Đăng nhập bằng Google thất bại");
+    }
   };
 
   return (
@@ -194,7 +205,7 @@ function RouteComponent() {
 
                 {/* Login Tab */}
                 <TabsContent value="login">
-                  <form onSubmit={handleLogin} className="space-y-4">
+                  <div className="space-y-4">
                     {/* Google Login Button */}
                     <Button
                       type="button"
@@ -217,94 +228,119 @@ function RouteComponent() {
                       </div>
                     </div>
 
-                    {/* Email Field */}
-                    <div className="space-y-2">
-                      <Label htmlFor="login-email">Email</Label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          type="email"
-                          placeholder="example@email.com"
-                          className="pl-10"
-                          tabIndex={1}
-                          value={loginForm.email}
-                          onChange={(e) =>
-                            updateLoginForm("email", e.target.value)
-                          }
-                        />
-                      </div>
-                    </div>
-
-                    {/* Password Field */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="login-password">Mật khẩu</Label>
-                        <Link
-                          to="/forgot-password"
-                          className="text-sm text-primary hover:underline"
-                        >
-                          Quên mật khẩu?
-                        </Link>
-                      </div>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          type={showPassword ? "text" : "password"}
-                          placeholder="••••••••"
-                          className="pl-10 pr-10"
-                          tabIndex={2}
-                          value={loginForm.password}
-                          onChange={(e) =>
-                            updateLoginForm("password", e.target.value)
-                          }
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                        >
-                          {showPassword ? (
-                            <EyeOff className="h-4 w-4" />
-                          ) : (
-                            <Eye className="h-4 w-4" />
-                          )}
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Remember Me */}
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        checked={loginForm.rememberMe}
-                        onCheckedChange={(checked) =>
-                          updateLoginForm("rememberMe", checked as boolean)
-                        }
-                      />
-                      <Label
-                        htmlFor="remember"
-                        className="text-sm cursor-pointer select-none"
+                    <Form {...loginForm}>
+                      <form
+                        onSubmit={loginForm.handleSubmit(handleLogin)}
+                        className="space-y-4"
                       >
-                        Ghi nhớ đăng nhập
-                      </Label>
-                    </div>
+                        {/* Email Field */}
+                        <FormField
+                          control={loginForm.control}
+                          name="email"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Email</FormLabel>
+                              <FormControl>
+                                <div className="relative">
+                                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                  <Input
+                                    type="email"
+                                    placeholder="example@email.com"
+                                    className="pl-10"
+                                    {...field}
+                                  />
+                                </div>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
-                    {/* Error Message */}
-                    {errors.login && (
-                      <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">
-                        {errors.login}
-                      </div>
-                    )}
+                        {/* Password Field */}
+                        <FormField
+                          control={loginForm.control}
+                          name="password"
+                          render={({ field }) => (
+                            <FormItem>
+                              <div className="flex items-center justify-between">
+                                <FormLabel>Mật khẩu</FormLabel>
+                                <Link
+                                  to="/forgot-password"
+                                  className="text-sm text-primary hover:underline"
+                                >
+                                  Quên mật khẩu?
+                                </Link>
+                              </div>
+                              <FormControl>
+                                <div className="relative">
+                                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                  <Input
+                                    type={showPassword ? "text" : "password"}
+                                    placeholder="••••••••"
+                                    className="pl-10 pr-10"
+                                    {...field}
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                  >
+                                    {showPassword ? (
+                                      <EyeOff className="h-4 w-4" />
+                                    ) : (
+                                      <Eye className="h-4 w-4" />
+                                    )}
+                                  </button>
+                                </div>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
-                    {/* Submit Button */}
-                    <Button type="submit" className="w-full" size="lg">
-                      Đăng nhập
-                    </Button>
-                  </form>
+                        {/* Remember Me */}
+                        <FormField
+                          control={loginForm.control}
+                          name="rememberMe"
+                          render={({ field }) => (
+                            <FormItem className="flex items-center space-x-2 space-y-0">
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </FormControl>
+                              <FormLabel className="text-sm cursor-pointer select-none font-normal">
+                                Ghi nhớ đăng nhập
+                              </FormLabel>
+                            </FormItem>
+                          )}
+                        />
+
+                        {/* Root Error Message */}
+                        {loginForm.formState.errors.root && (
+                          <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">
+                            {loginForm.formState.errors.root.message}
+                          </div>
+                        )}
+
+                        {/* Submit Button */}
+                        <Button
+                          type="submit"
+                          className="w-full"
+                          size="lg"
+                          disabled={isSubmitting}
+                        >
+                          {isSubmitting ? "Đang xử lý..." : "Đăng nhập"}
+                        </Button>
+                      </form>
+                    </Form>
+                  </div>
                 </TabsContent>
 
                 {/* Register Tab */}
                 <TabsContent value="register">
-                  <form onSubmit={handleRegister} className="space-y-4">
+                  <div className="space-y-4">
                     {/* Google Register Button */}
                     <Button
                       type="button"
@@ -327,147 +363,182 @@ function RouteComponent() {
                       </div>
                     </div>
 
-                    {/* Full Name Field */}
-                    <div className="space-y-2">
-                      <Label htmlFor="register-name">Họ và tên</Label>
-                      <div className="relative">
-                        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          type="text"
-                          placeholder="Nguyễn Văn A"
-                          className="pl-10"
-                          value={registerForm.fullName}
-                          onChange={(e) =>
-                            updateRegisterForm("fullName", e.target.value)
-                          }
-                        />
-                      </div>
-                    </div>
-
-                    {/* Email Field */}
-                    <div className="space-y-2">
-                      <Label htmlFor="register-email">Email</Label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          type="email"
-                          placeholder="example@email.com"
-                          className="pl-10"
-                          value={registerForm.email}
-                          onChange={(e) =>
-                            updateRegisterForm("email", e.target.value)
-                          }
-                        />
-                      </div>
-                    </div>
-
-                    {/* Password Field */}
-                    <div className="space-y-2">
-                      <Label htmlFor="register-password">Mật khẩu</Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          type={showPassword ? "text" : "password"}
-                          placeholder="••••••••"
-                          className="pl-10 pr-10"
-                          value={registerForm.password}
-                          onChange={(e) =>
-                            updateRegisterForm("password", e.target.value)
-                          }
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                        >
-                          {showPassword ? (
-                            <EyeOff className="h-4 w-4" />
-                          ) : (
-                            <Eye className="h-4 w-4" />
-                          )}
-                        </button>
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        Tối thiểu 6 ký tự
-                      </p>
-                    </div>
-
-                    {/* Confirm Password Field */}
-                    <div className="space-y-2">
-                      <Label htmlFor="register-confirm-password">
-                        Xác nhận mật khẩu
-                      </Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          type={showConfirmPassword ? "text" : "password"}
-                          placeholder="••••••••"
-                          className="pl-10 pr-10"
-                          value={registerForm.confirmPassword}
-                          onChange={(e) =>
-                            updateRegisterForm(
-                              "confirmPassword",
-                              e.target.value
-                            )
-                          }
-                        />
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setShowConfirmPassword(!showConfirmPassword)
-                          }
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                        >
-                          {showConfirmPassword ? (
-                            <EyeOff className="h-4 w-4" />
-                          ) : (
-                            <Eye className="h-4 w-4" />
-                          )}
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Terms Checkbox */}
-                    <div className="flex items-start space-x-2">
-                      <Checkbox
-                        checked={registerForm.agreeTerms}
-                        onCheckedChange={(checked) =>
-                          updateRegisterForm("agreeTerms", checked as boolean)
-                        }
-                      />
-                      <Label
-                        htmlFor="terms"
-                        className="text-sm cursor-pointer select-none"
+                    <Form {...registerForm}>
+                      <form
+                        onSubmit={registerForm.handleSubmit(handleRegister)}
+                        className="space-y-4"
                       >
-                        Tôi đồng ý với{" "}
-                        <Link
-                          to="/terms"
-                          className="text-primary hover:underline"
-                        >
-                          Điều khoản dịch vụ
-                        </Link>{" "}
-                        và{" "}
-                        <Link
-                          to="/privacy"
-                          className="text-primary hover:underline"
-                        >
-                          Chính sách bảo mật
-                        </Link>
-                      </Label>
-                    </div>
+                        {/* Full Name Field */}
+                        <FormField
+                          control={registerForm.control}
+                          name="fullName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Họ và tên</FormLabel>
+                              <FormControl>
+                                <div className="relative">
+                                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                  <Input
+                                    type="text"
+                                    placeholder="Nguyễn Văn A"
+                                    className="pl-10"
+                                    {...field}
+                                  />
+                                </div>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
-                    {/* Error Message */}
-                    {errors.register && (
-                      <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">
-                        {errors.register}
-                      </div>
-                    )}
+                        {/* Email Field */}
+                        <FormField
+                          control={registerForm.control}
+                          name="email"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Email</FormLabel>
+                              <FormControl>
+                                <div className="relative">
+                                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                  <Input
+                                    type="email"
+                                    placeholder="example@email.com"
+                                    className="pl-10"
+                                    {...field}
+                                  />
+                                </div>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
-                    {/* Submit Button */}
-                    <Button type="submit" className="w-full" size="lg">
-                      Đăng ký
-                    </Button>
-                  </form>
+                        {/* Password Field */}
+                        <FormField
+                          control={registerForm.control}
+                          name="password"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Mật khẩu</FormLabel>
+                              <FormControl>
+                                <div className="relative">
+                                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                  <Input
+                                    type={showPassword ? "text" : "password"}
+                                    placeholder="••••••••"
+                                    className="pl-10 pr-10"
+                                    {...field}
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                  >
+                                    {showPassword ? (
+                                      <EyeOff className="h-4 w-4" />
+                                    ) : (
+                                      <Eye className="h-4 w-4" />
+                                    )}
+                                  </button>
+                                </div>
+                              </FormControl>
+                              <FormDescription>Tối thiểu 6 ký tự</FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        {/* Confirm Password Field */}
+                        <FormField
+                          control={registerForm.control}
+                          name="confirmPassword"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Xác nhận mật khẩu</FormLabel>
+                              <FormControl>
+                                <div className="relative">
+                                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                  <Input
+                                    type={showConfirmPassword ? "text" : "password"}
+                                    placeholder="••••••••"
+                                    className="pl-10 pr-10"
+                                    {...field}
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setShowConfirmPassword(!showConfirmPassword)
+                                    }
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                  >
+                                    {showConfirmPassword ? (
+                                      <EyeOff className="h-4 w-4" />
+                                    ) : (
+                                      <Eye className="h-4 w-4" />
+                                    )}
+                                  </button>
+                                </div>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        {/* Terms Checkbox */}
+                        <FormField
+                          control={registerForm.control}
+                          name="agreeTerms"
+                          render={({ field }) => (
+                            <FormItem className="flex items-start space-x-2 space-y-0">
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel className="text-sm cursor-pointer select-none font-normal">
+                                  Tôi đồng ý với{" "}
+                                  <Link
+                                    to="/terms"
+                                    className="text-primary hover:underline"
+                                  >
+                                    Điều khoản dịch vụ
+                                  </Link>{" "}
+                                  và{" "}
+                                  <Link
+                                    to="/privacy"
+                                    className="text-primary hover:underline"
+                                  >
+                                    Chính sách bảo mật
+                                  </Link>
+                                </FormLabel>
+                                <FormMessage />
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+
+                        {/* Root Error Message */}
+                        {registerForm.formState.errors.root && (
+                          <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">
+                            {registerForm.formState.errors.root.message}
+                          </div>
+                        )}
+
+                        {/* Submit Button */}
+                        <Button
+                          type="submit"
+                          className="w-full"
+                          size="lg"
+                          disabled={isSubmitting}
+                        >
+                          {isSubmitting ? "Đang xử lý..." : "Đăng ký"}
+                        </Button>
+                      </form>
+                    </Form>
+                  </div>
                 </TabsContent>
               </Tabs>
 

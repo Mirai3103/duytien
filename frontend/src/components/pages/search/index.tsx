@@ -103,6 +103,8 @@ const SearchProducts = () => {
             onMobileFiltersChange={setShowMobileFilters}
             onClearFilters={handleClearFilters}
             filterContent={filterContent}
+            applyFilters={applyFilters}
+            setPendingFilters={setPendingFilters}
           />
 
           <ActiveFilters
