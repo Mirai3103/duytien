@@ -25,10 +25,14 @@ import { getSession } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/admin/_admin")({
   component: RouteComponent,
-  beforeLoad: async ({location}) => {
+  beforeLoad: async ({ location }) => {
     const session = await getSession();
     if (!session?.data?.user?.id) {
-      throw redirect  ({ to: "/auth", search: { redirect: location.href } });
+     
+      throw redirect({ to: "/auth", search: { redirect: location.href } });
+    }
+    if (session?.data?.user?.role !== "admin") {
+      throw redirect({ to: "/" });
     }
   },
 });
