@@ -254,7 +254,7 @@ function BrandFilter({
     if (!brandSearch) return brandsData ?? [];
     return (brandsData ?? []).filter((brand) =>
       brand.name.toLowerCase().includes(brandSearch.toLowerCase())
-    );
+    ).sort((a, b) => a.name.localeCompare(b.name));
   }, [brandsData, brandSearch]);
 
   const displayedBrands = showAllBrands

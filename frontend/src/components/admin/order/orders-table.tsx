@@ -6,6 +6,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ArrowUpDown,
+  CreditCard,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,22 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import {
   Table,
   TableBody,
@@ -72,17 +89,49 @@ interface OrdersTableProps {
 }
 
 const statusConfig = {
-  pending: { label: "Chờ xác nhận", variant: "outline" as const },
-  shipping: { label: "Đang giao", variant: "default" as const },
-  delivered: { label: "Hoàn thành", variant: "default" as const },
-  cancelled: { label: "Đã hủy", variant: "destructive" as const },
-  confirmed: { label: "Đã xác nhận", variant: "default" as const },
+  pending: { 
+    label: "Chờ xác nhận", 
+    variant: "outline" as const,
+    color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+  },
+  shipping: { 
+    label: "Đang giao", 
+    variant: "default" as const,
+    color: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
+  },
+  delivered: { 
+    label: "Hoàn thành", 
+    variant: "default" as const,
+    color: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+  },
+  cancelled: { 
+    label: "Đã hủy", 
+    variant: "destructive" as const,
+    color: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+  },
+  confirmed: { 
+    label: "Đã xác nhận", 
+    variant: "default" as const,
+    color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+  },
 };
 
 const paymentStatusConfig = {
-  pending: { label: "Chờ thanh toán", variant: "outline" as const },
-  success: { label: "Đã thanh toán", variant: "default" as const },
-  failed: { label: "Thất bại", variant: "destructive" as const },
+  pending: { 
+    label: "Chờ thanh toán", 
+    variant: "outline" as const,
+    color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+  },
+  success: { 
+    label: "Đã thanh toán", 
+    variant: "default" as const,
+    color: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+  },
+  failed: { 
+    label: "Thất bại", 
+    variant: "destructive" as const,
+    color: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+  },
 };
 
 const paymentMethodConfig = {
@@ -103,6 +152,9 @@ export function OrdersTable({
   const limit = 20;
   const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [selectedPaymentOrderId, setSelectedPaymentOrderId] = useState<number | null>(null);
+  const [newPaymentStatus, setNewPaymentStatus] = useState<"pending" | "success" | "failed">("pending");
 
   // Reset page to 1 when filters change
   useEffect(() => {
@@ -166,6 +218,46 @@ export function OrdersTable({
     },
     [updateStatusMutation]
   );
+
+  const updatePaymentStatusMutation = useMutation(
+    trpc.payment.setOrderPaymentStatus.mutationOptions({
+      onSuccess: () => {
+        toast.success("Cập nhật trạng thái thanh toán thành công");
+        setIsPaymentModalOpen(false);
+        queryClient.invalidateQueries(
+          trpc.orders.searchOrders.queryOptions({
+            page,
+            limit,
+            search,
+            status,
+            paymentMethod,
+            paymentStatus,
+            dateRange,
+            orderBy: sorting[0]?.id as "createdAt" | "totalAmount" | undefined,
+            orderDirection: sorting[0]?.desc ? "desc" : "asc",
+          })
+        );
+      },
+      onError: (error) => {
+        toast.error(error.message || "Có lỗi xảy ra khi cập nhật trạng thái thanh toán");
+      },
+    })
+  );
+
+  const handleOpenPaymentModal = useCallback((orderId: number, currentStatus: "pending" | "success" | "failed") => {
+    setSelectedPaymentOrderId(orderId);
+    setNewPaymentStatus(currentStatus);
+    setIsPaymentModalOpen(true);
+  }, []);
+
+  const handleUpdatePaymentStatus = useCallback(() => {
+    if (selectedPaymentOrderId) {
+      updatePaymentStatusMutation.mutate({
+        orderId: selectedPaymentOrderId,
+        status: newPaymentStatus,
+      });
+    }
+  }, [selectedPaymentOrderId, newPaymentStatus, updatePaymentStatusMutation]);
 
   const columns = React.useMemo<ColumnDef<any>[]>(
     () => [
@@ -233,10 +325,10 @@ export function OrdersTable({
         header: "Trạng thái",
         cell: ({ row }) => (
           <Badge
-            variant={
+            className={
               statusConfig[
                 row.original.orders.status as keyof typeof statusConfig
-              ].variant
+              ].color
             }
           >
             {
@@ -253,13 +345,13 @@ export function OrdersTable({
         cell: ({ row }) => (
           <div className="space-y-1">
             <Badge
-              variant={
+              className={
                 row.original.payments?.status
                   ? paymentStatusConfig[
                       row.original.payments
                         ?.status as keyof typeof paymentStatusConfig
-                    ].variant
-                  : "outline"
+                    ].color
+                  : "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
               }
             >
               {row.original.payments?.status
@@ -319,6 +411,16 @@ export function OrdersTable({
                 <Eye className="w-4 h-4 mr-2" />
                 Xem chi tiết
               </DropdownMenuItem>
+              <DropdownMenuItem
+                className="text-foreground hover:bg-secondary"
+                onClick={() => handleOpenPaymentModal(
+                  row.original.orders.id,
+                  row.original.payments?.status || "pending"
+                )}
+              >
+                <CreditCard className="w-4 h-4 mr-2" />
+                Thanh toán
+              </DropdownMenuItem>
               {row.original.orders.status === "pending" && (
                 <DropdownMenuItem
                   className="text-foreground hover:bg-secondary"
@@ -358,7 +460,7 @@ export function OrdersTable({
         ),
       },
     ],
-    [handleUpdateStatus]
+    [handleUpdateStatus, handleViewDetail, handleOpenPaymentModal]
   );
 
   const table = useReactTable({
@@ -490,6 +592,53 @@ export function OrdersTable({
         open={isDetailModalOpen}
         onOpenChange={setIsDetailModalOpen}
       />
+
+      {/* Payment Status Modal */}
+      <Dialog open={isPaymentModalOpen} onOpenChange={setIsPaymentModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Cập nhật trạng thái thanh toán</DialogTitle>
+            <DialogDescription>
+              Thay đổi trạng thái thanh toán cho đơn hàng #{selectedPaymentOrderId}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="payment-status">Trạng thái thanh toán</Label>
+              <Select
+                value={newPaymentStatus}
+                onValueChange={(value: "pending" | "success" | "failed") =>
+                  setNewPaymentStatus(value)
+                }
+              >
+                <SelectTrigger id="payment-status">
+                  <SelectValue placeholder="Chọn trạng thái" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending">Chờ thanh toán</SelectItem>
+                  <SelectItem value="success">Đã thanh toán</SelectItem>
+                  <SelectItem value="failed">Thất bại</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsPaymentModalOpen(false)}
+              disabled={updatePaymentStatusMutation.isPending}
+            >
+              Hủy
+            </Button>
+            <Button
+              onClick={handleUpdatePaymentStatus}
+              disabled={updatePaymentStatusMutation.isPending}
+            >
+              {updatePaymentStatusMutation.isPending ? "Đang cập nhật..." : "Cập nhật"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

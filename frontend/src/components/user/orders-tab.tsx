@@ -25,8 +25,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useTRPC } from "@/lib/trpc";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ReviewModal } from "@/components/review/ReviewModal";
+import { toast } from "sonner";
 
 type OrderStatus =
   | "pending"
@@ -115,6 +116,36 @@ export function OrdersTab() {
   const totalPages = (data as any)?.totalPages || 1;
   const total = data?.total || 0;
 
+  // Payment mutation
+  const paymentMutation = useMutation(trpc.payment.createPayment.mutationOptions({
+    onSuccess: (data) => {
+      if ((data as any).success && (data as any).redirectUrl) {
+        window.location.href = (data as any).redirectUrl;
+      } else {
+        toast.error(data.message || "Không thể tạo thanh toán");
+      }
+    },
+    onError: (error) => {
+      toast.error("Có lỗi xảy ra khi tạo thanh toán");
+      console.error(error);
+    },
+  }));
+  const queryClient = useQueryClient();
+  const cancelOrderMutation = useMutation(trpc.orders.cancelOrder.mutationOptions({
+    onSuccess: (data) => {
+      if (data.success) {
+        toast.success(data.message || "Đơn hàng đã được hủy");
+        queryClient.invalidateQueries(trpc.orders.getOrders.queryOptions({ page, limit }));
+      } else {
+        toast.error(data.message || "Không thể hủy đơn hàng");
+      }
+    },
+    onError: (error) => {
+      toast.error("Có lỗi xảy ra khi hủy đơn hàng");
+      console.error(error);
+    },
+  }));
+
   // Filter orders by status (client-side for now)
   const filteredOrders =
     filterStatus === "all"
@@ -134,6 +165,10 @@ export function OrdersTab() {
   const handleOpenReviewDialog = (item: any) => {
     setSelectedReviewItem(item);
     setReviewDialogOpen(true);
+  };
+
+  const handlePayment = (orderId: number) => {
+    paymentMutation.mutate({ orderId: orderId.toString() });
   };
 
   return (
@@ -223,7 +258,8 @@ export function OrdersTab() {
             </Card>
           ) : (
             filteredOrders.map((order: any) => {
-              console.log(order);
+              console.log(order.lastPayment?.status != "success" && 
+                order.lastPayment?.method != "cod");
               const config =
                 statusConfig[order.status as OrderStatus] ||
                 statusConfig.pending;
@@ -349,14 +385,35 @@ export function OrdersTab() {
                           <Eye className="h-4 w-4 mr-1" />
                           Chi tiết
                         </Button>
+                        {order.lastPayment?.status != "success" && 
+                         order.lastPayment?.method != "cod" && (
+                          <Button 
+                            variant="default" 
+                            size="sm"
+                            onClick={() => handlePayment(order.id)}
+                            disabled={paymentMutation.isPending}
+                          >
+                            {paymentMutation.isPending ? (
+                              <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                            ) : (
+                              <CheckCircle2 className="h-4 w-4 mr-1" />
+                            )}
+                            Thanh toán
+                          </Button>
+                        )}
                         {order.status === "delivered" && (
                           <Button variant="outline" size="sm">
                             <RotateCcw className="h-4 w-4 mr-1" />
                             Mua lại
                           </Button>
                         )}
-                        {order.status === "pending" && (
-                          <Button variant="destructive" size="sm">
+                        {order.status === "pending" && (order.lastPayment?.status != "success" && order.lastPayment?.method != "cod") && (
+                          <Button variant="destructive" size="sm" onClick={() => cancelOrderMutation.mutate({ id: order.id })} disabled={cancelOrderMutation.isPending}>
+                            {cancelOrderMutation.isPending ? (
+                              <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                            ) : (
+                              <XCircle className="h-4 w-4 mr-1" />
+                            )}
                             Hủy đơn
                           </Button>
                         )}

@@ -403,6 +403,17 @@ export const ordersRoute = router({
         message: "Order status updated successfully",
       };
     }),
+    cancelOrder: protectedProcedure
+    .input(z.object({
+      id: z.number(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      await db.update(ordersTable).set({ status: "cancelled" }).where(eq(ordersTable.id, input.id));
+      return {
+        success: true,
+        message: "Order cancelled successfully",
+      };
+    }),
 });
 
 export type SearchOrdersOutput = inferProcedureOutput<

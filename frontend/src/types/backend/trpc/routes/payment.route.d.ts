@@ -52,4 +52,32 @@ export declare const paymentRoute: import("@trpc/server").TRPCBuiltRouter<{
         };
         meta: object;
     }>;
+    createPayment: import("@trpc/server").TRPCMutationProcedure<{
+        input: {
+            orderId: string;
+        };
+        output: {
+            success: boolean;
+            message: string;
+            payment: null;
+            redirectUrl?: undefined;
+        } | {
+            success: boolean;
+            message: string;
+            redirectUrl: string;
+            payment?: undefined;
+        };
+        meta: object;
+    }>;
+    setOrderPaymentStatus: import("@trpc/server").TRPCMutationProcedure<{
+        input: {
+            orderId: number;
+            status: "pending" | "success" | "failed";
+        };
+        output: {
+            success: boolean;
+            message: string;
+        };
+        meta: object;
+    }>;
 }>>;

@@ -357,5 +357,15 @@ export declare const ordersRoute: import("@trpc/server").TRPCBuiltRouter<{
         };
         meta: object;
     }>;
+    cancelOrder: import("@trpc/server").TRPCMutationProcedure<{
+        input: {
+            id: number;
+        };
+        output: {
+            success: boolean;
+            message: string;
+        };
+        meta: object;
+    }>;
 }>>;
 export type SearchOrdersOutput = inferProcedureOutput<typeof ordersRoute.searchOrders>;
