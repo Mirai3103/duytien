@@ -1,9 +1,8 @@
 import { useNavigate } from "@tanstack/react-router";
-import { Check } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { useProductVariants } from "./hooks/useProductVariants";
+import { Badge } from "@/components/ui/badge";
 import type { GetProductsWithVariantsResponse } from "@/types/backend/trpc/routes/products.route";
-import { getDiscountPercentage, getFinalPrice } from "@/lib/utils";
+import { getFinalPrice, getDiscountPercentage } from "@/lib/utils";
 
 interface ProductCardProps {
   product: GetProductsWithVariantsResponse[number];
@@ -11,37 +10,26 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
   const navigate = useNavigate();
-  const {
-    selectedVariant,
-    attrs,
-    handleAttributeChange,
-    isAttributeAvailable,
-  } = useProductVariants(product);
+
+  // Lấy variant đầu tiên làm đại diện cho SPU
+  const representativeVariant = product.variantsAggregate![0];
 
   if (product.variantsAggregate!.length === 0) {
     console.log(product);
   }
 
-  const originalPrice = parseInt(selectedVariant.price, 10);
-  const totalVariants = product.variantsAggregate!.length;
-  const discountPercentage = getDiscountPercentage(
-    originalPrice,
-    Number(product.discount)
-  );
+  const originalPrice = parseInt(representativeVariant.price, 10);
+  const discount = Number(product.discount);
+  const finalPrice = getFinalPrice(originalPrice, discount);
+  const discountPercentage = getDiscountPercentage(originalPrice, discount);
+  const hasDiscount = discount > 0;
 
   const handleCardClick = () => {
     navigate({
       to: "/product/$id",
-      params: { id: selectedVariant.id.toString() },
-      search: { isSpu: false },
+      params: { id: product.id.toString() },
+      search: { isSpu: true },
     });
-  };
-
-  const isColorAttribute = (attrName: string) => {
-    return (
-      attrName.toLowerCase().includes("màu") ||
-      attrName.toLowerCase().includes("color")
-    );
   };
 
   return (
@@ -50,22 +38,26 @@ export function ProductCard({ product }: ProductCardProps) {
       className="group hover:shadow-lg transition-all duration-300 hover:border-primary cursor-pointer overflow-hidden"
     >
       <CardContent className="p-3 relative">
-        <ProductImage src={selectedVariant.image!} alt={selectedVariant.name} />
-
-        <ProductInfo
-          name={selectedVariant.name}
-          price={getFinalPrice(originalPrice, Number(product.discount))}
+        <ProductImage 
+          src={representativeVariant.image!} 
+          alt={representativeVariant.name}
+          discountPercentage={hasDiscount ? discountPercentage.toString() : null}
         />
 
-        {totalVariants > 1 && (
-          <VariantSelector
-            attrs={attrs}
-            selectedVariant={selectedVariant}
-            onAttributeChange={handleAttributeChange}
-            isAttributeAvailable={isAttributeAvailable}
-            isColorAttribute={isColorAttribute}
-          />
+        {product.brand && (
+          <div className="mb-1">
+            <span className="text-xs text-muted-foreground font-medium">
+              {product.brand.name}
+            </span>
+          </div>
         )}
+
+        <ProductInfo
+          name={representativeVariant.name}
+          originalPrice={originalPrice}
+          finalPrice={finalPrice}
+          hasDiscount={hasDiscount}
+        />
       </CardContent>
     </Card>
   );
@@ -74,11 +66,20 @@ export function ProductCard({ product }: ProductCardProps) {
 interface ProductImageProps {
   src: string;
   alt: string;
+  discountPercentage: string | null;
 }
 
-function ProductImage({ src, alt }: ProductImageProps) {
+function ProductImage({ src, alt, discountPercentage }: ProductImageProps) {
   return (
     <div className="relative mb-3">
+      {discountPercentage && (
+        <Badge 
+          variant="destructive" 
+          className="absolute top-2 right-2 z-10 font-bold shadow-md"
+        >
+          -{discountPercentage}%
+        </Badge>
+      )}
       <img
         src={src}
         alt={alt}
@@ -90,154 +91,29 @@ function ProductImage({ src, alt }: ProductImageProps) {
 
 interface ProductInfoProps {
   name: string;
-  price: number;
+  originalPrice: number;
+  finalPrice: number;
+  hasDiscount: boolean;
 }
 
-function ProductInfo({ name, price }: ProductInfoProps) {
+function ProductInfo({ name, originalPrice, finalPrice, hasDiscount }: ProductInfoProps) {
   return (
     <>
       <h3 className="font-medium text-sm mb-2 line-clamp-2 min-h-[40px]">
         {name}
       </h3>
-      <div className="space-y-1 mb-3">
-        <div className="text-lg font-bold text-primary">
-          {price.toLocaleString("vi-VN")}đ
+      <div className="space-y-1">
+        <div className="flex  flex-col gap-2">
+
+            <div className="text-sm text-muted-foreground line-through min-h-[20px]">
+             { hasDiscount && <span className="line-through">{originalPrice.toLocaleString("vi-VN")}đ</span>}
+            </div>
+          <div className="text-lg font-bold text-primary">
+            {finalPrice.toLocaleString("vi-VN")}đ
+          </div>
+       
         </div>
       </div>
     </>
-  );
-}
-
-interface VariantSelectorProps {
-  attrs: Array<{
-    name: string;
-    values: Array<{
-      value: string;
-      displayValue: string;
-      code: string | null;
-    }>;
-  }>;
-  selectedVariant: any;
-  onAttributeChange: (attrName: string, attrValue: string) => void;
-  isAttributeAvailable: (attrName: string, attrValue: string) => boolean;
-  isColorAttribute: (attrName: string) => boolean;
-}
-
-function VariantSelector({
-  attrs,
-  selectedVariant,
-  onAttributeChange,
-  isAttributeAvailable,
-  isColorAttribute,
-}: VariantSelectorProps) {
-  return (
-    <div className="space-y-3 mb-3">
-      {attrs.map((attr) => (
-        <div key={attr.name}>
-          <div className="text-xs font-medium text-muted-foreground mb-1">
-            {attr.name}
-          </div>
-          <div className="flex flex-wrap gap-1">
-            {attr.values.map((value) => {
-              const isSelected = selectedVariant.variantValues.some(
-                (vv: any) =>
-                  vv.value.attribute.name === attr.name &&
-                  vv.value.value === value.value
-              );
-              const isAvailable = isAttributeAvailable(attr.name, value.value);
-
-              if (isColorAttribute(attr.name)) {
-                return (
-                  <ColorSwatch
-                    key={value.value}
-                    value={value}
-                    isSelected={isSelected}
-                    isAvailable={isAvailable}
-                    onClick={() => onAttributeChange(attr.name, value.value)}
-                  />
-                );
-              }
-
-              return (
-                <TextOption
-                  key={value.value}
-                  value={value}
-                  isSelected={isSelected}
-                  isAvailable={isAvailable}
-                  onClick={() => onAttributeChange(attr.name, value.value)}
-                />
-              );
-            })}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-interface VariantOptionProps {
-  value: {
-    value: string;
-    displayValue: string;
-    code: string | null;
-  };
-  isSelected: boolean;
-  isAvailable: boolean;
-  onClick: () => void;
-}
-
-function ColorSwatch({
-  value,
-  isSelected,
-  isAvailable,
-  onClick,
-}: VariantOptionProps) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={!isAvailable}
-      className={`
-        variant-swatch w-6 h-6 rounded-full border-2
-        ${
-          isSelected
-            ? "border-primary ring-2 ring-primary/20"
-            : "border-gray-300 hover:border-gray-400"
-        }
-        ${!isAvailable ? "opacity-30 cursor-not-allowed" : "cursor-pointer"}
-      `}
-      style={{ backgroundColor: value.code || "#e5e7eb" }}
-      title={value.displayValue}
-    >
-      {isSelected && (
-        <Check className="absolute inset-0 m-auto w-3 h-3 text-white drop-shadow-sm" />
-      )}
-    </button>
-  );
-}
-
-function TextOption({
-  value,
-  isSelected,
-  isAvailable,
-  onClick,
-}: VariantOptionProps) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={!isAvailable}
-      className={`
-        variant-option px-2 py-1 text-xs rounded-md border
-        ${
-          isSelected
-            ? "border-primary bg-primary/10 text-primary font-medium"
-            : "border-gray-300 hover:border-gray-400"
-        }
-        ${!isAvailable ? "opacity-30 cursor-not-allowed" : "cursor-pointer"}
-      `}
-    >
-      {value.displayValue}
-    </button>
   );
 }

@@ -234,8 +234,8 @@ function RouteComponent() {
               {/* Variant Selection */}
               <ProductVariantSelector
                 attrs={attrs}
-                currentVariant={variant}
-                allVariants={product.variants}
+                currentVariant={variant as any}
+                allVariants={product.variants as any}
               />
 
               {/* Key Features */}
