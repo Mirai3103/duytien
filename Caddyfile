@@ -1,0 +1,16 @@
+:80 {
+    root * /srv
+
+    # Proxy API → backend service trong docker-compose
+    handle_path /api/* {
+        reverse_proxy backend:3000
+    }
+
+    handle_path /trpc/* {
+        reverse_proxy backend:3000
+    }
+
+    # Serve SPA (React + Vite build)
+    try_files {path} /index.html
+    file_server
+}

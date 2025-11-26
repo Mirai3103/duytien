@@ -17,10 +17,10 @@ export function ProductBuyButtons({
   const isOutOfStock = stock <= 0;
 
   return (
-    <div className="flex gap-3">
+    <div className="flex flex-col sm:flex-row gap-2 md:gap-3">
       <RippleButton
         size="lg"
-        className="flex-1 text-lg h-14"
+        className="flex-1 text-base md:text-lg h-11 md:h-14"
         disabled={isOutOfStock}
         onClick={onBuyNow}
       >
@@ -29,11 +29,11 @@ export function ProductBuyButtons({
       <RippleButton
         size="lg"
         variant="outline"
-        className="flex-1 text-lg h-14"
+        className="flex-1 text-base md:text-lg h-11 md:h-14"
         onClick={onAddToCart}
         disabled={isAddingToCart || isOutOfStock}
       >
-        <ShoppingCart className="h-5 w-5 mr-2" />
+        <ShoppingCart className="h-4 w-4 md:h-5 md:w-5 mr-2" />
         {isAddingToCart ? "Đang thêm..." : "Thêm vào giỏ"}
       </RippleButton>
     </div>

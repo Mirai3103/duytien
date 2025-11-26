@@ -16,6 +16,7 @@
   "scripts": {
     "build:types": "tsc -p tsconfig.types.json && tsc -p tsconfig.schema.json ",
     "build": "bun build src/app.ts --outdir dist --target node",
+    "build:bun": "bun build src/app.ts --outdir dist --target bun",
     "dev": "bun  --hot run src/app.ts "
   },
   "peerDependencies": {

@@ -29,12 +29,12 @@ const news = [
 
 const NewsSection = () => {
 	return (
-		<section className="container mx-auto px-4 py-12">
-			<div className="flex items-center justify-between mb-8">
-				<h2 className="text-3xl font-bold">Tin mới nhất</h2>
-				<Button variant="outline">Xem tất cả tin</Button>
+		<section className="container mx-auto px-2 md:px-4 py-6 md:py-12">
+			<div className="flex items-center justify-between mb-4 md:mb-8">
+				<h2 className="text-2xl md:text-3xl font-bold">Tin mới nhất</h2>
+				<Button variant="outline" size="sm" className="text-xs md:text-sm h-8 md:h-10">Xem tất cả</Button>
 			</div>
-			<div className="grid md:grid-cols-3 gap-6">
+			<div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
 				{news.map((item) => (
 					<Card
 						key={item.id}
@@ -43,15 +43,15 @@ const NewsSection = () => {
 						<img
 							src={item.image}
 							alt={item.title}
-							className="w-full h-48 object-cover transition-transform hover:scale-105"
+							className="w-full h-40 md:h-48 object-cover transition-transform hover:scale-105"
 						/>
-						<div className="p-4 space-y-3">
-							<div className="flex items-center gap-2 text-sm text-muted-foreground">
-								<Calendar size={16} />
+						<div className="p-3 md:p-4 space-y-2 md:space-y-3">
+							<div className="flex items-center gap-2 text-xs md:text-sm text-muted-foreground">
+								<Calendar size={14} className="md:size-4" />
 								<span>{item.date}</span>
 							</div>
-							<h3 className="font-semibold line-clamp-2">{item.title}</h3>
-							<Button variant="link" className="p-0 h-auto">
+							<h3 className="font-semibold text-sm md:text-base line-clamp-2">{item.title}</h3>
+							<Button variant="link" className="p-0 h-auto text-xs md:text-sm">
 								Đọc thêm →
 							</Button>
 						</div>

@@ -15,9 +15,9 @@ const ProductGrid = () => {
   );
   const navigate = useNavigate({ from: "/" });
   return (
-    <section className="container mx-auto px-4 py-12">
-      <h2 className="text-3xl font-bold text-center mb-8">Sản phẩm nổi bật</h2>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+    <section className="container mx-auto px-2 md:px-4 py-6 md:py-12">
+      <h2 className="text-2xl md:text-3xl font-bold text-center mb-4 md:mb-8">Sản phẩm nổi bật</h2>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-6">
         {products?.map((product) => (
           <Card
             key={product.id}
@@ -33,19 +33,19 @@ const ProductGrid = () => {
             <img
               src={product.thumbnail ?? "/images/placeholder.png"}
               alt={product.name}
-              className="w-full h-56 object-contain mx-auto"
+              className="w-full h-32 sm:h-40 md:h-56 object-contain mx-auto"
             />
-            <div className="p-4 space-y-3">
-              <h3 className="font-semibold text-sm line-clamp-2 h-10">
+            <div className="p-2 md:p-4 space-y-1 md:space-y-3">
+              <h3 className="font-semibold text-xs md:text-sm line-clamp-2 h-8 md:h-10">
                 {product.name}
               </h3>
-              <p className="text-lg font-bold text-primary">
+              <p className="text-sm md:text-lg font-bold text-primary">
                 {Number(product.price).toLocaleString("vi-VN")}đ
               </p>
               <div className="flex gap-2">
                 <RippleButton
                   size="sm"
-                  className="flex-1"
+                  className="flex-1 text-xs md:text-sm h-7 md:h-9"
                   onClick={() => {
                     navigate({
                       to: "/product/$id",

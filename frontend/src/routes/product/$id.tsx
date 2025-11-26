@@ -191,7 +191,7 @@ function RouteComponent() {
       <Navbar />
 
       <main className="flex-1">
-        <div className="container mx-auto px-4 py-6">
+        <div className="container mx-auto px-2 md:px-4 py-3 md:py-6">
           {/* Breadcrumb */}
           <ProductBreadcrumb
             categoryName={product.category?.name}
@@ -199,7 +199,7 @@ function RouteComponent() {
             productName={product.name}
           />
 
-          <div className="grid lg:grid-cols-2 gap-8 mb-8">
+          <div className="grid lg:grid-cols-2 gap-4 md:gap-8 mb-4 md:mb-8">
             {/* Product Images */}
             <div className="space-y-4">
               <ProductImageGallery
@@ -217,7 +217,7 @@ function RouteComponent() {
             </div>
 
             {/* Product Info */}
-            <div className="space-y-6">
+            <div className="space-y-3 md:space-y-6">
               <ProductInfoHeader
                 variantName={variant.name}
                 reviewStats={reviewStats}

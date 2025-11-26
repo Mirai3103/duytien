@@ -1,0 +1,86 @@
+version: "3.9"
+
+networks:
+  appnet:
+
+services:
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+    depends_on:
+      - backend
+    networks:
+      - appnet
+    restart: always
+
+  backend:
+    build: ./backend
+    container_name: backend
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/appdb
+      S3_ENDPOINT: minio:9000
+      S3_BUCKET: app-bucket
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio123
+      STORAGE_TYPE: ${STORAGE_TYPE}
+      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID}
+      S3_SECRET_KEY: ${S3_SECRET_KEY}
+
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL}
+      FRONTEND_URL: ${FRONTEND_URL}
+
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+
+      MOMO_REDIRECT_URL: ${MOMO_REDIRECT_URL}
+      MOMO_IPN_URL: ${MOMO_IPN_URL}
+      VNPAY_RETURN_URL: ${VNPAY_RETURN_URL}
+
+      GOOGLE_GENERATIVE_AI_API_KEY: ${GOOGLE_GENERATIVE_AI_API_KEY}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+      - minio
+    networks:
+      - appnet
+    restart: always
+
+  postgres:
+    image: postgres:17
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: appdb
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - appnet
+    restart: always
+
+  # minio:
+  #   image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z
+  #   container_name: minio
+  #   command: server /data --console-address ":9001"
+  #   environment:
+  #     MINIO_ROOT_USER: minio
+  #     MINIO_ROOT_PASSWORD: minio123
+  #   ports:
+  #     - "9000:9000" # API
+  #     - "9001:9001" # Console UI
+  #   volumes:
+  #     - minio_data:/data
+  #   networks:
+  #     - appnet
+  #   restart: always
+
+volumes:
+  pgdata:
+  minio_data:

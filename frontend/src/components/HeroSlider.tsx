@@ -31,7 +31,7 @@ const HeroSlider = () => {
 		setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
 
 	return (
-		<div className="relative w-full h-[200px] mt-5 md:h-[300px] overflow-hidden bg-background">
+		<div className="relative w-full h-[150px] sm:h-[200px] md:h-[250px] lg:h-[300px] mt-2 md:mt-5 overflow-hidden bg-background">
 			{slides.map((slide, index) => (
 				<div
 					key={slide.image}
@@ -42,7 +42,7 @@ const HeroSlider = () => {
 					<img
 						src={slide.image}
 						alt={slide.alt}
-						className="w-[90%] mx-auto h-full object-cover"
+						className="w-[95%] md:w-[90%] mx-auto h-full object-cover"
 					/>
 				</div>
 			))}
@@ -51,30 +51,30 @@ const HeroSlider = () => {
 			<Button
 				variant="ghost"
 				size="icon"
-				className="absolute left-4 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background"
+				className="absolute left-1 md:left-4 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background h-8 w-8 md:h-10 md:w-10"
 				onClick={prevSlide}
 			>
-				<ChevronLeft size={24} />
+				<ChevronLeft size={16} className="md:size-6" />
 			</Button>
 			<Button
 				variant="ghost"
 				size="icon"
-				className="absolute right-4 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background"
+				className="absolute right-1 md:right-4 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background h-8 w-8 md:h-10 md:w-10"
 				onClick={nextSlide}
 			>
-				<ChevronRight size={24} />
+				<ChevronRight size={16} className="md:size-6" />
 			</Button>
 
 			{/* Indicators */}
-			<div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2">
+			<div className="absolute bottom-2 md:bottom-8 left-1/2 -translate-x-1/2 flex gap-1.5 md:gap-2">
 				{slides.map((s, index) => (
 					<button
 						type="button"
 						key={s.image}
 						onClick={() => setCurrentSlide(index)}
 						className={cn(
-							`h-2 rounded-full transition-all ${
-								index === currentSlide ? "w-8 bg-primary" : "w-2 bg-primary/30"
+							`h-1.5 md:h-2 rounded-full transition-all ${
+								index === currentSlide ? "w-6 md:w-8 bg-primary" : "w-1.5 md:w-2 bg-primary/30"
 							}`,
 						)}
 					></button>

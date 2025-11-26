@@ -1,11 +1,16 @@
 import fs from "node:fs";
 import multerS3 from "multer-s3";
-const UPLOAD_DIR = process.env.UPLOAD_DIR || "uploads/";
 import multer from "multer";
 import s3, { GetObjectCommand } from "./s3";
 import path from "node:path";
 import { Readable } from "node:stream";
 import { DeleteObjectCommand } from "@aws-sdk/client-s3";
+const UPLOAD_DIR = process.env.UPLOAD_DIR || "uploads/";
+if (process.env.STORAGE_TYPE === "local") {
+  if (!fs.existsSync(UPLOAD_DIR)) {
+    fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+  }
+}
 const storageLocal = multer.diskStorage({
   destination: (req, file, cb) => cb(null, UPLOAD_DIR),
   filename: (req, file, cb) => cb(null, Date.now() + "-" + file.originalname),

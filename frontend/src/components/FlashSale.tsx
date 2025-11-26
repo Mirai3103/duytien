@@ -48,14 +48,14 @@ const FlashSale = () => {
 		});
 	};
 	return (
-		<section className="bg-flash-sale-bg py-12">
-			<div className="container mx-auto px-4">
-				<div className="flex items-center justify-between mb-8">
-					<div className="flex items-center gap-4">
-						<h2 className="text-3xl font-bold text-primary">FLASH SALE</h2>
-						<div className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg">
-							<Clock size={20} className="pulse-sale" />
-							<span className="font-bold">
+		<section className="bg-flash-sale-bg py-6 md:py-12">
+			<div className="container mx-auto px-2 md:px-4">
+				<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 md:gap-4 mb-4 md:mb-8">
+					<div className="flex items-center gap-2 md:gap-4">
+						<h2 className="text-xl md:text-3xl font-bold text-primary">FLASH SALE</h2>
+						<div className="flex items-center gap-1 md:gap-2 bg-primary text-primary-foreground px-2 md:px-4 py-1 md:py-2 rounded-lg">
+							<Clock size={16} className="pulse-sale md:size-5" />
+							<span className="font-bold text-sm md:text-base">
 								{formatTime(timeLeft.hours)}:{formatTime(timeLeft.minutes)}:
 								{formatTime(timeLeft.seconds)}
 							</span>
@@ -63,7 +63,7 @@ const FlashSale = () => {
 					</div>
 				</div>
 
-				<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+				<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-4">
 					{flashProducts?.map((product) => (
 						<Card
 							key={product.id}
@@ -74,25 +74,25 @@ const FlashSale = () => {
 								<img
 									src={product.thumbnail ?? "/images/placeholder.png"}
 									alt={product.name}
-									className="w-full h-48 object-contain"
+									className="w-full h-32 sm:h-40 md:h-48 object-contain"
 								/>
-								<Badge className="absolute top-2 right-2 bg-primary text-primary-foreground">
+								<Badge className="absolute top-1 right-1 md:top-2 md:right-2 bg-primary text-primary-foreground text-[10px] md:text-xs px-1 md:px-2">
 									-{getDiscountPercentage(Number(product.price),Number(product.discount))}%
 								</Badge>
 							</div>
-							<div className="p-4 space-y-2">
-								<h3 className="font-semibold text-sm line-clamp-2 h-10">
+							<div className="p-2 md:p-4 space-y-1 md:space-y-2">
+								<h3 className="font-semibold text-xs md:text-sm line-clamp-2 h-8 md:h-10">
 									{product.name}
 								</h3>
-								<div className="space-y-1">
-									<p className="text-xs text-muted-foreground line-through">
+								<div className="space-y-0.5 md:space-y-1">
+									<p className="text-[10px] md:text-xs text-muted-foreground line-through">
 										{Number(product.price).toLocaleString("vi-VN")}đ
 									</p>
-									<p className="text-lg font-bold text-primary">
+									<p className="text-sm md:text-lg font-bold text-primary">
 										{getFinalPrice(Number(product.price),Number(product.discount)).toLocaleString("vi-VN")}đ
 									</p>
 								</div>
-								<RippleButton size="sm" className="w-full" onClick={() => handleProductClick(product.id)}>
+								<RippleButton size="sm" className="w-full text-xs md:text-sm h-7 md:h-9" onClick={() => handleProductClick(product.id)}>
 									Mua ngay
 								</RippleButton>
 							</div>

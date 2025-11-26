@@ -173,8 +173,8 @@ function AttributeGroup({
 }: AttributeGroupProps) {
   return (
     <div>
-      <h3 className="text-base font-semibold mb-3">{attribute.name}:</h3>
-      <div className="flex flex-wrap gap-2">
+      <h3 className="text-sm md:text-base font-semibold mb-2 md:mb-3">{attribute.name}:</h3>
+      <div className="flex flex-wrap gap-1.5 md:gap-2">
         {availableValues.map((value) => {
           const isSelected = isValueSelected(value.value);
           const targetVariant = findTargetVariant(value.value);
@@ -208,14 +208,14 @@ interface VariantOptionProps {
 
 function ColorSwatch({ value, isSelected, onClick }: VariantOptionProps) {
   const hasColorCode = !!value.code;
-  
+
   return (
     <button
       onClick={onClick}
       className={`
-        relative w-12 h-12 rounded-full border-2 transition-all cursor-pointer
+        relative w-10 h-10 md:w-12 md:h-12 rounded-full border-2 transition-all cursor-pointer
         ${isSelected ? "border-primary ring-2 ring-primary/20" : "border-gray-300 hover:border-gray-400"}
-        ${!hasColorCode ? "flex items-center justify-center text-xs font-medium" : ""}
+        ${!hasColorCode ? "flex items-center justify-center text-[10px] md:text-xs font-medium" : ""}
       `}
       style={hasColorCode ? { backgroundColor: value.code as any } : undefined}
       title={value.displayValue}
@@ -224,7 +224,7 @@ function ColorSwatch({ value, isSelected, onClick }: VariantOptionProps) {
         <span className="text-gray-700 truncate px-1">{value.displayValue}</span>
       )}
       {isSelected && hasColorCode && (
-        <Check className="absolute inset-0 m-auto w-4 h-4 text-white drop-shadow-sm" />
+        <Check className="absolute inset-0 m-auto w-3 h-3 md:w-4 md:h-4 text-white drop-shadow-sm" />
       )}
     </button>
   );
@@ -235,7 +235,7 @@ function TextOption({ value, isSelected, onClick }: VariantOptionProps) {
     <button
       onClick={onClick}
       className={`
-        relative px-4 py-2 text-sm rounded-md border cursor-pointer
+        relative px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm rounded-md border cursor-pointer
         ${isSelected ? "border-primary bg-primary/10 text-primary font-medium" : "border-gray-300 hover:border-gray-400"}
       `}
       title={value.displayValue}

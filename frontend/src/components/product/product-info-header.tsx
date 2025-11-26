@@ -17,8 +17,8 @@ export function ProductInfoHeader({
 }: ProductInfoHeaderProps) {
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-2">{variantName}</h1>
-      <div className="flex items-center gap-4 flex-wrap">
+      <h1 className="text-xl md:text-3xl font-bold mb-2">{variantName}</h1>
+      <div className="flex items-center gap-2 md:gap-4 flex-wrap text-sm md:text-base">
         {reviewStats && reviewStats.totalReviews > 0 && (
           <>
             <div className="flex items-center gap-1">
@@ -26,7 +26,7 @@ export function ProductInfoHeader({
                 {[1, 2, 3, 4, 5].map((star) => (
                   <Star
                     key={star}
-                    className={`h-5 w-5 ${
+                    className={`h-4 w-4 md:h-5 md:w-5 ${
                       star <= Math.round(reviewStats.averageRating)
                         ? "fill-yellow-500 text-yellow-500"
                         : "text-muted"
@@ -34,17 +34,17 @@ export function ProductInfoHeader({
                   />
                 ))}
               </div>
-              <span className="font-semibold">
+              <span className="font-semibold text-sm md:text-base">
                 {reviewStats.averageRating.toFixed(1)}
               </span>
-              <span className="text-muted-foreground">
+              <span className="text-muted-foreground text-xs md:text-sm">
                 ({reviewStats.totalReviews} đánh giá)
               </span>
             </div>
-            <Separator orientation="vertical" className="h-4" />
+            <Separator orientation="vertical" className="h-3 md:h-4" />
           </>
         )}
-        <span className="text-muted-foreground">Kho: {stock || 0}</span>
+        <span className="text-muted-foreground text-xs md:text-sm">Kho: {stock || 0}</span>
       </div>
     </div>
   );

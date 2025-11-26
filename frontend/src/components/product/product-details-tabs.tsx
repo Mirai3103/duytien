@@ -30,23 +30,27 @@ export function ProductDetailsTabs({
 }: ProductDetailsTabsProps) {
   return (
     <Card>
-      <CardContent className="p-6">
+      <CardContent className="p-3 md:p-6">
         <Tabs defaultValue="description" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:inline-grid">
-            <TabsTrigger value="description">Mô tả sản phẩm</TabsTrigger>
-            <TabsTrigger value="specifications">Thông số kỹ thuật</TabsTrigger>
-            <TabsTrigger value="reviews">
+          <TabsList className="grid w-full grid-cols-3 h-auto">
+            <TabsTrigger value="description" className="text-xs md:text-sm py-2">
+              Mô tả
+            </TabsTrigger>
+            <TabsTrigger value="specifications" className="text-xs md:text-sm py-2">
+              Thông số
+            </TabsTrigger>
+            <TabsTrigger value="reviews" className="text-xs md:text-sm py-2">
               Đánh giá ({reviewCount || 0})
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="description" className="mt-6">
+          <TabsContent value="description" className="mt-4 md:mt-6">
             <div className="prose max-w-none">
-              <h3 className="text-xl font-bold mb-4">
+              <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4">
                 Giới thiệu {productName}
               </h3>
               <div
-                className="text-muted-foreground whitespace-pre-line"
+                className="text-muted-foreground whitespace-pre-line text-sm md:text-base"
                 dangerouslySetInnerHTML={{
                   __html: description ?? "",
                 }}
@@ -54,23 +58,23 @@ export function ProductDetailsTabs({
             </div>
           </TabsContent>
 
-          <TabsContent value="specifications" className="mt-6">
-            <div className="space-y-6">
+          <TabsContent value="specifications" className="mt-4 md:mt-6">
+            <div className="space-y-4 md:space-y-6">
               {specs.map((spec) => (
                 <div key={spec.groupId + spec.groupName}>
-                  <h3 className="text-lg font-bold mb-3 text-primary">
+                  <h3 className="text-base md:text-lg font-bold mb-2 md:mb-3 text-primary">
                     {spec.groupName}
                   </h3>
                   <div className="border rounded-lg overflow-hidden">
                     {spec.specs.map((spec, index) => (
                       <div
                         key={spec.specName + index}
-                        className={`grid grid-cols-2 gap-4 p-3 ${
+                        className={`grid grid-cols-2 gap-2 md:gap-4 p-2 md:p-3 text-xs md:text-sm ${
                           index % 2 === 0 ? "bg-muted/30" : ""
                         }`}
                       >
                         <span className="font-medium">{spec.specName}</span>
-                        <span className="text-muted-foreground">
+                        <span className="text-muted-foreground break-words">
                           {spec.specValue}
                         </span>
                       </div>
@@ -81,7 +85,7 @@ export function ProductDetailsTabs({
             </div>
           </TabsContent>
 
-          <TabsContent value="reviews" className="mt-6">
+          <TabsContent value="reviews" className="mt-4 md:mt-6">
             <ReviewsTab productId={productId} variantId={variantId} />
           </TabsContent>
         </Tabs>

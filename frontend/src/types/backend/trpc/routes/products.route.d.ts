@@ -1,4 +1,3 @@
-import { ProductStatus } from "@/schemas/product";
 import type { inferProcedureOutput } from "@trpc/server";
 export declare const productsRoute: import("@trpc/server").TRPCBuiltRouter<{
     ctx: {
@@ -43,7 +42,7 @@ export declare const productsRoute: import("@trpc/server").TRPCBuiltRouter<{
                 min?: number | undefined;
                 max?: number | undefined;
             } | undefined;
-            status?: ProductStatus[] | undefined;
+            status?: import("@/schemas/product").ProductStatus[] | undefined;
         };
         output: {
             id: number;
@@ -122,7 +121,7 @@ export declare const productsRoute: import("@trpc/server").TRPCBuiltRouter<{
                 min?: number | undefined;
                 max?: number | undefined;
             } | undefined;
-            status?: ProductStatus[] | undefined;
+            status?: import("@/schemas/product").ProductStatus[] | undefined;
         };
         output: 0 | {
             count: number;
@@ -144,7 +143,7 @@ export declare const productsRoute: import("@trpc/server").TRPCBuiltRouter<{
                 min?: number | undefined;
                 max?: number | undefined;
             } | undefined;
-            status?: ProductStatus[] | undefined;
+            status?: import("@/schemas/product").ProductStatus[] | undefined;
         };
         output: {
             id: number;
@@ -293,7 +292,7 @@ export declare const productsRoute: import("@trpc/server").TRPCBuiltRouter<{
     createProduct: import("@trpc/server").TRPCMutationProcedure<{
         input: {
             name: string;
-            status: ProductStatus;
+            status: import("@/schemas/product").ProductStatus;
             slug: string;
             price: number;
             description?: any;
@@ -310,7 +309,7 @@ export declare const productsRoute: import("@trpc/server").TRPCBuiltRouter<{
         input: {
             id: number;
             name: string;
-            status: ProductStatus;
+            status: import("@/schemas/product").ProductStatus;
             slug: string;
             price: number;
             description?: any;

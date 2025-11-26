@@ -1,4 +1,3 @@
-import { VariantStatus } from "@/schemas/variant";
 import type { inferProcedureOutput } from "@trpc/server";
 export declare const variantsRoute: import("@trpc/server").TRPCBuiltRouter<{
     ctx: {
@@ -137,7 +136,7 @@ export declare const variantsRoute: import("@trpc/server").TRPCBuiltRouter<{
         input: {
             name: string;
             image: string;
-            status: VariantStatus;
+            status: import("@/schemas/variant").VariantStatus;
             price: unknown;
             productId: number;
             sku: string;
@@ -158,7 +157,7 @@ export declare const variantsRoute: import("@trpc/server").TRPCBuiltRouter<{
             id: number;
             name: string;
             image: string;
-            status: VariantStatus;
+            status: import("@/schemas/variant").VariantStatus;
             price: unknown;
             productId: number;
             sku: string;

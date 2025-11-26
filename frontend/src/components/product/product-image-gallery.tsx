@@ -20,10 +20,10 @@ export function ProductImageGallery({
 
   return (
     <Card className="overflow-hidden">
-      <CardContent className="p-4">
-        <div className="relative aspect-square bg-muted/30 rounded-lg overflow-hidden mb-4">
+      <CardContent className="p-2 md:p-4">
+        <div className="relative aspect-square bg-muted/30 rounded-lg overflow-hidden mb-2 md:mb-4">
           {discountPercentage !== 0 && (
-            <Badge className="absolute top-4 left-4 z-10 bg-primary text-lg px-3 py-1">
+            <Badge className="absolute top-2 left-2 md:top-4 md:left-4 z-10 bg-primary text-sm md:text-lg px-2 md:px-3 py-0.5 md:py-1">
               -{discountPercentage}%
             </Badge>
           )}
@@ -33,12 +33,12 @@ export function ProductImageGallery({
             className="w-full h-full object-contain"
           />
         </div>
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-4 md:grid-cols-4 gap-1.5 md:gap-2">
           {images.map((image, index) => (
             <button
               key={image.id}
               onClick={() => setSelectedImage(index)}
-              className={`aspect-square border-2 rounded-lg overflow-hidden transition-all ${
+              className={`aspect-square border-2 rounded-md md:rounded-lg overflow-hidden transition-all ${
                 selectedImage === index
                   ? "border-primary"
                   : "border-muted hover:border-muted-foreground"
