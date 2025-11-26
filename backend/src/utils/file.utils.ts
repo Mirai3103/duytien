@@ -44,8 +44,10 @@ async function getS3FileByKey(key: string): Promise<NodeJS.ReadableStream> {
 export async function getLocalFileByKey(
   key: string
 ): Promise<NodeJS.ReadableStream> {
-  const filePath = path.resolve(UPLOAD_DIR, key);
-  await fs.promises.access(filePath, fs.constants.R_OK).catch(() => {
+  const filePath = path.resolve(key);
+  console.log("Resolved file path:", filePath);
+  await fs.promises.access(filePath, fs.constants.R_OK).catch((e) => {
+    console.log("File access error:", e);
     throw new Error("File not found or not readable: " + key);
   });
   const fileStream = fs.createReadStream(filePath);

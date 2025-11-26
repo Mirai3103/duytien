@@ -10,12 +10,22 @@ import { convertToModelMessages, stepCountIs, streamText } from "ai";
 import { llm } from "./llm";
 import type { Request, Response } from "express";
 import { prompt } from "./llm/prompt";
-import { createAddToCartTool, getAllCategoriesTool, getProductDetailTool, getVariantDetailTool, searchProductTool } from "./llm/tools";
+import {
+  createAddToCartTool,
+  getAllCategoriesTool,
+  getProductDetailTool,
+  getVariantDetailTool,
+  searchProductTool,
+} from "./llm/tools";
 const app = express();
 const corsOptions = cors({
-  origin: [...process.env.FRONTEND_URL!.split(","), "http://localhost:3000","http://localhost:5173"],
+  origin: [
+    ...process.env.FRONTEND_URL!.split(","),
+    "http://localhost:3000",
+    "http://localhost:5173",
+  ],
   credentials: true,
-})
+});
 app.use(corsOptions);
 
 // error handler
@@ -66,19 +76,21 @@ app.post("/api/llm", async (req: Request, res: Response) => {
   const { messages } = req.body;
   const result = streamText({
     model: llm,
-    system: prompt +session?.user?.id?`
+    system:
+      prompt + session?.user?.id
+        ? `
      Biết rằng người dùng đang chat với bạn là ${JSON.stringify(session?.user)}
-    `:``,
+    `
+        : ``,
     tools: {
       searchProduct: searchProductTool,
       getProductDetail: getProductDetailTool,
       getVariantDetail: getVariantDetailTool,
       createAddToCart: createAddToCartTool(session?.user?.id!),
       getAllCategories: getAllCategoriesTool,
-      
     },
-    stopWhen:stepCountIs(10),
-    messages:convertToModelMessages(messages),
+    stopWhen: stepCountIs(10),
+    messages: convertToModelMessages(messages),
   });
 
   return result.pipeUIMessageStreamToResponse(res);
@@ -98,6 +110,9 @@ app.use(
   trpcExpress.createExpressMiddleware({
     router: appRouter,
     createContext: createContext,
+    onError({ error }) {
+      console.error(error);
+    },
   })
 );
 app.listen(3000, "0.0.0.0");
