@@ -25,8 +25,9 @@ export const auth = betterAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     },
   },
-  trustedOrigins: [process.env.FRONTEND_URL!],
+  trustedOrigins: [...process.env.FRONTEND_URL!.split(",")],
 });
+console.log(process.env.FRONTEND_URL!.split(","), "TRUSTED ORIGINS");
 
 async function initAdminIfNotExists() {
   let admin = await db.query.user.findFirst({

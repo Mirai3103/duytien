@@ -1,4 +1,3 @@
-version: "3.9"
 
 networks:
   appnet:
@@ -47,10 +46,9 @@ services:
       - "3000:3000"
     depends_on:
       - postgres
-      - minio
     networks:
       - appnet
-    restart: always
+    # restart: always
 
   postgres:
     image: postgres:17
@@ -63,24 +61,10 @@ services:
       - pgdata:/var/lib/postgresql/data
     networks:
       - appnet
+    ports:
+      - "5432:5432"
     restart: always
-
-  # minio:
-  #   image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z
-  #   container_name: minio
-  #   command: server /data --console-address ":9001"
-  #   environment:
-  #     MINIO_ROOT_USER: minio
-  #     MINIO_ROOT_PASSWORD: minio123
-  #   ports:
-  #     - "9000:9000" # API
-  #     - "9001:9001" # Console UI
-  #   volumes:
-  #     - minio_data:/data
-  #   networks:
-  #     - appnet
-  #   restart: always
 
 volumes:
   pgdata:
-  minio_data:
+ 

@@ -3,7 +3,7 @@ FROM oven/bun:latest AS build
 WORKDIR /app
 
 # Copy file chứa dependencies trước để cache hiệu quả
-COPY package.json bun.lockb ./
+COPY package.json bun.lock ./
 RUN bun install
 
 # Copy toàn bộ source
@@ -18,8 +18,8 @@ FROM oven/bun:latest
 WORKDIR /app
 
 # Copy thư mục build (dir/)
-COPY --from=build /app/dir ./dir
+COPY --from=build /app/dist ./dist
 
 EXPOSE 3000
 
-CMD ["bun", "dir/app.js"]
+CMD ["bun", "dist/app.js"]

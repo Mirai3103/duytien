@@ -1,17 +1,21 @@
 # --- Build Stage ---
-FROM oven/bun:latest AS build
-
+FROM node:22-alpine AS build   
 WORKDIR /app
 
-COPY package.json bun.lockb ./
-RUN bun install
+# Copy file cấu hình
+COPY package.json ./
+RUN npm install --no-audit --no-fund
 
+# Copy toàn bộ source
 COPY . .
-RUN bun run build
+
+# Build
+RUN npm run build
+
 # --- Serve Stage với Caddy ---
 FROM caddy:2.10.2-alpine
 
-# Copy thư mục build từ Bun
+# Copy thư mục build từ Node
 COPY --from=build /app/dist /srv
 
 # Tạo thư mục Caddy config (mount file Caddyfile vào)

@@ -1,16 +1,20 @@
 :80 {
     root * /srv
 
-    # Proxy API → backend service trong docker-compose
-    handle_path /api/* {
+    # MUST BE FIRST - match API before SPA fallback
+    handle /api/* {
         reverse_proxy backend:3000
     }
 
-    handle_path /trpc/* {
+    handle /trpc/* {
         reverse_proxy backend:3000
     }
 
-    # Serve SPA (React + Vite build)
-    try_files {path} /index.html
+    # Serve static files
     file_server
+
+    # Fallback SPA for all other routes
+    handle {
+        try_files {path} /index.html
+    }
 }
