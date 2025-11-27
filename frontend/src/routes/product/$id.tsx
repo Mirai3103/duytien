@@ -71,6 +71,7 @@ import {
   getFinalPrice,
   getReducePrice,
 } from "@/lib/utils";
+import { useCartStore } from "@/store/cart";
 
 const FAKE_HIGHLIGHTS: string[] = [
   "Chip A17 Pro mạnh mẽ với GPU 6 lõi",
@@ -100,6 +101,7 @@ function RouteComponent() {
   const queryClient = useQueryClient();
   const { addVariantId, isVariantIdSelected, variantIds } = useCompareStore();
   const user = useSession();
+  const {select} = useCartStore()
 
   const mutateAddToCart = useMutation(
     trpc.cart.addToCart.mutationOptions({
@@ -130,7 +132,15 @@ function RouteComponent() {
       quantity: quantity,
     });
   };
+  const onBuyNow = () => {
+    mutateAddToCart.mutate({
+      variantId: variant.id,
+      quantity: 1,
+    });
+    select(variant.id)
+    navigate({ to: "/cart" });
 
+  };
   const handleAddToCompare = () => {
     if (variantIds.length >= 3 && !isVariantIdSelected(variant.id)) {
       toast.error("Chỉ có thể so sánh tối đa 3 sản phẩm");
@@ -253,6 +263,8 @@ function RouteComponent() {
                 stock={variant.stock ?? 0}
                 isAddingToCart={mutateAddToCart.isPending}
                 onAddToCart={handleAddToCart}
+                onBuyNow={onBuyNow}
+
               />
 
               {/* Policies */}
@@ -268,6 +280,7 @@ function RouteComponent() {
             description={product.description ?? ""}
             specs={specs}
             reviewCount={reviewStats?.totalReviews || 0}
+
           />
         </div>
       </main>
