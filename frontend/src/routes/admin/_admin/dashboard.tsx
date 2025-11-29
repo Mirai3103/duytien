@@ -12,7 +12,6 @@ import {
 	ShoppingCart,
 	Users,
 } from "lucide-react";
-import { OrdersChart } from "@/components/admin/order/orders-chart";
 import { RecentOrders } from "@/components/recent-orders";
 import { RevenueChart } from "@/components/revenue-chart";
 import { TopProducts } from "@/components/top-products";
@@ -110,17 +109,16 @@ export default function AdminDashboard() {
 				))}
 			</div>
 
-			{/* Charts */}
-			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-				<RevenueChart />
-				<OrdersChart />
-			</div>
+		{/* Charts */}
+		<div className="grid grid-cols-1 gap-6">
+			<RevenueChart />
+		</div>
 
-			{/* Tables */}
-			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-				<RecentOrders />
-				<TopProducts />
-			</div>
+		{/* Tables */}
+		<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+			<RecentOrders />
+			<TopProducts />
+		</div>
 		</div>
 	);
 }

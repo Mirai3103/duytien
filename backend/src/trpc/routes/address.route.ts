@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { publicProcedure, router } from "../trpc";
 import z from "zod";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import db from "@/db";
 import { addresses } from "@/db/schema";
 export interface Province {
@@ -82,6 +82,7 @@ const addressRoute = router({
     }
     return await db.query.addresses.findMany({
       where: eq(addresses.userId, ctx.session.user.id),
+      orderBy: [desc(addresses.id)],
     });
   }),
   setDefaultAddress: publicProcedure

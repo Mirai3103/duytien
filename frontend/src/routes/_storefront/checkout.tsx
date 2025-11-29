@@ -8,6 +8,7 @@ import {
   Wallet,
   Plus,
   Tag,
+  Edit,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
@@ -46,6 +47,7 @@ function RouteComponent() {
 
   // Address dialog state
   const [addressDialogOpen, setAddressDialogOpen] = useState(false);
+  const [editingAddress, setEditingAddress] = useState<Address | undefined>();
   const { data: voucher = null } = useQuery(trpc.vouchers.getVoucherByCode.queryOptions({ code: voucherCode || "" },{
     enabled: !!voucherCode,
   }));
@@ -83,6 +85,22 @@ function RouteComponent() {
         );
         // Select the newly created address
         setValue("selectedAddressId", newAddressId, { shouldValidate: true });
+        toast.success("Thêm địa chỉ thành công!");
+      },
+    })
+  );
+
+  // Mutation to update address
+  const updateAddressMutation = useMutation(
+    trpc.addresses.updateAddress.mutationOptions({
+      onSuccess: async () => {
+        await queryClient.invalidateQueries(
+          trpc.addresses.getAddresses.queryOptions()
+        );
+        toast.success("Cập nhật địa chỉ thành công!");
+      },
+      onError: (error: any) => {
+        toast.error(error.message || "Có lỗi xảy ra khi cập nhật địa chỉ");
       },
     })
   );
@@ -160,16 +178,44 @@ function RouteComponent() {
   const handleSaveAddress = async (
     addressData: Omit<Address, "id"> & { id?: number }
   ) => {
-    await createAddressMutation.mutateAsync({
-      fullName: addressData.fullName,
-      phone: addressData.phone,
-      detail: addressData.detail,
-      ward: addressData.ward,
-      province: addressData.province,
-      note: addressData.note || "",
-      isDefault: addressData.isDefault,
-    });
+    if (addressData.id) {
+      // Update existing address
+      await updateAddressMutation.mutateAsync({
+        id: addressData.id,
+        fullName: addressData.fullName,
+        phone: addressData.phone,
+        detail: addressData.detail,
+        ward: addressData.ward,
+        province: addressData.province,
+        note: addressData.note || "",
+        isDefault: addressData.isDefault,
+      });
+    } else {
+      // Create new address
+      await createAddressMutation.mutateAsync({
+        fullName: addressData.fullName,
+        phone: addressData.phone,
+        detail: addressData.detail,
+        ward: addressData.ward,
+        province: addressData.province,
+        note: addressData.note || "",
+        isDefault: addressData.isDefault,
+      });
+    }
     setAddressDialogOpen(false);
+    setEditingAddress(undefined);
+  };
+
+  // Handle add new address
+  const handleAddAddress = () => {
+    setEditingAddress(undefined);
+    setAddressDialogOpen(true);
+  };
+
+  // Handle edit address
+  const handleEditAddress = (address: Address) => {
+    setEditingAddress(address);
+    setAddressDialogOpen(true);
   };
 
   // Form submission handler
@@ -235,7 +281,7 @@ function RouteComponent() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setAddressDialogOpen(true)}
+                      onClick={handleAddAddress}
                     >
                       <Plus className="h-4 w-4 mr-2" />
                       Thêm địa chỉ mới
@@ -248,26 +294,28 @@ function RouteComponent() {
                       {addresses.map((address) => (
                         <div
                           key={address.id}
-                          onClick={() =>
-                            handleSelectAddress({
-                              id: address.id,
-                              fullName: address.fullName,
-                              phone: address.phone,
-                              detail: address.detail,
-                              ward: address.ward,
-                              province: address.province,
-                              note: address.note || "",
-                              isDefault: address.isDefault,
-                            })
-                          }
-                          className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                          className={`p-4 border rounded-lg transition-colors ${
                             selectedAddressId === address.id
                               ? "border-primary bg-primary/5"
                               : "hover:bg-muted/50"
                           }`}
                         >
                           <div className="flex items-start gap-3">
-                            <div className="flex-1">
+                            <div 
+                              className="flex-1 cursor-pointer"
+                              onClick={() =>
+                                handleSelectAddress({
+                                  id: address.id,
+                                  fullName: address.fullName,
+                                  phone: address.phone,
+                                  detail: address.detail,
+                                  ward: address.ward,
+                                  province: address.province,
+                                  note: address.note || "",
+                                  isDefault: address.isDefault,
+                                })
+                              }
+                            >
                               <div className="flex items-center gap-2 mb-1">
                                 <p className="font-semibold">
                                   {address.fullName}
@@ -294,9 +342,33 @@ function RouteComponent() {
                                 </p>
                               )}
                             </div>
-                            {selectedAddressId === address.id && (
-                              <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0" />
-                            )}
+                            <div className="flex flex-col items-end gap-2">
+                              {selectedAddressId === address.id && (
+                                <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0" />
+                              )}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() =>
+                                  handleEditAddress({
+                                    id: address.id,
+                                    fullName: address.fullName,
+                                    phone: address.phone,
+                                    detail: address.detail,
+                                    ward: address.ward,
+                                    province: address.province,
+                                    note: address.note || "",
+                                    isDefault: address.isDefault,
+                                  })
+                                }
+                                disabled={
+                                  createAddressMutation.isPending ||
+                                  updateAddressMutation.isPending
+                                }
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -307,7 +379,7 @@ function RouteComponent() {
                       <p className="text-muted-foreground mb-4">
                         Bạn chưa có địa chỉ nào
                       </p>
-                      <Button onClick={() => setAddressDialogOpen(true)}>
+                      <Button onClick={handleAddAddress}>
                         <Plus className="h-4 w-4 mr-2" />
                         Thêm địa chỉ đầu tiên
                       </Button>
@@ -708,6 +780,7 @@ function RouteComponent() {
       <AddressDialog
         open={addressDialogOpen}
         onOpenChange={setAddressDialogOpen}
+        address={editingAddress}
         onSave={handleSaveAddress}
       />
     </div>

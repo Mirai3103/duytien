@@ -2,6 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/lib/trpc";
+import { Link } from "@tanstack/react-router";
 
 const statusConfig = {
 	pending: { label: "Chờ xử lý", variant: "outline" as const },
@@ -21,7 +22,7 @@ export function RecentOrders() {
 		return (
 			<Card className="bg-card border-border">
 				<CardHeader>
-					<CardTitle className="text-foreground">Đơn hàng gần đây</CardTitle>
+					<CardTitle className="text-foreground">Đơn hàng chờ xác nhận</CardTitle>
 				</CardHeader>
 				<CardContent>
 					<div className="flex items-center justify-center py-8">
@@ -35,14 +36,16 @@ export function RecentOrders() {
 	return (
 		<Card className="bg-card border-border">
 			<CardHeader>
-				<CardTitle className="text-foreground">Đơn hàng gần đây</CardTitle>
+				<CardTitle className="text-foreground">Đơn hàng chờ xác nhận</CardTitle>
 			</CardHeader>
 			<CardContent>
 				<div className="space-y-4">
 					{orders?.map((order) => (
-						<div
+						<Link
 							key={order.id}
-							className="flex items-center justify-between py-3 border-b border-border last:border-0"
+							to="/admin/orders"
+							search={{ search: order.id }}
+							className="flex items-center justify-between py-3 border-b border-border last:border-0 hover:bg-accent/5 transition-colors rounded-md px-2 -mx-2"
 						>
 							<div className="flex-1">
 								<div className="flex items-center gap-2">
@@ -67,11 +70,11 @@ export function RecentOrders() {
 									₫{order.amount.toLocaleString()}
 								</p>
 							</div>
-						</div>
+						</Link>
 					))}
 					{(!orders || orders.length === 0) && (
 						<div className="text-center py-8 text-muted-foreground">
-							Chưa có đơn hàng nào
+							Không có đơn hàng chờ xác nhận
 						</div>
 					)}
 				</div>

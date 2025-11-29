@@ -48,6 +48,14 @@ export declare const dashboardRoute: import("@trpc/server").TRPCBuiltRouter<{
         }[];
         meta: object;
     }>;
+    getRevenueByDay: import("@trpc/server").TRPCQueryProcedure<{
+        input: void;
+        output: {
+            day: string;
+            revenue: number;
+        }[];
+        meta: object;
+    }>;
     getOrdersByWeek: import("@trpc/server").TRPCQueryProcedure<{
         input: void;
         output: {

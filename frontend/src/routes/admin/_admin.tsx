@@ -64,7 +64,7 @@ export default function AdminLayout({
       <aside className="w-64 border-r border-border bg-card flex flex-col">
         {/* Logo */}
         <div className="h-16 flex items-center px-6 border-b border-border">
-          <Link to="/admin" className="flex items-center gap-2">
+          <Link to="/admin/dashboard" className="flex items-center gap-2">
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
               <span className="text-primary-foreground font-bold text-lg">
                 F5

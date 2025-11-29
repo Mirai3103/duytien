@@ -1,7 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
+
+const searchSchema = z.object({
+  search: z.string().optional(),
+});
 
 export const Route = createFileRoute("/admin/_admin/orders")({
   component: RouteComponent,
+  validateSearch: searchSchema,
 });
 
 import { Download, Search, Calendar, Filter, X, Loader2 } from "lucide-react";
@@ -22,7 +28,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useDebounce } from "@/hooks/use-debounce";
@@ -32,10 +38,18 @@ type PaymentMethod = "cod" | "vnpay" | "momo";
 type PaymentStatus = "pending" | "success" | "failed";
 
 export default function OrdersPage() {
-  const [search, setSearch] = useState("");
+  const searchParams = Route.useSearch();
+  const [search, setSearch] = useState(searchParams.search || "");
   const debouncedSearch = useDebounce(search, 500);
   const isSearching = search !== debouncedSearch;
   const [selectedStatuses, setSelectedStatuses] = useState<OrderStatus[]>([]);
+
+  // Update search when query params change
+  useEffect(() => {
+    if (searchParams.search) {
+      setSearch(searchParams.search);
+    }
+  }, [searchParams.search]);
   const [paymentMethod, setPaymentMethod] = useState<
     PaymentMethod | undefined
   >();

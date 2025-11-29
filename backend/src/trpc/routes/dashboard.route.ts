@@ -136,6 +136,46 @@ export const dashboardRoute = router({
 		return months;
 	}),
 
+	// Get revenue by day for current month (30 days)
+	getRevenueByDay: protectedProcedure.query(async () => {
+		const now = new Date();
+		const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+		const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+		const revenueData = await db
+			.select({
+				day: sql<string>`TO_CHAR(${orders.createdAt}, 'YYYY-MM-DD')`,
+				revenue: sql<string>`COALESCE(SUM(${orders.totalAmount}), 0)`,
+			})
+			.from(orders)
+			.where(
+				and(
+					gte(orders.createdAt, startOfMonth),
+					lte(orders.createdAt, endOfMonth),
+					eq(orders.status, "delivered")
+				)
+			)
+			.groupBy(sql`TO_CHAR(${orders.createdAt}, 'YYYY-MM-DD')`)
+			.orderBy(sql`TO_CHAR(${orders.createdAt}, 'YYYY-MM-DD')`);
+
+		// Create array for all days of current month
+		const days = [];
+		const daysInMonth = endOfMonth.getDate();
+
+		for (let i = 1; i <= daysInMonth; i++) {
+			const date = new Date(now.getFullYear(), now.getMonth(), i);
+			const dayKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(i).padStart(2, "0")}`;
+			const dayData = revenueData.find((d) => d.day === dayKey);
+
+			days.push({
+				day: `${i}`,
+				revenue: Number.parseFloat(dayData?.revenue || "0"),
+			});
+		}
+
+		return days;
+	}),
+
 	// Get orders by day for the current week
 	getOrdersByWeek: protectedProcedure.query(async () => {
 		const now = new Date();
@@ -168,7 +208,7 @@ export const dashboardRoute = router({
 		return weekData;
 	}),
 
-	// Get recent orders (last 5)
+	// Get pending orders (orders waiting for confirmation)
 	getRecentOrders: protectedProcedure.query(async () => {
 		const recentOrders = await db
 			.select({
@@ -181,6 +221,7 @@ export const dashboardRoute = router({
 			})
 			.from(orders)
 			.leftJoin(user, eq(orders.userId, user.id))
+			.where(eq(orders.status, "pending"))
 			.orderBy(desc(orders.createdAt))
 			.limit(5);
 

@@ -1,5 +1,4 @@
-import { Pool } from "@neondatabase/serverless";
-declare const db: import("drizzle-orm/neon-serverless").NeonDatabase<{
+declare const db: import("drizzle-orm/node-postgres").NodePgDatabase<{
     brands: import("drizzle-orm/pg-core").PgTableWithColumns<{
         name: "brands";
         schema: undefined;
@@ -3103,6 +3102,6 @@ declare const db: import("drizzle-orm/neon-serverless").NeonDatabase<{
         dialect: "pg";
     }>;
 }> & {
-    $client: Pool;
+    $client: import("pg").Pool;
 };
 export default db;
