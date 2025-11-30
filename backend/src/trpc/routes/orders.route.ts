@@ -8,6 +8,7 @@ import {
   payments as paymentsTable,
   user as usersTable,
   vouchers as vouchersTable,
+  productVariants as productVariantsTable,
 } from "@/db/schema";
 import {
   and,
@@ -19,6 +20,7 @@ import {
   ilike,
   inArray,
   or,
+  sql,
   SQL,
   type SQLWrapper,
 } from "drizzle-orm";
@@ -29,6 +31,23 @@ import { getVoucherReducePrice } from "@/services/vouchers";
 import { createPayment, momoSdk } from "@/services/payment";
 import { generateOrderCode } from "@/utils/gen_order_code";
 import { useVoucherHook } from "@/db/hook";
+
+// Helper function to update product variant stock
+async function updateVariantStock(
+  tx: any,
+  variantId: number,
+  quantity: number,
+  operation: "subtract" | "add"
+) {
+  const operator = operation === "subtract" ? "-" : "+";
+  await tx
+    .update(productVariantsTable)
+    .set({
+      stock: sql`${productVariantsTable.stock} ${sql.raw(operator)} ${quantity}`,
+    })
+    .where(eq(productVariantsTable.id, variantId));
+}
+
 const createOrderSchema = z.object({
   cartItems: z.array(z.number()),
   shippingAddressId: z.number(),
@@ -133,6 +152,12 @@ export const ordersRoute = router({
               ).toString(),
             }))
           );
+          
+          // subtract stock immediately when order is created
+          for (const item of cartItems) {
+            await updateVariantStock(tx, item.variantId, item.quantity, "subtract");
+          }
+          
           // create payment
         const [payment] = await tx.insert(paymentsTable).values({
             orderId: order!.id,
@@ -394,10 +419,35 @@ export const ordersRoute = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      const newStatus = input.status;
+
+      // Update order status
       await db
         .update(ordersTable)
-        .set({ status: input.status })
+        .set({ status: newStatus })
         .where(eq(ordersTable.id, input.id));
+
+      // Add stock back when order is cancelled (stock was already subtracted when order was created)
+      if (newStatus === "cancelled") {
+        const order = await db.query.orders.findFirst({
+          where: eq(ordersTable.id, input.id),
+          with: {
+            items: {
+              columns: {
+                variantId: true,
+                quantity: true,
+              },
+            },
+          },
+        });
+
+        if (order) {
+          for (const item of order.items) {
+            await updateVariantStock(db, item.variantId, item.quantity, "add");
+          }
+        }
+      }
+
       return {
         success: true,
         message: "Order status updated successfully",
@@ -408,7 +458,29 @@ export const ordersRoute = router({
       id: z.number(),
     }))
     .mutation(async ({ ctx, input }) => {
+      // Get order items before cancelling
+      const order = await db.query.orders.findFirst({
+        where: eq(ordersTable.id, input.id),
+        with: {
+          items: {
+            columns: {
+              variantId: true,
+              quantity: true,
+            },
+          },
+        },
+      });
+
+      // Update order status to cancelled
       await db.update(ordersTable).set({ status: "cancelled" }).where(eq(ordersTable.id, input.id));
+
+      // Add stock back
+      if (order) {
+        for (const item of order.items) {
+          await updateVariantStock(db, item.variantId, item.quantity, "add");
+        }
+      }
+
       return {
         success: true,
         message: "Order cancelled successfully",
