@@ -39,6 +39,7 @@ async function updateVariantStock(
   quantity: number,
   operation: "subtract" | "add"
 ) {
+  console.log("updateVariantStock", variantId, quantity, operation);
   if (operation === "subtract") {
     await tx
       .update(productVariantsTable)

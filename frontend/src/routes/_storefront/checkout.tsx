@@ -238,6 +238,7 @@ function RouteComponent() {
       voucherId: voucher?.id || undefined,
     });
     toast.success("Đặt hàng thành công");
+    window.location.reload();
   };
   console.log("reducePrice", reducePrice);
   React.useEffect(() => {
