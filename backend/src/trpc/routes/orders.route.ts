@@ -39,13 +39,22 @@ async function updateVariantStock(
   quantity: number,
   operation: "subtract" | "add"
 ) {
-  const operator = operation === "subtract" ? "-" : "+";
-  await tx
-    .update(productVariantsTable)
-    .set({
-      stock: sql`${productVariantsTable.stock} ${sql.raw(operator)} ${quantity}`,
-    })
-    .where(eq(productVariantsTable.id, variantId));
+  if (operation === "subtract") {
+    await tx
+      .update(productVariantsTable)
+      .set({
+        stock: sql`${productVariantsTable.stock} - ${quantity}`,
+      })
+      .where(eq(productVariantsTable.id, variantId));
+  } else {
+    
+    await tx
+      .update(productVariantsTable)
+      .set({
+        stock: sql`${productVariantsTable.stock} + ${quantity}`,
+      })
+      .where(eq(productVariantsTable.id, variantId));
+  }
 }
 
 const createOrderSchema = z.object({
