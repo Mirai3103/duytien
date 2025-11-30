@@ -191,6 +191,7 @@ export const ordersRoute = router({
           return order!.id;
         })
       let redirectUrl = "";
+      console.log("paymentMethod", input.paymentMethod);
       if(input.paymentMethod !== "cod") {
         const payment = await createPayment({
           amount: paymentAmount,
@@ -200,6 +201,7 @@ export const ordersRoute = router({
         });
         redirectUrl = payment;
       }
+      console.log("redirectUrl", redirectUrl);
      
       return {
         success: true,

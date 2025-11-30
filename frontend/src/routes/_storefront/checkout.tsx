@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-router";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -119,6 +119,8 @@ function RouteComponent() {
         } else {
           navigate({ to: "/", replace: true });
         }
+        router.invalidate();
+
       },
       onError: (error) => {
         toast.error(error.message);
@@ -217,6 +219,7 @@ function RouteComponent() {
     setEditingAddress(address);
     setAddressDialogOpen(true);
   };
+  const router = useRouter();
 
   // Form submission handler
   const onSubmit = async (data: CheckoutFormData) => {
@@ -238,7 +241,6 @@ function RouteComponent() {
       voucherId: voucher?.id || undefined,
     });
     toast.success("Đặt hàng thành công");
-    window.location.reload();
   };
   console.log("reducePrice", reducePrice);
   React.useEffect(() => {
