@@ -495,7 +495,7 @@ export const ordersRoute = router({
 
       return {
         success: true,
-        message: "Order cancelled successfully",
+        message: "Hủy đơn hàng thành công",
       };
     }),
 });

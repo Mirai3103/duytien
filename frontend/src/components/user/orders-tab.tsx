@@ -407,7 +407,7 @@ export function OrdersTab() {
                             Mua lại
                           </Button>
                         )}
-                        {order.status === "pending" && (order.lastPayment?.status != "success" && order.lastPayment?.method != "cod") && (
+                        {order.status === "pending" && (order.lastPayment?.status != "success") && (
                           <Button variant="destructive" size="sm" onClick={() => cancelOrderMutation.mutate({ id: order.id })} disabled={cancelOrderMutation.isPending}>
                             {cancelOrderMutation.isPending ? (
                               <Loader2 className="h-4 w-4 mr-1 animate-spin" />

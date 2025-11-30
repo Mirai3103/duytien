@@ -56,6 +56,7 @@ export async function addToCart(
   const totalCartItemQuantity = existingCartItem
     ? existingCartItem.quantity + quantity
     : quantity;
+    console.log("totalCartItemQuantity", totalCartItemQuantity, "variant.stock", variant.stock);
   if (totalCartItemQuantity > variant.stock) {
     throw new TRPCError({
       code: "BAD_REQUEST",
