@@ -14,8 +14,10 @@ export function ProductQuantitySelector({
   stock,
   onQuantityChange,
 }: ProductQuantitySelectorProps) {
+  const maxQuantity = Math.min(stock, 999);
+
   const handleQuantityChange = (value: number) => {
-    if (value >= 1 && value <= 999) {
+    if (value >= 1 && value <= maxQuantity) {
       onQuantityChange(value);
     }
   };
@@ -38,7 +40,7 @@ export function ProductQuantitySelector({
             <Input
               type="number"
               min="1"
-              max="999"
+              max={maxQuantity}
               value={quantity}
               onChange={(e) =>
                 handleQuantityChange(parseInt(e.target.value) || 1)
@@ -49,7 +51,7 @@ export function ProductQuantitySelector({
               variant="outline"
               size="icon"
               onClick={() => handleQuantityChange(quantity + 1)}
-              disabled={quantity >= 999}
+              disabled={quantity >= maxQuantity}
               className="h-10 w-10"
             >
               <Plus className="h-4 w-4" />
@@ -60,7 +62,11 @@ export function ProductQuantitySelector({
           <p className="text-sm text-muted-foreground text-right mt-2">
             {stock} sản phẩm có sẵn
           </p>
-        ) : null}
+        ) : (
+          <p className="text-sm text-destructive text-right mt-2">
+            Hết hàng
+          </p>
+        )}
       </CardContent>
     </Card>
   );

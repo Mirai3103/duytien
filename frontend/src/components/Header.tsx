@@ -137,7 +137,7 @@ const Header = () => {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => navigate({ to: "/user" })}>
                     <User2 className="mr-2 h-4 w-4" />
-                    <span>Hồ sơ của tôi</span>
+                    <span>Đơn hàng và hồ sơ</span>
                   </DropdownMenuItem>
                   {myProfile.data?.role === "admin" && (
                     <>

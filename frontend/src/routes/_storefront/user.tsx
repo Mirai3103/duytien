@@ -35,8 +35,12 @@ function RouteComponent() {
           </div>
 
           {/* Tabs */}
-          <Tabs defaultValue="profile" className="space-y-6">
+          <Tabs defaultValue="orders" className="space-y-6">
             <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
+              <TabsTrigger value="orders" className="flex items-center gap-2">
+                <Package className="h-4 w-4" />
+                <span className="hidden sm:inline">Đơn hàng</span>
+              </TabsTrigger>
               <TabsTrigger value="profile" className="flex items-center gap-2">
                 <User className="h-4 w-4" />
                 <span className="hidden sm:inline">Hồ sơ</span>
@@ -47,10 +51,6 @@ function RouteComponent() {
               >
                 <MapPin className="h-4 w-4" />
                 <span className="hidden sm:inline">Địa chỉ</span>
-              </TabsTrigger>
-              <TabsTrigger value="orders" className="flex items-center gap-2">
-                <Package className="h-4 w-4" />
-                <span className="hidden sm:inline">Đơn hàng</span>
               </TabsTrigger>
             </TabsList>
             <TabsContents>
