@@ -66,6 +66,7 @@ declare const addressRoute: import("@trpc/server").TRPCBuiltRouter<{
             ward: string;
             province: string;
             fullName: string;
+            isHidden: boolean;
         }[];
         meta: object;
     }>;
@@ -87,6 +88,7 @@ declare const addressRoute: import("@trpc/server").TRPCBuiltRouter<{
             fullName: string;
             note: string;
             isDefault: boolean;
+            isHidden?: boolean | undefined;
         };
         output: number;
         meta: object;
@@ -110,6 +112,7 @@ declare const addressRoute: import("@trpc/server").TRPCBuiltRouter<{
             fullName?: string | undefined;
             note?: string | undefined;
             isDefault?: boolean | undefined;
+            isHidden?: boolean | undefined;
         };
         output: {
             success: boolean;

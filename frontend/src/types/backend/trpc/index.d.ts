@@ -1487,6 +1487,7 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
                 ward: string;
                 province: string;
                 fullName: string;
+                isHidden: boolean;
             }[];
             meta: object;
         }>;
@@ -1508,6 +1509,7 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
                 fullName: string;
                 note: string;
                 isDefault: boolean;
+                isHidden?: boolean | undefined;
             };
             output: number;
             meta: object;
@@ -1531,6 +1533,7 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
                 fullName?: string | undefined;
                 note?: string | undefined;
                 isDefault?: boolean | undefined;
+                isHidden?: boolean | undefined;
             };
             output: {
                 success: boolean;
@@ -1694,6 +1697,18 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
                         amount: string;
                         method: string | null;
                         paymentDate: Date | null;
+                    } | null;
+                    deliveryAddress: {
+                        id: number;
+                        phone: string;
+                        userId: string | null;
+                        isDefault: boolean;
+                        note: string | null;
+                        detail: string;
+                        ward: string;
+                        province: string;
+                        fullName: string;
+                        isHidden: boolean;
                     } | null;
                 }[];
                 total: number;

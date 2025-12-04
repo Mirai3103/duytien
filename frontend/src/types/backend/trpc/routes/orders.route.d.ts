@@ -156,6 +156,18 @@ export declare const ordersRoute: import("@trpc/server").TRPCBuiltRouter<{
                     method: string | null;
                     paymentDate: Date | null;
                 } | null;
+                deliveryAddress: {
+                    id: number;
+                    phone: string;
+                    userId: string | null;
+                    isDefault: boolean;
+                    note: string | null;
+                    detail: string;
+                    ward: string;
+                    province: string;
+                    fullName: string;
+                    isHidden: boolean;
+                } | null;
             }[];
             total: number;
             page: number;

@@ -2293,6 +2293,23 @@ export declare const addresses: import("drizzle-orm/pg-core").PgTableWithColumns
         }, {}, {
             length: 255;
         }>;
+        isHidden: import("drizzle-orm/pg-core").PgColumn<{
+            name: "is_hidden";
+            tableName: "addresses";
+            dataType: "boolean";
+            columnType: "PgBoolean";
+            data: boolean;
+            driverParam: boolean;
+            notNull: true;
+            hasDefault: true;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
     };
     dialect: "pg";
 }>;
@@ -2344,6 +2361,7 @@ export declare const ordersRelations: import("drizzle-orm").Relations<"orders", 
     voucher: import("drizzle-orm").One<"vouchers", false>;
     items: import("drizzle-orm").Many<"order_items">;
     lastPayment: import("drizzle-orm").One<"payments", false>;
+    deliveryAddress: import("drizzle-orm").One<"addresses", false>;
 }>;
 export declare const orderItemsRelations: import("drizzle-orm").Relations<"order_items", {
     order: import("drizzle-orm").One<"orders", true>;
@@ -4431,6 +4449,7 @@ declare const _default: {
         voucher: import("drizzle-orm").One<"vouchers", false>;
         items: import("drizzle-orm").Many<"order_items">;
         lastPayment: import("drizzle-orm").One<"payments", false>;
+        deliveryAddress: import("drizzle-orm").One<"addresses", false>;
     }>;
     orderItemsRelations: import("drizzle-orm").Relations<"order_items", {
         order: import("drizzle-orm").One<"orders", true>;
@@ -5483,6 +5502,23 @@ declare const _default: {
             }, {}, {
                 length: 255;
             }>;
+            isHidden: import("drizzle-orm/pg-core").PgColumn<{
+                name: "is_hidden";
+                tableName: "addresses";
+                dataType: "boolean";
+                columnType: "PgBoolean";
+                data: boolean;
+                driverParam: boolean;
+                notNull: true;
+                hasDefault: true;
+                isPrimaryKey: false;
+                isAutoincrement: false;
+                hasRuntimeDefault: false;
+                enumValues: undefined;
+                baseColumn: never;
+                identity: undefined;
+                generated: undefined;
+            }, {}, {}>;
         };
         dialect: "pg";
     }>;

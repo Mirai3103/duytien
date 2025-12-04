@@ -1,9 +1,9 @@
 import { TRPCError } from "@trpc/server";
 import { publicProcedure, router } from "../trpc";
 import z from "zod";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import db from "@/db";
-import { addresses } from "@/db/schema";
+import { addresses, orders } from "@/db/schema";
 export interface Province {
   code: string;
   name: string;
@@ -29,6 +29,7 @@ const createAddressSchema = z.object({
   fullName: z.string(),
   note: z.string(),
   isDefault: z.boolean(),
+  isHidden: z.boolean().default(false),
 });
 const updateAddressSchema = createAddressSchema.partial().extend({
   id: z.number(),
@@ -81,7 +82,8 @@ const addressRoute = router({
       throw new TRPCError({ code: "UNAUTHORIZED", message: "Unauthorized" });
     }
     return await db.query.addresses.findMany({
-      where: eq(addresses.userId, ctx.session.user.id),
+      // hidden addresses should not be shown
+      where: and(eq(addresses.userId, ctx.session.user.id), eq(addresses.isHidden, false)),
       orderBy: [desc(addresses.id)],
     });
   }),
@@ -128,7 +130,9 @@ const addressRoute = router({
           fullName: input.fullName,
           note: input.note,
           userId: ctx.session.user.id!,
-          isDefault: input.isDefault,
+          // hidden should not be default
+          isDefault: input.isHidden ? false : input.isDefault,
+          isHidden: input.isHidden,
         })
         .returning();
 
@@ -144,8 +148,18 @@ const addressRoute = router({
       if (!ctx.session?.user) {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Unauthorized" });
       }
-      await db.delete(addresses).where(eq(addresses.id, input.id));
-      return { success: true };
+      // check if any order is using this address
+      const order = await db.query.orders.findFirst({
+        where: eq(orders.deliveryAddressId, input.id),
+      });
+      if (order) {
+        // just hide the address
+        await db.update(addresses).set({ isHidden: true }).where(eq(addresses.id, input.id));
+        return { success: true };
+      } else {
+        await db.delete(addresses).where(eq(addresses.id, input.id));
+        return { success: true };
+      }
     }),
   updateAddress: publicProcedure
     .input(updateAddressSchema)
@@ -167,5 +181,7 @@ const addressRoute = router({
         .where(eq(addresses.id, input.id));
       return { success: true };
     }),
+
+  
 });
 export { addressRoute };

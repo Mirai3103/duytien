@@ -6,9 +6,7 @@ import {
   CreditCard,
   MapPin,
   Wallet,
-  Plus,
   Tag,
-  Edit,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
@@ -26,6 +24,7 @@ import { useCartStore } from "@/store/cart";
 import { useTRPC } from "@/lib/trpc";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { AddressDialog, type Address } from "@/components/user/address-dialog";
+import { AddressSelection } from "@/components/checkout/address-selection";
 import { toast } from "sonner";
 import { getFinalPrice } from "@/lib/utils";
 
@@ -37,6 +36,13 @@ interface CheckoutFormData {
   selectedAddressId: number | null;
   paymentMethod: "cod" | "momo" | "vnpay" | "bank";
   note: string;
+  // Manual address entry fields
+  manualFullName: string;
+  manualPhone: string;
+  manualProvince: string;
+  manualWard: string;
+  manualDetail: string;
+  manualNote: string;
 }
 
 function RouteComponent() {
@@ -48,6 +54,8 @@ function RouteComponent() {
   // Address dialog state
   const [addressDialogOpen, setAddressDialogOpen] = useState(false);
   const [editingAddress, setEditingAddress] = useState<Address | undefined>();
+  // Use saved address toggle
+  const [useSavedAddress, setUseSavedAddress] = useState(true);
   const { data: voucher = null } = useQuery(trpc.vouchers.getVoucherByCode.queryOptions({ code: voucherCode || "" },{
     enabled: !!voucherCode,
   }));
@@ -58,6 +66,12 @@ function RouteComponent() {
       selectedAddressId: null,
       paymentMethod: "cod",
       note: "",
+      manualFullName: "",
+      manualPhone: "",
+      manualProvince: "",
+      manualWard: "",
+      manualDetail: "",
+      manualNote: "",
     },
     mode: "onChange",
   });
@@ -74,6 +88,20 @@ function RouteComponent() {
   // Load user addresses
   const { data: addresses = [] } = useQuery(
     trpc.addresses.getAddresses.queryOptions()
+  );
+
+  // Load provinces for manual entry
+  const { data: provinces = [] } = useQuery(
+    trpc.addresses.getProvinces.queryOptions()
+  );
+
+  // Load wards when province is selected in manual entry
+  const manualProvince = watch("manualProvince");
+  const { data: wards = [] } = useQuery(
+    trpc.addresses.getWards.queryOptions(
+      { provinceCode: manualProvince },
+      { enabled: !!manualProvince && !useSavedAddress }
+    )
   );
 
   // Mutation to create address
@@ -223,19 +251,56 @@ function RouteComponent() {
 
   // Form submission handler
   const onSubmit = async (data: CheckoutFormData) => {
-    if (!data.selectedAddressId) {
-      alert("Vui lòng chọn địa chỉ giao hàng");
+    let shippingAddressId = data.selectedAddressId;
+
+    // If manual entry mode, create a hidden address first
+    if (!useSavedAddress) {
+      // Validate manual entry fields
+      if (!data.manualFullName || !data.manualPhone || !data.manualProvince || 
+          !data.manualWard || !data.manualDetail) {
+        toast.error("Vui lòng điền đầy đủ thông tin địa chỉ");
+        return;
+      }
+
+      try {
+        // Get province name from code
+        const selectedProvince = provinces.find(p => p.code === data.manualProvince);
+        const provinceName = selectedProvince?.name || data.manualProvince;
+
+        // Create hidden address
+        shippingAddressId = await createAddressMutation.mutateAsync({
+          fullName: data.manualFullName,
+          phone: data.manualPhone,
+          province: provinceName,
+          ward: data.manualWard,
+          detail: data.manualDetail,
+          note: data.manualNote || "",
+          isDefault: false,
+          isHidden: true, // This is a hidden address
+        });
+      } catch (error) {
+        toast.error("Không thể tạo địa chỉ giao hàng");
+        return;
+      }
+    }
+
+    // Validate address is selected
+    if (!shippingAddressId) {
+      toast.error("Vui lòng chọn hoặc nhập địa chỉ giao hàng");
       return;
     }
+
     // Handle order submission
     console.log("Order submitted", {
       ...data,
       cartItems,
       total,
+      shippingAddressId,
     });
+    
     await createOrderMutation.mutateAsync({
       cartItems: selectedIds,
-      shippingAddressId: data.selectedAddressId,
+      shippingAddressId: shippingAddressId,
       note: data.note,
       paymentMethod: data.paymentMethod as "cod" | "momo" | "vnpay",
       voucherId: voucher?.id || undefined,
@@ -273,125 +338,35 @@ function RouteComponent() {
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Left Column - Forms */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Shipping Address - Select from saved addresses */}
+              {/* Shipping Address - Select from saved addresses or manual entry */}
               <Card>
                 <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-2">
-                      <MapPin className="h-5 w-5" />
-                      Địa chỉ giao hàng
-                    </CardTitle>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleAddAddress}
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Thêm địa chỉ mới
-                    </Button>
-                  </div>
+                  <CardTitle className="flex items-center gap-2">
+                    <MapPin className="h-5 w-5" />
+                    Địa chỉ giao hàng
+                  </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  {addresses.length > 0 ? (
-                    <div className="space-y-3">
-                      {addresses.map((address) => (
-                        <div
-                          key={address.id}
-                          className={`p-4 border rounded-lg transition-colors ${
-                            selectedAddressId === address.id
-                              ? "border-primary bg-primary/5"
-                              : "hover:bg-muted/50"
-                          }`}
-                        >
-                          <div className="flex items-start gap-3">
-                            <div 
-                              className="flex-1 cursor-pointer"
-                              onClick={() =>
-                                handleSelectAddress({
-                                  id: address.id,
-                                  fullName: address.fullName,
-                                  phone: address.phone,
-                                  detail: address.detail,
-                                  ward: address.ward,
-                                  province: address.province,
-                                  note: address.note || "",
-                                  isDefault: address.isDefault,
-                                })
-                              }
-                            >
-                              <div className="flex items-center gap-2 mb-1">
-                                <p className="font-semibold">
-                                  {address.fullName}
-                                </p>
-                                {address.isDefault && (
-                                  <Badge
-                                    variant="secondary"
-                                    className="text-xs"
-                                  >
-                                    Mặc định
-                                  </Badge>
-                                )}
-                              </div>
-                              <p className="text-sm text-muted-foreground mb-1">
-                                {address.phone}
-                              </p>
-                              <p className="text-sm">
-                                {address.detail}, {address.ward},{" "}
-                                {address.province}
-                              </p>
-                              {address.note && (
-                                <p className="text-sm text-muted-foreground italic mt-1">
-                                  Ghi chú: {address.note}
-                                </p>
-                              )}
-                            </div>
-                            <div className="flex flex-col items-end gap-2">
-                              {selectedAddressId === address.id && (
-                                <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0" />
-                              )}
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() =>
-                                  handleEditAddress({
-                                    id: address.id,
-                                    fullName: address.fullName,
-                                    phone: address.phone,
-                                    detail: address.detail,
-                                    ward: address.ward,
-                                    province: address.province,
-                                    note: address.note || "",
-                                    isDefault: address.isDefault,
-                                  })
-                                }
-                                disabled={
-                                  createAddressMutation.isPending ||
-                                  updateAddressMutation.isPending
-                                }
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <MapPin className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                      <p className="text-muted-foreground mb-4">
-                        Bạn chưa có địa chỉ nào
-                      </p>
-                      <Button onClick={handleAddAddress}>
-                        <Plus className="h-4 w-4 mr-2" />
-                        Thêm địa chỉ đầu tiên
-                      </Button>
-                    </div>
-                  )}
+                <CardContent>
+                  <AddressSelection
+                    control={control}
+                    setValue={setValue}
+                    addresses={addresses}
+                    provinces={provinces}
+                    wards={wards}
+                    selectedAddressId={selectedAddressId}
+                    useSavedAddress={useSavedAddress}
+                    onUseSavedAddressChange={setUseSavedAddress}
+                    onSelectAddress={handleSelectAddress}
+                    onEditAddress={handleEditAddress}
+                    onAddAddress={handleAddAddress}
+                    isCreating={createAddressMutation.isPending}
+                    isUpdating={updateAddressMutation.isPending}
+                    manualProvince={manualProvince}
+                  />
 
-                  {/* Note field */}
-                  {selectedAddressId && (
-                    <div className="space-y-4 pt-4 border-t">
+                  {/* Order Note field - shown for both modes */}
+                  {(selectedAddressId || !useSavedAddress) && (
+                    <div className="space-y-4 pt-4 mt-4 border-t">
                       <div className="space-y-2">
                         <Label htmlFor="note">
                           Ghi chú đơn hàng (không bắt buộc)
@@ -740,7 +715,8 @@ function RouteComponent() {
                     className="w-full"
                     onClick={handleSubmit(onSubmit)}
                     disabled={
-                      !selectedAddressId || createOrderMutation.isPending
+                      (useSavedAddress && !selectedAddressId) ||
+                      createOrderMutation.isPending
                     }
                   >
                     <CheckCircle2 className="h-5 w-5 mr-2" />

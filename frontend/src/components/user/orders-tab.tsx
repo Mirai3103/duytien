@@ -386,7 +386,7 @@ export function OrdersTab() {
                           Chi tiết
                         </Button>
                         {order.lastPayment?.status != "success" && 
-                         order.lastPayment?.method != "cod" && (
+                         order.lastPayment?.method != "cod" && order.status != "cancelled" && (
                           <Button 
                             variant="default" 
                             size="sm"
@@ -605,6 +605,43 @@ export function OrdersTab() {
                   })}
                 </div>
               </div>
+
+              <Separator />
+
+              {/* Delivery Address */}
+              {selectedOrder.deliveryAddress && (
+                <div>
+                  <p className="text-sm font-medium mb-2">Địa chỉ giao hàng</p>
+                  <div className="bg-muted/50 p-3 rounded-lg space-y-1">
+                    <p className="text-sm font-medium">
+                      {selectedOrder.deliveryAddress.fullName}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedOrder.deliveryAddress.phone}
+                    </p>
+                    <p className="text-sm">
+                      {selectedOrder.deliveryAddress.detail},{" "}
+                      {selectedOrder.deliveryAddress.ward},{" "}
+                      {selectedOrder.deliveryAddress.province}
+                    </p>
+                    {selectedOrder.deliveryAddress.note && (
+                      <p className="text-sm text-muted-foreground italic">
+                        Ghi chú địa chỉ: {selectedOrder.deliveryAddress.note}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Order Note */}
+              {selectedOrder.note && (
+                <div>
+                  <p className="text-sm font-medium mb-2">Ghi chú đơn hàng</p>
+                  <div className="bg-muted/50 p-3 rounded-lg">
+                    <p className="text-sm">{selectedOrder.note}</p>
+                  </div>
+                </div>
+              )}
 
               <Separator />
 

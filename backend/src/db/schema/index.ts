@@ -566,6 +566,7 @@ export const addresses = pgTable(
     note: text("note"),
     phone: varchar("phone", { length: 255 }).notNull(), // số điện thoại người nhận
     fullName: varchar("full_name", { length: 255 }).notNull(), // tên người nhận
+    isHidden: boolean("is_hidden").default(false).notNull(),
   },
   (t) => [
     foreignKey({
@@ -713,6 +714,10 @@ export const ordersRelations = relations(orders, ({ one, many }) => ({
   lastPayment: one(payments, {
     fields: [orders.lastPaymentId],
     references: [payments.id],
+  }),
+  deliveryAddress: one(addresses, {
+    fields: [orders.deliveryAddressId],
+    references: [addresses.id],
   }),
 }));
 

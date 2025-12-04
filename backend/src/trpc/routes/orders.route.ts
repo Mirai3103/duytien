@@ -246,6 +246,7 @@ export const ordersRoute = router({
           },
           lastPayment: true,
           voucher: true,
+          deliveryAddress: true,
         },
         limit,
         offset,
