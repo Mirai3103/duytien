@@ -358,6 +358,7 @@ export const payments = pgTable(
 );
 
 // ===== ORDERS =====
+export const payTypeEnum = pgEnum("pay_type", ["full", "partial"]);
 export const orders = pgTable(
   "orders",
   {
@@ -367,12 +368,20 @@ export const orders = pgTable(
     status: orderStatusEnum("status").default("pending").notNull(),
     totalAmount: decimal("total_amount", { precision: 14, scale: 2 }).notNull(),
     paymentMethod: paymentMethodEnum("payment_method").notNull(),
+    payType: payTypeEnum("pay_type").notNull().default("full"),
     deliveryAddressId: integer("delivery_address_id"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     voucherId: integer("voucher_id"),
     totalItems: integer("total_items").default(0).notNull(),
     lastPaymentId: integer("last_payment_id"),
     note: text("note"),
+    identityId: text("identity_id"), // id of user
+    full_name: varchar("full_name", { length: 255 }),
+    nextPayDay: timestamp("next_pay_day"),
+    nextPayAmount: decimal("next_pay_amount", { precision: 14, scale: 2 }),
+    installmentCount: integer("installment_count"),   // tổng số kỳ
+    remainingInstallments: integer("remaining_installments"), // còn lại bao nhiêu kỳ
+    totalPaidAmount: decimal("total_paid_amount", { precision: 14, scale: 2 }),
   },
   (t) => [
     index("orders_user_idx").on(t.userId),
