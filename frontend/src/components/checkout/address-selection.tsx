@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import type { Address } from "@/components/user/address-dialog";
+import type { CheckoutFormData } from "@/routes/_storefront/checkout";
 
 interface Province {
   code: string;
@@ -30,18 +31,6 @@ interface Province {
 interface Ward {
   code: string;
   name: string;
-}
-
-interface CheckoutFormData {
-  selectedAddressId: number | null;
-  paymentMethod: "cod" | "momo" | "vnpay" | "bank";
-  note: string;
-  manualFullName: string;
-  manualPhone: string;
-  manualProvince: string;
-  manualWard: string;
-  manualDetail: string;
-  manualNote: string;
 }
 
 interface AddressSelectionProps {

@@ -17,6 +17,10 @@ const createOrderSchema = z.object({
   note: z.string().optional(),
   paymentMethod: z.enum(["cod", "vnpay", "momo"]),
   voucherId: z.number().optional(),
+  installmentCount: z.number().optional(),
+  payType: z.enum(["full", "partial"]).optional().default("full"),
+  identityId: z.string().optional(),
+  fullName: z.string().optional(),
 });
 
 const searchOrdersSchema = z.object({

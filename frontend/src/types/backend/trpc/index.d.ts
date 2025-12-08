@@ -1576,6 +1576,10 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
                 paymentMethod: "cod" | "vnpay" | "momo";
                 note?: string | undefined;
                 voucherId?: number | undefined;
+                installmentCount?: number | undefined;
+                payType?: "full" | "partial" | undefined;
+                identityId?: string | undefined;
+                fullName?: string | undefined;
             };
             output: {
                 success: boolean;
@@ -1598,11 +1602,19 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
                     userId: string;
                     code: string;
                     paymentMethod: "cod" | "vnpay" | "momo";
+                    payType: "full" | "partial";
                     deliveryAddressId: number | null;
                     voucherId: number | null;
                     totalItems: number;
                     lastPaymentId: number | null;
                     note: string | null;
+                    identityId: string | null;
+                    full_name: string | null;
+                    nextPayDay: Date | null;
+                    nextPayAmount: string | null;
+                    installmentCount: number | null;
+                    remainingInstallments: number | null;
+                    totalPaidAmount: string | null;
                     voucher: {
                         id: number;
                         name: string;
@@ -1776,12 +1788,20 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
                         status: "pending" | "confirmed" | "shipping" | "delivered" | "cancelled";
                         totalAmount: string;
                         paymentMethod: "cod" | "vnpay" | "momo";
+                        payType: "full" | "partial";
                         deliveryAddressId: number | null;
                         createdAt: Date;
                         voucherId: number | null;
                         totalItems: number;
                         lastPaymentId: number | null;
                         note: string | null;
+                        identityId: string | null;
+                        full_name: string | null;
+                        nextPayDay: Date | null;
+                        nextPayAmount: string | null;
+                        installmentCount: number | null;
+                        remainingInstallments: number | null;
+                        totalPaidAmount: string | null;
                     };
                     u_table: {
                         id: string;
@@ -1819,11 +1839,19 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
                 userId: string;
                 code: string;
                 paymentMethod: "cod" | "vnpay" | "momo";
+                payType: "full" | "partial";
                 deliveryAddressId: number | null;
                 voucherId: number | null;
                 totalItems: number;
                 lastPaymentId: number | null;
                 note: string | null;
+                identityId: string | null;
+                full_name: string | null;
+                nextPayDay: Date | null;
+                nextPayAmount: string | null;
+                installmentCount: number | null;
+                remainingInstallments: number | null;
+                totalPaidAmount: string | null;
                 user: {
                     id: string;
                     name: string;

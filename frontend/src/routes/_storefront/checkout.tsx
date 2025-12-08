@@ -7,6 +7,7 @@ import {
   MapPin,
   Wallet,
   Tag,
+  Calendar,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
@@ -20,6 +21,15 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useCartStore } from "@/store/cart";
 import { useTRPC } from "@/lib/trpc";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -32,7 +42,7 @@ export const Route = createFileRoute("/_storefront/checkout")({
   component: RouteComponent,
 });
 
-interface CheckoutFormData {
+export interface CheckoutFormData {
   selectedAddressId: number | null;
   paymentMethod: "cod" | "momo" | "vnpay" | "bank";
   note: string;
@@ -43,6 +53,10 @@ interface CheckoutFormData {
   manualWard: string;
   manualDetail: string;
   manualNote: string;
+  // Installment fields
+  identityId: string;
+  fullName: string;
+  installmentCount: number;
 }
 
 function RouteComponent() {
@@ -56,6 +70,8 @@ function RouteComponent() {
   const [editingAddress, setEditingAddress] = useState<Address | undefined>();
   // Use saved address toggle
   const [useSavedAddress, setUseSavedAddress] = useState(true);
+  // Installment toggle
+  const [isInstallment, setIsInstallment] = useState(false);
   const { data: voucher = null } = useQuery(trpc.vouchers.getVoucherByCode.queryOptions({ code: voucherCode || "" },{
     enabled: !!voucherCode,
   }));
@@ -72,11 +88,16 @@ function RouteComponent() {
       manualWard: "",
       manualDetail: "",
       manualNote: "",
+      identityId: "",
+      fullName: "",
+      installmentCount: 6,
     },
     mode: "onChange",
   });
 
   const selectedAddressId = watch("selectedAddressId");
+  const installmentCount = watch("installmentCount");
+  const paymentMethod = watch("paymentMethod");
 
   const { data: cartItems } = useQuery(
     trpc.cart.getCartItemsInIds.queryOptions(selectedIds, {
@@ -197,6 +218,11 @@ function RouteComponent() {
   
   const shippingFee = 0;
   const total = subtotal - reducePrice + shippingFee;
+  
+  // Calculate installment amount and round up to nearest 1000
+  const installmentAmount = isInstallment && installmentCount > 0 
+    ? Math.ceil(total / installmentCount / 1000) * 1000
+    : total;
 
   // Handle address selection
   const handleSelectAddress = (address: Address) => {
@@ -298,12 +324,28 @@ function RouteComponent() {
       shippingAddressId,
     });
     
+    // Validate installment fields if installment mode is on
+    if (isInstallment) {
+      if (!data.identityId || !data.fullName) {
+        toast.error("Vui lòng điền đầy đủ thông tin CCCD và họ tên cho trả góp");
+        return;
+      }
+      if (!data.installmentCount || data.installmentCount < 1) {
+        toast.error("Vui lòng chọn kỳ hạn trả góp");
+        return;
+      }
+    }
+
     await createOrderMutation.mutateAsync({
       cartItems: selectedIds,
       shippingAddressId: shippingAddressId,
       note: data.note,
       paymentMethod: data.paymentMethod as "cod" | "momo" | "vnpay",
       voucherId: voucher?.id || undefined,
+      payType: isInstallment ? "partial" : "full",
+      installmentCount: isInstallment ? data.installmentCount : undefined,
+      identityId: isInstallment ? data.identityId : undefined,
+      fullName: isInstallment ? data.fullName : undefined,
     });
     toast.success("Đặt hàng thành công");
   };
@@ -389,84 +431,134 @@ function RouteComponent() {
                 </CardContent>
               </Card>
 
-              {/* Shipping Method */}
-              {/* <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Truck className="h-5 w-5" />
-                    Phương thức vận chuyển
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <RadioGroup
-                    value={shippingMethod}
-                    onValueChange={setShippingMethod}
-                  >
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between p-4 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
-                        <div className="flex items-center space-x-3">
-                          <RadioGroupItem value="free" id="free" />
-                          <Label htmlFor="free" className="cursor-pointer">
-                            <div>
-                              <p className="font-semibold">
-                                Miễn phí vận chuyển
-                              </p>
-                              <p className="text-sm text-muted-foreground">
-                                Giao hàng trong 5-7 ngày
-                              </p>
-                            </div>
-                          </Label>
-                        </div>
-                        <span className="font-semibold text-green-600">
-                          Miễn phí
-                        </span>
-                      </div>
-
-                      <div className="flex items-center justify-between p-4 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
-                        <div className="flex items-center space-x-3">
-                          <RadioGroupItem value="standard" id="standard" />
-                          <Label htmlFor="standard" className="cursor-pointer">
-                            <div>
-                              <p className="font-semibold">
-                                Giao hàng tiêu chuẩn
-                              </p>
-                              <p className="text-sm text-muted-foreground">
-                                Giao hàng trong 2-3 ngày
-                              </p>
-                            </div>
-                          </Label>
-                        </div>
-                        <span className="font-semibold">30,000đ</span>
-                      </div>
-
-                      <div className="flex items-center justify-between p-4 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
-                        <div className="flex items-center space-x-3">
-                          <RadioGroupItem value="express" id="express" />
-                          <Label htmlFor="express" className="cursor-pointer">
-                            <div>
-                              <p className="font-semibold">Giao hàng nhanh</p>
-                              <p className="text-sm text-muted-foreground">
-                                Giao hàng trong 24 giờ
-                              </p>
-                            </div>
-                          </Label>
-                        </div>
-                        <span className="font-semibold">50,000đ</span>
-                      </div>
-                    </div>
-                  </RadioGroup>
-                </CardContent>
-              </Card> */}
-
               {/* Payment Method */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <CreditCard className="h-5 w-5" />
-                    Phương thức thanh toán
+                  <CardTitle className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <CreditCard className="h-5 w-5" />
+                      Phương thức thanh toán
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="installment-toggle" className="text-sm font-normal cursor-pointer">
+                        Trả góp
+                      </Label>
+                      <Switch
+                        id="installment-toggle"
+                        checked={isInstallment}
+                        onCheckedChange={(checked) => {
+                          setIsInstallment(checked);
+                          // Change payment method to momo if COD is selected
+                          if (checked && paymentMethod === "cod") {
+                            setValue("paymentMethod", "momo");
+                          }
+                        }}
+                      />
+                    </div>
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4">
+                  {/* Installment Form */}
+                  {isInstallment && (
+                    <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg space-y-4">
+                      <div className="flex items-start gap-2">
+                        <Calendar className="h-5 w-5 text-blue-600 mt-0.5" />
+                        <div className="flex-1 space-y-3">
+                          <div>
+                            <p className="font-semibold text-blue-900 dark:text-blue-100">
+                              Thông tin trả góp
+                            </p>
+                            <p className="text-sm text-blue-700 dark:text-blue-300">
+                              Vui lòng điền đầy đủ thông tin để sử dụng dịch vụ trả góp
+                            </p>
+                          </div>
+
+                          {/* Identity ID Field */}
+                          <div className="space-y-2">
+                            <Label htmlFor="identityId">
+                              Số CCCD/CMND <span className="text-red-500">*</span>
+                            </Label>
+                            <Controller
+                              name="identityId"
+                              control={control}
+                              rules={{ required: isInstallment }}
+                              render={({ field }) => (
+                                <Input
+                                  {...field}
+                                  id="identityId"
+                                  placeholder="Nhập số CCCD/CMND"
+                                  className="bg-white dark:bg-gray-950"
+                                />
+                              )}
+                            />
+                          </div>
+
+                          {/* Full Name Field */}
+                          <div className="space-y-2">
+                            <Label htmlFor="fullName">
+                              Họ và tên (đầy đủ) <span className="text-red-500">*</span>
+                            </Label>
+                            <Controller
+                              name="fullName"
+                              control={control}
+                              rules={{ required: isInstallment }}
+                              render={({ field }) => (
+                                <Input
+                                  {...field}
+                                  id="fullName"
+                                  placeholder="Nhập họ và tên đầy đủ"
+                                  className="bg-white dark:bg-gray-950"
+                                />
+                              )}
+                            />
+                          </div>
+
+                          {/* Installment Count Select */}
+                          <div className="space-y-2">
+                            <Label htmlFor="installmentCount">
+                              Kỳ hạn trả góp <span className="text-red-500">*</span>
+                            </Label>
+                            <Controller
+                              name="installmentCount"
+                              control={control}
+                              rules={{ required: isInstallment }}
+                              render={({ field }) => (
+                                <Select
+                                  value={field.value?.toString()}
+                                  onValueChange={(value) => field.onChange(Number(value))}
+                                >
+                                  <SelectTrigger className="bg-white dark:bg-gray-950">
+                                    <SelectValue placeholder="Chọn kỳ hạn" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="6">6 tháng</SelectItem>
+                                    <SelectItem value="12">12 tháng</SelectItem>
+                                    <SelectItem value="18">18 tháng</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              )}
+                            />
+                          </div>
+
+                          {/* Installment Info */}
+                          {installmentCount > 0 && (
+                            <div className="p-3 bg-white dark:bg-gray-950 border border-blue-200 dark:border-blue-800 rounded-md">
+                              <p className="text-sm text-muted-foreground mb-1">
+                                Số tiền mỗi kỳ:
+                              </p>
+                              <p className="text-lg font-bold text-blue-600">
+                                {installmentAmount.toLocaleString("vi-VN")}đ
+                              </p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Thanh toán {installmentCount} kỳ, mỗi tháng một lần
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <Controller
                     name="paymentMethod"
                     control={control}
@@ -477,25 +569,28 @@ function RouteComponent() {
                         onValueChange={field.onChange}
                       >
                         <div className="space-y-3">
-                          <div className="flex items-center justify-between p-4 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
-                            <div className="flex items-center space-x-3">
-                              <RadioGroupItem value="cod" id="cod" />
-                              <Label htmlFor="cod" className="cursor-pointer">
-                                <div className="flex items-center gap-2">
-                                  <Wallet className="h-5 w-5 text-muted-foreground" />
-                                  <div>
-                                    <p className="font-semibold">
-                                      Thanh toán khi nhận hàng (COD)
-                                    </p>
-                                    <p className="text-sm text-muted-foreground">
-                                      Thanh toán bằng tiền mặt khi nhận hàng
-                                    </p>
+                          {/* Hide COD when installment is enabled */}
+                          {!isInstallment && (
+                            <div className="flex items-center justify-between p-4 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
+                              <div className="flex items-center space-x-3">
+                                <RadioGroupItem value="cod" id="cod" />
+                                <Label htmlFor="cod" className="cursor-pointer">
+                                  <div className="flex items-center gap-2">
+                                    <Wallet className="h-5 w-5 text-muted-foreground" />
+                                    <div>
+                                      <p className="font-semibold">
+                                        Thanh toán khi nhận hàng (COD)
+                                      </p>
+                                      <p className="text-sm text-muted-foreground">
+                                        Thanh toán bằng tiền mặt khi nhận hàng
+                                      </p>
+                                    </div>
                                   </div>
-                                </div>
-                              </Label>
+                                </Label>
+                              </div>
+                              <Badge variant="secondary">Phổ biến</Badge>
                             </div>
-                            <Badge variant="secondary">Phổ biến</Badge>
-                          </div>
+                          )}
                           {/* 
                       <div className="flex items-center justify-between p-4 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
                         <div className="flex items-center space-x-3">
@@ -707,6 +802,47 @@ function RouteComponent() {
                         {total.toLocaleString("vi-VN")}đ
                       </span>
                     </div>
+
+                    {/* Installment Summary */}
+                    {isInstallment && installmentCount > 0 && (
+                      <div className="p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg space-y-2">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4 text-blue-600" />
+                          <span className="font-semibold text-blue-900 dark:text-blue-100 text-sm">
+                            Thông tin trả góp
+                          </span>
+                        </div>
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-blue-700 dark:text-blue-300">
+                              Số tiền mỗi kỳ:
+                            </span>
+                            <span className="font-bold text-blue-600">
+                              {installmentAmount.toLocaleString("vi-VN")}đ
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-blue-700 dark:text-blue-300">
+                              Số kỳ:
+                            </span>
+                            <span className="font-semibold text-blue-600">
+                              {installmentCount} tháng
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-blue-700 dark:text-blue-300">
+                              Thanh toán lần đầu:
+                            </span>
+                            <span className="font-semibold text-blue-600">
+                              {installmentAmount.toLocaleString("vi-VN")}đ
+                            </span>
+                          </div>
+                        </div>
+                        <p className="text-xs text-blue-600 dark:text-blue-400 italic">
+                          * Các kỳ tiếp theo sẽ được thanh toán mỗi tháng một lần
+                        </p>
+                      </div>
+                    )}
                   </div>
 
                   {/* Place Order Button */}

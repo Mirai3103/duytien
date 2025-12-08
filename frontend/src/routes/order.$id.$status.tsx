@@ -87,7 +87,7 @@ function RouteComponent() {
                   <div className="flex items-center justify-between py-3 border-b">
                     <span className="text-muted-foreground">Tổng tiền</span>
                     <span className="font-bold text-xl text-primary">
-                      {Number(order.totalAmount).toLocaleString('vi-VN')}đ
+                      {Number(order.lastPayment?.amount).toLocaleString('vi-VN')}đ
                     </span>
                   </div>
 

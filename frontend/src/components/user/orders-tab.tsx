@@ -15,6 +15,8 @@ import {
   ChevronRight,
   Loader2,
   Star,
+  Calendar,
+  CreditCard,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import {
@@ -356,6 +358,48 @@ export function OrdersTab() {
 
                     <Separator className="mb-4" />
 
+                    {/* Installment Info */}
+                    {order.payType === "partial" && (
+                      <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Calendar className="h-4 w-4 text-blue-600" />
+                          <span className="font-semibold text-blue-900 dark:text-blue-100 text-sm">
+                            Đơn hàng trả góp
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                          <div>
+                            <span className="text-blue-700 dark:text-blue-300">Đã trả:</span>
+                            <p className="font-semibold text-blue-900 dark:text-blue-100">
+                              {Number(order.totalPaidAmount || 0).toLocaleString("vi-VN")}đ
+                            </p>
+                          </div>
+                          <div>
+                            <span className="text-blue-700 dark:text-blue-300">Còn lại:</span>
+                            <p className="font-semibold text-blue-900 dark:text-blue-100">
+                              {order.remainingInstallments || 0} kỳ
+                            </p>
+                          </div>
+                          {order.remainingInstallments > 0 && (
+                            <>
+                              <div>
+                                <span className="text-blue-700 dark:text-blue-300">Kỳ tiếp theo:</span>
+                                <p className="font-semibold text-blue-900 dark:text-blue-100">
+                                  {new Date(order.nextPayDay).toLocaleDateString("vi-VN")}
+                                </p>
+                              </div>
+                              <div>
+                                <span className="text-blue-700 dark:text-blue-300">Số tiền:</span>
+                                <p className="font-semibold text-blue-900 dark:text-blue-100">
+                                  {Number(order.nextPayAmount || 0).toLocaleString("vi-VN")}đ
+                                </p>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
                     {/* Order Footer */}
                     <div className="flex items-center justify-between flex-wrap gap-4">
                       <div className="space-y-1">
@@ -365,10 +409,15 @@ export function OrdersTab() {
                         <p className="text-xl font-bold text-primary">
                           {Number(order.totalAmount).toLocaleString("vi-VN")}đ
                         </p>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <p className="text-xs text-muted-foreground uppercase">
                             {order.paymentMethod}
                           </p>
+                          {order.payType === "partial" && (
+                            <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700 border-blue-300">
+                              Trả góp {order.installmentCount} kỳ
+                            </Badge>
+                          )}
                           {order.voucher && (
                             <Badge variant="secondary" className="text-xs">
                               🎫 {order.voucher.code}
@@ -376,7 +425,7 @@ export function OrdersTab() {
                           )}
                         </div>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 flex-wrap">
                         <Button
                           variant="outline"
                           size="sm"
@@ -399,6 +448,23 @@ export function OrdersTab() {
                               <CheckCircle2 className="h-4 w-4 mr-1" />
                             )}
                             Thanh toán
+                          </Button>
+                        )}
+                        {/* Installment payment button */}
+                        {order.payType === "partial" && 
+                         order.remainingInstallments > 0 && 
+                         order.status !== "cancelled" && (
+                          <Button 
+                            variant="default" 
+                            size="sm"
+                            className="bg-blue-600 hover:bg-blue-700"
+                            onClick={() => {
+                              // TODO: Implement installment payment logic
+                              toast.info("Chức năng thanh toán trả góp đang được phát triển");
+                            }}
+                          >
+                            <CreditCard className="h-4 w-4 mr-1" />
+                            Trả góp kỳ tiếp
                           </Button>
                         )}
                         {order.status === "delivered" && (
@@ -651,9 +717,16 @@ export function OrdersTab() {
                   <p className="text-sm font-medium mb-2">
                     Phương thức thanh toán
                   </p>
-                  <p className="text-sm uppercase">
-                    {selectedOrder.paymentMethod}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm uppercase">
+                      {selectedOrder.paymentMethod}
+                    </p>
+                    {selectedOrder.payType === "partial" && (
+                      <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700 border-blue-300">
+                        Trả góp
+                      </Badge>
+                    )}
+                  </div>
                 </div>
                 {selectedOrder.voucher && (
                   <div>
@@ -666,6 +739,111 @@ export function OrdersTab() {
                   </div>
                 )}
               </div>
+
+              {/* Installment Details */}
+              {selectedOrder.payType === "partial" && (
+                <>
+                  <Separator />
+                  <div>
+                    <p className="text-sm font-medium mb-3">Thông tin trả góp</p>
+                    <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 space-y-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Calendar className="h-5 w-5 text-blue-600" />
+                        <span className="font-semibold text-blue-900 dark:text-blue-100">
+                          Kế hoạch thanh toán {selectedOrder.installmentCount} kỳ
+                        </span>
+                      </div>
+                      
+                      {selectedOrder.identityId && (
+                        <div className="grid grid-cols-2 gap-3 text-sm">
+                          <div>
+                            <span className="text-blue-700 dark:text-blue-300">Số CCCD:</span>
+                            <p className="font-semibold text-blue-900 dark:text-blue-100">
+                              {selectedOrder.identityId}
+                            </p>
+                          </div>
+                          <div>
+                            <span className="text-blue-700 dark:text-blue-300">Họ và tên:</span>
+                            <p className="font-semibold text-blue-900 dark:text-blue-100">
+                              {selectedOrder.fullName}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      <Separator className="bg-blue-200 dark:bg-blue-800" />
+
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div>
+                          <span className="text-blue-700 dark:text-blue-300">Tổng số kỳ:</span>
+                          <p className="font-semibold text-blue-900 dark:text-blue-100">
+                            {selectedOrder.installmentCount} tháng
+                          </p>
+                        </div>
+                        <div>
+                          <span className="text-blue-700 dark:text-blue-300">Số tiền mỗi kỳ:</span>
+                          <p className="font-semibold text-blue-900 dark:text-blue-100">
+                            {Number(selectedOrder.nextPayAmount || 0).toLocaleString("vi-VN")}đ
+                          </p>
+                        </div>
+                        <div>
+                          <span className="text-blue-700 dark:text-blue-300">Đã thanh toán:</span>
+                          <p className="font-semibold text-green-600">
+                            {Number(selectedOrder.totalPaidAmount || 0).toLocaleString("vi-VN")}đ
+                          </p>
+                        </div>
+                        <div>
+                          <span className="text-blue-700 dark:text-blue-300">Còn lại:</span>
+                          <p className="font-semibold text-orange-600">
+                            {selectedOrder.remainingInstallments || 0} kỳ
+                          </p>
+                        </div>
+                      </div>
+
+                      {selectedOrder.remainingInstallments > 0 && (
+                        <>
+                          <Separator className="bg-blue-200 dark:bg-blue-800" />
+                          <div className="bg-white dark:bg-gray-950 p-3 rounded-md">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="text-sm text-blue-700 dark:text-blue-300">
+                                  Kỳ thanh toán tiếp theo:
+                                </p>
+                                <p className="font-bold text-blue-900 dark:text-blue-100">
+                                  {new Date(selectedOrder.nextPayDay).toLocaleDateString("vi-VN", {
+                                    year: "numeric",
+                                    month: "long",
+                                    day: "numeric",
+                                  })}
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-sm text-blue-700 dark:text-blue-300">
+                                  Số tiền:
+                                </p>
+                                <p className="font-bold text-lg text-blue-600">
+                                  {Number(selectedOrder.nextPayAmount || 0).toLocaleString("vi-VN")}đ
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </>
+                      )}
+
+                      {selectedOrder.remainingInstallments === 0 && (
+                        <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 p-3 rounded-md">
+                          <div className="flex items-center gap-2">
+                            <CheckCircle2 className="h-5 w-5 text-green-600" />
+                            <p className="font-semibold text-green-700 dark:text-green-300">
+                              Đã hoàn thành thanh toán trả góp
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
 
               <Separator />
 
