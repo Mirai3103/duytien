@@ -127,9 +127,9 @@ export async function createOrderService(input: CreateOrderInput) {
         const rawInstallmentAmount = finalTotalAmount / input.installmentCount;
         installmentAmount = Math.ceil(rawInstallmentAmount / 1000) * 1000;
         
-        nextPayDay = dayjs().add(1, "month").toDate();
-        remainingInstallments = input.installmentCount - 1; // Minus first payment
-        totalPaidAmount = installmentAmount;
+        nextPayDay = new Date(); // Today, not next month
+        remainingInstallments = input.installmentCount; // Total installments, not minus 1
+        totalPaidAmount = 0; // Start from 0, not first payment
       }
   
       // Create order

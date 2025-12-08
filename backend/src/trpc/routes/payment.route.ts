@@ -3,8 +3,9 @@ import { protectedProcedure, publicProcedure, router } from "../trpc";
 import { z } from "zod";
 import { createPayment, momoSdk, verifyPayment } from "@/services/payment";
 import { TRPCError } from "@trpc/server";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { orders as ordersTable, payments as paymentsTable } from "@/db/schema";
+import dayjs from "dayjs";
 // partnerCode=MOMO&orderId=ORD-251111-B98B&requestId=ORD-251111-B98B&amount=17942000&orderInfo=Đơn+hàng+ORD-251111-B98B&orderType=momo_wallet&transId=4610849895&resultCode=0&message=Thành+công.&payType=qr&responseTime=1762884809397&extraData=&signature=f03a51ba4d0c85471920036aa6e3ef0ec9993ef01ca23f46ee5405241c8a51d6
 const callbackSchema = z.object({
   momo: z.any().optional(),
@@ -35,6 +36,9 @@ export const paymentRoute = router({
       const id = result.id;
       const payment = await db.query.payments.findFirst({
         where: eq(paymentsTable.id, Number(id)),
+        with: {
+          order: true,
+        },
       });
       const isSuccess = result.isSuccess;
 
@@ -45,12 +49,36 @@ export const paymentRoute = router({
           payment: null,
         };
       }
+      
+      // Update payment status
       await db
         .update(paymentsTable)
         .set({
           status: isSuccess ? "success" : "failed",
         })
         .where(eq(paymentsTable.id, Number(id)));
+
+      // Handle installment payment success
+      if (isSuccess && payment.order && payment.order.payType === "partial") {
+        const order = payment.order;
+        const remainingInstallments = (order.remainingInstallments || 0) - 1;
+        const totalPaidAmount = Number(order.totalPaidAmount || 0) + Number(payment.amount);
+        
+        // Calculate next payment day (1 month from current nextPayDay)
+        const nextPayDay = remainingInstallments > 0 
+          ? dayjs(order.nextPayDay).add(1, "month").toDate()
+          : null;
+
+        await db
+          .update(ordersTable)
+          .set({
+            remainingInstallments: remainingInstallments,
+            totalPaidAmount: totalPaidAmount.toString(),
+            nextPayDay: nextPayDay,
+          })
+          .where(eq(ordersTable.id, order.id));
+      }
+
       return {
         success: true,
         isPaymentSuccess: isSuccess,
@@ -146,6 +174,72 @@ export const paymentRoute = router({
       return {
         success: true,
         message: "Order payment status updated successfully",
+      };
+    }),
+
+    createInstallmentPayment: protectedProcedure
+    .input(z.object({
+      orderId: z.number(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const order = await db.query.orders.findFirst({
+        where: eq(ordersTable.id, input.orderId),
+      });
+
+      if (!order) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Order not found",
+        });
+      }
+
+      if (order.payType !== "partial") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Order is not an installment order",
+        });
+      }
+
+      if (!order.remainingInstallments || order.remainingInstallments <= 0) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "No remaining installments to pay",
+        });
+      }
+
+      // Create new payment for this installment
+      const [newPayment] = await db
+        .insert(paymentsTable)
+        .values({
+          orderId: order.id,
+          method: order.paymentMethod as "momo" | "vnpay",
+          status: "pending",
+          paymentDate: new Date(),
+          createdAt: new Date(),
+          amount: order.nextPayAmount?.toString() || "0",
+        })
+        .returning();
+
+      // Create payment URL
+      const paymentUrl = await createPayment({
+        amount: Number(order.nextPayAmount || 0),
+        orderInfo: `Trả góp kỳ ${(order.installmentCount || 0) - order.remainingInstallments + 1} - Đơn hàng ${order.code}`,
+        id: newPayment!.id.toString(),
+        method: order.paymentMethod as "momo" | "vnpay",
+      });
+
+      // Update order's last payment ID
+      await db
+        .update(ordersTable)
+        .set({
+          lastPaymentId: newPayment!.id,
+        })
+        .where(eq(ordersTable.id, order.id));
+
+      return {
+        success: true,
+        message: "Installment payment created successfully",
+        redirectUrl: paymentUrl,
       };
     }), 
 });

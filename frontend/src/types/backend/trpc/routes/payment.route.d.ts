@@ -48,6 +48,28 @@ export declare const paymentRoute: import("@trpc/server").TRPCBuiltRouter<{
                 amount: string;
                 method: string | null;
                 paymentDate: Date | null;
+                order: {
+                    id: number;
+                    createdAt: Date;
+                    totalAmount: string;
+                    status: "pending" | "confirmed" | "shipping" | "delivered" | "cancelled";
+                    userId: string;
+                    code: string;
+                    paymentMethod: "cod" | "vnpay" | "momo";
+                    payType: "full" | "partial";
+                    deliveryAddressId: number | null;
+                    voucherId: number | null;
+                    totalItems: number;
+                    lastPaymentId: number | null;
+                    note: string | null;
+                    identityId: string | null;
+                    full_name: string | null;
+                    nextPayDay: Date | null;
+                    nextPayAmount: string | null;
+                    installmentCount: number | null;
+                    remainingInstallments: number | null;
+                    totalPaidAmount: string | null;
+                };
             };
         };
         meta: object;
@@ -77,6 +99,17 @@ export declare const paymentRoute: import("@trpc/server").TRPCBuiltRouter<{
         output: {
             success: boolean;
             message: string;
+        };
+        meta: object;
+    }>;
+    createInstallmentPayment: import("@trpc/server").TRPCMutationProcedure<{
+        input: {
+            orderId: number;
+        };
+        output: {
+            success: boolean;
+            message: string;
+            redirectUrl: string;
         };
         meta: object;
     }>;

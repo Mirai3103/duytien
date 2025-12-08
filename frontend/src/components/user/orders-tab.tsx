@@ -173,6 +173,27 @@ export function OrdersTab() {
     paymentMutation.mutate({ orderId: orderId.toString() });
   };
 
+  // Installment payment mutation
+  const installmentPaymentMutation = useMutation(
+    trpc.payment.createInstallmentPayment.mutationOptions({
+      onSuccess: (data: any) => {
+        if (data.success && data.redirectUrl) {
+          window.location.href = data.redirectUrl;
+        } else {
+          toast.error(data.message || "Không thể tạo thanh toán trả góp");
+        }
+      },
+      onError: (error: any) => {
+        toast.error(error.message || "Có lỗi xảy ra khi tạo thanh toán trả góp");
+        console.error(error);
+      },
+    })
+  );
+
+  const handleInstallmentPayment = (orderId: number) => {
+    installmentPaymentMutation.mutate({ orderId });
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -458,12 +479,14 @@ export function OrdersTab() {
                             variant="default" 
                             size="sm"
                             className="bg-blue-600 hover:bg-blue-700"
-                            onClick={() => {
-                              // TODO: Implement installment payment logic
-                              toast.info("Chức năng thanh toán trả góp đang được phát triển");
-                            }}
+                            onClick={() => handleInstallmentPayment(order.id)}
+                            disabled={installmentPaymentMutation.isPending}
                           >
-                            <CreditCard className="h-4 w-4 mr-1" />
+                            {installmentPaymentMutation.isPending ? (
+                              <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                            ) : (
+                              <CreditCard className="h-4 w-4 mr-1" />
+                            )}
                             Trả góp kỳ tiếp
                           </Button>
                         )}
