@@ -2,7 +2,6 @@ import z from "zod";
 import { protectedProcedure, router } from "../trpc";
 import { type inferProcedureOutput } from "@trpc/server";
 import {
-  createOrderService,
   getUserOrders,
   getOrderStatusStats,
   searchOrders,
@@ -10,6 +9,7 @@ import {
   updateOrderStatus,
   cancelOrder,
 } from "@/services/orders";
+import { createOrderService } from "@/services/createOrder";
 
 const createOrderSchema = z.object({
   cartItems: z.array(z.number()),
