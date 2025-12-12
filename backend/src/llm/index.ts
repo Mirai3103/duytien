@@ -1,6 +1,8 @@
-import { createGoogleGenerativeAI } from '@ai-sdk/google';
+import { createDeepSeek } from '@ai-sdk/deepseek';
 
-const google = createGoogleGenerativeAI({
-  apiKey: process.env.GOOGLE_API_KEY,
+const deepseek = createDeepSeek({
+  apiKey: process.env.DEEPSEEK_API_KEY ?? '',
 });
-export const llm = google('gemini-2.0-flash')
+
+
+export const llm = deepseek('deepseek-chat')
