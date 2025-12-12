@@ -65,6 +65,9 @@ type Order = {
   totalItems: number;
   status: "pending" | "shipping" | "delivered" | "cancelled";
   paymentMethod: "cod" | "vnpay" | "momo";
+  payType?: "full" | "partial";
+  remainingInstallments?: number;
+  installmentCount?: number;
   createdAt: Date;
   user: {
     id: string;
@@ -342,33 +345,63 @@ export function OrdersTable({
       {
         accessorKey: "lastPayment.status",
         header: "Thanh toán",
-        cell: ({ row }) => (
-          <div className="space-y-1">
-            <Badge
-              className={
-                row.original.payments?.status
-                  ? paymentStatusConfig[
-                      row.original.payments
-                        ?.status as keyof typeof paymentStatusConfig
-                    ].color
-                  : "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
-              }
-            >
-              {row.original.payments?.status
-                ? paymentStatusConfig[
-                    row.original.payments
-                      ?.status as keyof typeof paymentStatusConfig
-                  ].label
-                : "Chưa thanh toán"}
-            </Badge>
-            <p className="text-xs text-muted-foreground">
-              {paymentMethodConfig[
-                row.original.payments
-                  ?.method as keyof typeof paymentMethodConfig
-              ]?.label || "Chưa thanh toán"}
-            </p>
-          </div>
-        ),
+        cell: ({ row }) => {
+          const order = row.original.orders;
+          const isOverdue = order?.payType === "partial" && 
+                           order?.remainingInstallments > 0 && 
+                           order?.nextPayDay && 
+                           new Date(order.nextPayDay) < new Date();
+          
+          return (
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <Badge
+                  className={
+                    row.original.payments?.status
+                      ? paymentStatusConfig[
+                          row.original.payments
+                            ?.status as keyof typeof paymentStatusConfig
+                        ].color
+                      : "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
+                  }
+                >
+                  {row.original.payments?.status
+                    ? paymentStatusConfig[
+                        row.original.payments
+                          ?.status as keyof typeof paymentStatusConfig
+                      ].label
+                    : "Chưa thanh toán"}
+                </Badge>
+                {order?.payType === "partial" && (
+                  <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300 text-xs">
+                    Trả góp
+                  </Badge>
+                )}
+                {isOverdue && (
+                  <Badge variant="destructive" className="bg-red-100 text-red-700 border-red-300 text-xs animate-pulse">
+                    Trễ hạn
+                  </Badge>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {paymentMethodConfig[
+                  row.original.payments
+                    ?.method as keyof typeof paymentMethodConfig
+                ]?.label || "Chưa thanh toán"}
+              </p>
+              {order?.payType === "partial" && order?.remainingInstallments > 0 && (
+                <p className={`text-xs ${isOverdue ? 'text-red-600 font-semibold' : 'text-blue-600'}`}>
+                  Còn {order.remainingInstallments} kỳ
+                  {isOverdue && order.nextPayDay && (
+                    <span className="block text-red-500">
+                      Quá hạn: {new Date(order.nextPayDay).toLocaleDateString('vi-VN')}
+                    </span>
+                  )}
+                </p>
+              )}
+            </div>
+          );
+        },
       },
       {
         accessorKey: "createdAt",

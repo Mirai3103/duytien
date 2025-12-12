@@ -1,7 +1,9 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { CheckCircle2, XCircle, Home, ShoppingCart, ArrowLeft } from 'lucide-react'
+import { CheckCircle2, XCircle, Home, ShoppingCart, ArrowLeft, Calendar } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
 import Header from '@/components/Header'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
@@ -102,11 +104,102 @@ function RouteComponent() {
 
                   <div className="flex items-center justify-between py-3">
                     <span className="text-muted-foreground">Phương thức thanh toán</span>
-                    <span className="font-medium uppercase">
-                      {order.paymentMethod}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium uppercase">
+                        {order.paymentMethod}
+                      </span>
+                      {order.payType === 'partial' && (
+                        <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300">
+                          Trả góp
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                 </div>
+              )}
+
+              {/* Installment Information */}
+              {order && order.payType === 'partial' && (
+                <>
+                  <Separator />
+                  <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-5 w-5 text-blue-600" />
+                      <h3 className="font-semibold text-blue-900 dark:text-blue-100">
+                        Thông tin trả góp
+                      </h3>
+                    </div>
+                    
+                    {isSuccess && (
+                      <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-md p-3 mb-3">
+                        <p className="text-sm font-semibold text-green-700 dark:text-green-300">
+                          ✓ Đã thanh toán kỳ {(order.installmentCount || 0) - (order.remainingInstallments || 0)} / {order.installmentCount}
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <span className="text-blue-700 dark:text-blue-300">Tổng số kỳ:</span>
+                        <p className="font-semibold text-blue-900 dark:text-blue-100">
+                          {order.installmentCount} tháng
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-blue-700 dark:text-blue-300">Số tiền mỗi kỳ:</span>
+                        <p className="font-semibold text-blue-900 dark:text-blue-100">
+                          {Number(order.nextPayAmount || 0).toLocaleString('vi-VN')}đ
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-blue-700 dark:text-blue-300">Đã thanh toán:</span>
+                        <p className="font-semibold text-green-600">
+                          {Number(order.totalPaidAmount || 0).toLocaleString('vi-VN')}đ
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-blue-700 dark:text-blue-300">Còn lại:</span>
+                        <p className="font-semibold text-orange-600">
+                          {order.remainingInstallments || 0} kỳ
+                        </p>
+                      </div>
+                    </div>
+
+                    {(order.remainingInstallments || 0) > 0 && (
+                      <>
+                        <Separator className="bg-blue-200 dark:bg-blue-800" />
+                        <div className="bg-white dark:bg-gray-950 p-3 rounded-md">
+                          <div className="text-sm">
+                            <p className="text-blue-700 dark:text-blue-300 mb-1">
+                              Kỳ thanh toán tiếp theo:
+                            </p>
+                            <p className="font-bold text-blue-900 dark:text-blue-100">
+                              {order.nextPayDay && new Date(order.nextPayDay).toLocaleDateString('vi-VN', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                              })}
+                            </p>
+                            <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
+                              Bạn có thể thanh toán kỳ tiếp theo trong trang "Đơn hàng của tôi"
+                            </p>
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    {(order.remainingInstallments || 0) === 0 && (
+                      <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 p-3 rounded-md">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle2 className="h-5 w-5 text-green-600" />
+                          <p className="font-semibold text-green-700 dark:text-green-300">
+                            Đã hoàn thành thanh toán trả góp
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </>
               )}
 
               {/* Additional Messages */}

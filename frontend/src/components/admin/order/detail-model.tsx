@@ -224,13 +224,20 @@ export default function OrderDetailModal({
                       <span className="text-sm text-muted-foreground">
                         Phương thức
                       </span>
-                      <span className="font-medium">
-                        {
-                          paymentMethodConfig[
-                            order.paymentMethod as keyof typeof paymentMethodConfig
-                          ].label
-                        }
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">
+                          {
+                            paymentMethodConfig[
+                              order.paymentMethod as keyof typeof paymentMethodConfig
+                            ].label
+                          }
+                        </span>
+                        {order.payType === "partial" && (
+                          <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300">
+                            Trả góp
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">
@@ -288,6 +295,148 @@ export default function OrderDetailModal({
                     </div>
                   </div>
                 </div>
+
+                {/* Thông tin trả góp */}
+                {order.payType === "partial" && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-5 h-5 text-primary" />
+                        <h3 className="font-semibold text-lg">Thông tin trả góp</h3>
+                      </div>
+                      {(order.remainingInstallments || 0) > 0 && order.nextPayDay && new Date(order.nextPayDay) < new Date() && (
+                        <Badge variant="destructive" className="animate-pulse">
+                          ⚠️ Trễ hạn
+                        </Badge>
+                      )}
+                    </div>
+                    <div className={`rounded-lg p-4 space-y-3 ${
+                      (order.remainingInstallments || 0) > 0 && order.nextPayDay && new Date(order.nextPayDay) < new Date()
+                        ? 'bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800'
+                        : 'bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800'
+                    }`}>
+                      {/* CCCD & Full Name */}
+                      {order.identityId && (
+                        <div className="grid grid-cols-2 gap-3 pb-3 border-b border-blue-200 dark:border-blue-800">
+                          <div>
+                            <span className="text-sm text-blue-700 dark:text-blue-300">Số CCCD/CMND:</span>
+                            <p className="font-semibold text-blue-900 dark:text-blue-100">
+                              {order.identityId}
+                            </p>
+                          </div>
+                          <div>
+                            <span className="text-sm text-blue-700 dark:text-blue-300">Họ và tên:</span>
+                            <p className="font-semibold text-blue-900 dark:text-blue-100">
+                              {order.full_name || 'N/A'}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Payment Info */}
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <span className="text-sm text-blue-700 dark:text-blue-300">Tổng số kỳ:</span>
+                          <p className="font-semibold text-blue-900 dark:text-blue-100">
+                            {order.installmentCount} tháng
+                          </p>
+                        </div>
+                        <div>
+                          <span className="text-sm text-blue-700 dark:text-blue-300">Số tiền mỗi kỳ:</span>
+                          <p className="font-semibold text-blue-900 dark:text-blue-100">
+                            {Number(order.nextPayAmount || 0).toLocaleString("vi-VN")}₫
+                          </p>
+                        </div>
+                        <div>
+                          <span className="text-sm text-blue-700 dark:text-blue-300">Đã thanh toán:</span>
+                          <p className="font-semibold text-green-600">
+                            {Number(order.totalPaidAmount || 0).toLocaleString("vi-VN")}₫
+                          </p>
+                        </div>
+                        <div>
+                          <span className="text-sm text-blue-700 dark:text-blue-300">Còn lại:</span>
+                          <p className="font-semibold text-orange-600">
+                            {order.remainingInstallments || 0} kỳ
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Next Payment */}
+                      {(order.remainingInstallments || 0) > 0 && (
+                        <>
+                          <Separator className={
+                            order.nextPayDay && new Date(order.nextPayDay) < new Date()
+                              ? "bg-red-200 dark:bg-red-800"
+                              : "bg-blue-200 dark:bg-blue-800"
+                          } />
+                          <div className={`p-3 rounded-md ${
+                            order.nextPayDay && new Date(order.nextPayDay) < new Date()
+                              ? 'bg-red-100 dark:bg-red-950/50 border border-red-300 dark:border-red-700'
+                              : 'bg-white dark:bg-gray-950'
+                          }`}>
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className={`text-sm ${
+                                  order.nextPayDay && new Date(order.nextPayDay) < new Date()
+                                    ? 'text-red-700 dark:text-red-300 font-semibold'
+                                    : 'text-blue-700 dark:text-blue-300'
+                                }`}>
+                                  Kỳ thanh toán tiếp theo:
+                                </p>
+                                <p className={`font-bold ${
+                                  order.nextPayDay && new Date(order.nextPayDay) < new Date()
+                                    ? 'text-red-900 dark:text-red-100'
+                                    : 'text-blue-900 dark:text-blue-100'
+                                }`}>
+                                  {order.nextPayDay && new Date(order.nextPayDay).toLocaleDateString("vi-VN", {
+                                    year: "numeric",
+                                    month: "long",
+                                    day: "numeric",
+                                  })}
+                                </p>
+                                {order.nextPayDay && new Date(order.nextPayDay) < new Date() && (
+                                  <p className="text-xs text-red-600 dark:text-red-400 mt-1 font-semibold">
+                                    ⚠️ Quá hạn {Math.floor((new Date().getTime() - new Date(order.nextPayDay).getTime()) / (1000 * 60 * 60 * 24))} ngày
+                                  </p>
+                                )}
+                              </div>
+                              <div className="text-right">
+                                <p className={`text-sm ${
+                                  order.nextPayDay && new Date(order.nextPayDay) < new Date()
+                                    ? 'text-red-700 dark:text-red-300'
+                                    : 'text-blue-700 dark:text-blue-300'
+                                }`}>
+                                  Số tiền:
+                                </p>
+                                <p className={`font-bold text-lg ${
+                                  order.nextPayDay && new Date(order.nextPayDay) < new Date()
+                                    ? 'text-red-600'
+                                    : 'text-blue-600'
+                                }`}>
+                                  {Number(order.nextPayAmount || 0).toLocaleString("vi-VN")}₫
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </>
+                      )}
+
+                      {/* Completed */}
+                      {(order.remainingInstallments || 0) === 0 && order.payType === "partial" && (
+                        <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 p-3 rounded-md">
+                          <div className="flex items-center gap-2">
+                            <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            <p className="font-semibold text-green-700 dark:text-green-300">
+                              Đã hoàn thành thanh toán trả góp
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {/* Ghi chú */}
                 {order.note && (
