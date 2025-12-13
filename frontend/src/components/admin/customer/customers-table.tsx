@@ -136,18 +136,7 @@ export function CustomersTable({
           </div>
         ),
       },
-      {
-        accessorKey: "orderCount",
-        header: "Đơn hàng",
-        cell: ({ row }) => (
-          <div className="flex items-center gap-2">
-            <ShoppingBag className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm text-foreground">
-              {row.original.orderCount || 0} đơn
-            </span>
-          </div>
-        ),
-      },
+    
       {
         accessorKey: "emailVerified",
         header: "Trạng thái",
