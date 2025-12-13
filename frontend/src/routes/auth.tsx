@@ -26,7 +26,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { signIn, useSession } from "@/lib/auth-client";
+import { signIn, signUp, useSession } from "@/lib/auth-client";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -127,11 +127,15 @@ function RouteComponent() {
   const handleLogin = async (data: LoginFormValues) => {
     setIsSubmitting(true);
     try {
-      await signIn.email({
+       const res=   await signIn.email({
         email: data.email,
         password: data.password,
         callbackURL: window.location.origin,
       });
+      if(res.error?.code =="INVALID_EMAIL_OR_PASSWORD"){
+        toast.error("Email hoặc mật khẩu không chính xác");
+        return;
+      }
       
       toast.success("Đăng nhập thành công");
       navigate({ to: searchParams.redirect ?? "/" });
@@ -151,6 +155,13 @@ function RouteComponent() {
     try {
       // Demo register - replace with actual API call
       console.log("Register:", data);
+      await signUp.email({
+        email: data.email,
+        password: data.password,
+        name: data.fullName,
+        callbackURL: window.location.origin,
+        
+      });
       toast.success("Đăng ký thành công!");
       setActiveTab("login");
       loginForm.setValue("email", data.email);
