@@ -105,10 +105,10 @@ const usersRoute = router({
         })
         .from(usersTable)
         .where(conditions.length > 0 ? and(...conditions) : undefined)
-        .groupBy(usersTable.id)
         .orderBy(orderByClause)
         .limit(limit)
         .offset(offset);
+      console.log(users);
 
       // Get total count
       const totalCount = await db.$count(
@@ -165,6 +165,16 @@ const usersRoute = router({
         })
         .where(eq(usersTable.id, ctx.session.user.id));
       return { success: true };
+    }),
+    getUserById: protectedProcedure.input(z.string()).query(async ({ ctx, input }) => {
+      return await db.query.user.findFirst({
+        where: eq(usersTable.id, input),
+      });
+    }),
+    verifyEmailById: protectedProcedure.input(z.string()).mutation(async ({ ctx, input }) => {
+      return await db.update(usersTable).set({
+        emailVerified: true,
+      }).where(eq(usersTable.id, input));
     }),
 });
 export { usersRoute };
