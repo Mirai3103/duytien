@@ -90,5 +90,30 @@ declare const usersRoute: import("@trpc/server").TRPCBuiltRouter<{
         };
         meta: object;
     }>;
+    getUserById: import("@trpc/server").TRPCQueryProcedure<{
+        input: string;
+        output: {
+            id: string;
+            name: string;
+            email: string;
+            emailVerified: boolean;
+            phone: string | null;
+            gender: string | null;
+            dateOfBirth: Date | null;
+            image: string | null;
+            createdAt: Date;
+            totalOrders: number;
+            totalAmount: string;
+            status: string;
+            role: string;
+            updatedAt: Date;
+        } | undefined;
+        meta: object;
+    }>;
+    verifyEmailById: import("@trpc/server").TRPCMutationProcedure<{
+        input: string;
+        output: import("pg").QueryResult<never>;
+        meta: object;
+    }>;
 }>>;
 export { usersRoute };

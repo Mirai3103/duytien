@@ -4,6 +4,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ArrowUpDown,
+  CheckCircle2,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +17,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Table,
   TableBody,
   TableCell,
@@ -26,7 +37,9 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState, useEffect } from "react";
 import { useTRPC } from "@/lib/trpc";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { CustomerDetailModal } from "./customer-detail-modal";
+import { toast } from "sonner";
 
 interface CustomersTableProps {
   search?: string;
@@ -47,6 +60,14 @@ export function CustomersTable({
     undefined
   );
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [verifyDialogOpen, setVerifyDialogOpen] = useState(false);
+  const [userToVerify, setUserToVerify] = useState<{
+    id: string;
+    name: string;
+    email: string;
+  } | null>(null);
   const limit = 20;
 
   // Reset page to 1 when filters change
@@ -55,7 +76,7 @@ export function CustomersTable({
   }, [search, emailVerified, dateRange]);
 
   const trpc = useTRPC();
-  const { data, isLoading } = useQuery(
+  const { data, isLoading, refetch } = useQuery(
     trpc.users.searchUsers.queryOptions({
       page,
       limit,
@@ -76,7 +97,18 @@ export function CustomersTable({
         }
       | undefined;
     isLoading: boolean;
+    refetch: () => void;
   };
+
+  const verifyEmailMutation = useMutation(trpc.users.verifyEmailById.mutationOptions({
+    onSuccess: () => {
+      toast.success("Email đã được xác thực");
+      refetch();
+    },
+    onError: () => {
+      toast.error("Lỗi khi xác thực email");
+    },
+  }));
 
   const handleSort = (column: "createdAt" | "name") => {
     if (sortBy === column) {
@@ -84,6 +116,26 @@ export function CustomersTable({
     } else {
       setSortBy(column);
       setSortDirection("asc");
+    }
+  };
+
+  const handleViewDetail = (userId: string) => {
+    setSelectedUserId(userId);
+    setModalOpen(true);
+  };
+
+  const handleVerifyEmail = (user: {
+    id: string;
+    name: string;
+    email: string;
+  }) => {
+    setUserToVerify(user);
+    setVerifyDialogOpen(true);
+  };
+
+  const confirmVerifyEmail = () => {
+    if (userToVerify) {
+      verifyEmailMutation.mutate(userToVerify.id);
     }
   };
 
@@ -190,10 +242,28 @@ export function CustomersTable({
                           align="end"
                           className="bg-card border-border"
                         >
-                          <DropdownMenuItem className="text-foreground hover:bg-secondary">
+                          <DropdownMenuItem
+                            className="text-foreground hover:bg-secondary cursor-pointer"
+                            onClick={() => handleViewDetail(user.id)}
+                          >
                             <Eye className="w-4 h-4 mr-2" />
                             Xem chi tiết
                           </DropdownMenuItem>
+                          {!user.emailVerified && (
+                            <DropdownMenuItem
+                              className="text-foreground hover:bg-secondary cursor-pointer"
+                              onClick={() =>
+                                handleVerifyEmail({
+                                  id: user.id,
+                                  name: user.name,
+                                  email: user.email,
+                                })
+                              }
+                            >
+                              <CheckCircle2 className="w-4 h-4 mr-2" />
+                              Xác thực email
+                            </DropdownMenuItem>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -241,6 +311,43 @@ export function CustomersTable({
           </div>
         </div>
       </CardContent>
+
+      {/* Customer Detail Modal */}
+      <CustomerDetailModal
+        userId={selectedUserId}
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+      />
+
+      {/* Verify Email Confirmation Dialog */}
+      <AlertDialog open={verifyDialogOpen} onOpenChange={setVerifyDialogOpen}>
+        <AlertDialogContent className="bg-card border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-foreground">
+              Xác thực email khách hàng
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
+              Bạn có chắc chắn muốn xác thực email cho khách hàng{" "}
+              <span className="font-semibold text-foreground">
+                {userToVerify?.name}
+              </span>{" "}
+              ({userToVerify?.email})?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={verifyEmailMutation.isPending}>
+              Hủy
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmVerifyEmail}
+              disabled={verifyEmailMutation.isPending}
+              className="bg-primary text-primary-foreground"
+            >
+              {verifyEmailMutation.isPending ? "Đang xử lý..." : "Xác nhận"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }
