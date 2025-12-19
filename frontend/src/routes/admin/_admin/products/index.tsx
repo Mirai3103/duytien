@@ -481,13 +481,13 @@ function RouteComponent() {
                         )}
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem
+                      {/* <DropdownMenuItem
                         onClick={() => handleDeleteClick(row.id)}
                         className="text-red-600 gap-2"
                       >
                         <Trash2 className="h-4 w-4" />
                         Xóa
-                      </DropdownMenuItem>
+                      </DropdownMenuItem> */}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>

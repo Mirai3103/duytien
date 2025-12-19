@@ -444,16 +444,17 @@ export function OrdersTable({
                 <Eye className="w-4 h-4 mr-2" />
                 Xem chi tiết
               </DropdownMenuItem>
-              <DropdownMenuItem
+              {row.original.payments?.status !== "success" && <DropdownMenuItem
                 className="text-foreground hover:bg-secondary"
                 onClick={() => handleOpenPaymentModal(
                   row.original.orders.id,
-                  row.original.payments?.status || "pending"
-                )}
-              >
-                <CreditCard className="w-4 h-4 mr-2" />
-                Thanh toán
-              </DropdownMenuItem>
+                    row.original.payments?.status || "pending"
+                  )}
+                >
+                  <CreditCard className="w-4 h-4 mr-2" />
+                  Thanh toán
+                </DropdownMenuItem>
+              }
               {row.original.orders.status === "pending" && (
                 <DropdownMenuItem
                   className="text-foreground hover:bg-secondary"

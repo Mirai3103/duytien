@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
 	Area,
 	AreaChart,
@@ -10,6 +11,13 @@ import {
 	YAxis,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/lib/trpc";
 
@@ -29,20 +37,39 @@ const monthNames = [
 ];
 
 export function RevenueChart() {
+	const [selectedMonth, setSelectedMonth] = useState<number>(
+		new Date().getMonth()
+	);
+	
 	const trpc = useTRPC();
 	const { data: revenueData, isLoading } = useQuery(
-		(trpc.dashboard as any).getRevenueByDay.queryOptions()
+		trpc.dashboard.getRevenueByDay.queryOptions({
+			month: selectedMonth,
+		})
 	);
-
-	const currentMonth = monthNames[new Date().getMonth()];
 
 	if (isLoading) {
 		return (
 			<Card className="bg-card border-border">
-				<CardHeader>
+				<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
 					<CardTitle className="text-foreground">
-						Doanh thu theo ngày ({currentMonth})
+						Doanh thu theo ngày
 					</CardTitle>
+					<Select
+						value={selectedMonth.toString()}
+						onValueChange={(value) => setSelectedMonth(parseInt(value))}
+					>
+						<SelectTrigger className="w-[140px]">
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							{monthNames.map((monthName, index) => (
+								<SelectItem key={index} value={index.toString()}>
+									{monthName}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
 				</CardHeader>
 				<CardContent>
 					<div className="h-[300px] flex items-center justify-center">
@@ -55,10 +82,25 @@ export function RevenueChart() {
 
 	return (
 		<Card className="bg-card border-border">
-			<CardHeader>
+			<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
 				<CardTitle className="text-foreground">
-					Doanh thu theo ngày ({currentMonth})
+					Doanh thu theo ngày
 				</CardTitle>
+				<Select
+					value={selectedMonth.toString()}
+					onValueChange={(value) => setSelectedMonth(parseInt(value))}
+				>
+					<SelectTrigger className="w-[140px]">
+						<SelectValue />
+					</SelectTrigger>
+					<SelectContent>
+						{monthNames.map((monthName, index) => (
+							<SelectItem key={index} value={index.toString()}>
+								{monthName}
+							</SelectItem>
+						))}
+					</SelectContent>
+				</Select>
 			</CardHeader>
 			<CardContent>
 				<ResponsiveContainer width="100%" height={300}>

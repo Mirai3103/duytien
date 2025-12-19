@@ -2451,7 +2451,9 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
             meta: object;
         }>;
         getRevenueByDay: import("@trpc/server").TRPCQueryProcedure<{
-            input: void;
+            input: {
+                month?: number | undefined;
+            };
             output: {
                 day: string;
                 revenue: number;

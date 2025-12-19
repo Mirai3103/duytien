@@ -21,7 +21,7 @@ if (isNeon) {
   });
 }
 const db = isNeon
-  ? neon_dizzle(pool!, { schema })
-  : drizzle(process.env.DATABASE_URL!, { schema });
+  ? neon_dizzle(pool!, { schema ,logger:true})
+  : drizzle(process.env.DATABASE_URL!, { schema ,logger:true});
 console.log(isNeon ? "Connected to Neon database" : "Connected to Postgres database");
 export default db;

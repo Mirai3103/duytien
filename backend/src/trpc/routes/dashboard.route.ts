@@ -7,7 +7,8 @@ import {
 	user,
 } from "@/db/schema";
 import { protectedProcedure, router } from "../trpc";
-import { sql, and, gte, lte, eq, desc, count, sum } from "drizzle-orm";
+import { sql, and, gte, lte, eq, desc, count, sum, asc } from "drizzle-orm";
+import z from "zod";
 
 export const dashboardRoute = router({
 	// Get dashboard statistics with comparisons to last month
@@ -137,10 +138,15 @@ export const dashboardRoute = router({
 	}),
 
 	// Get revenue by day for current month (30 days)
-	getRevenueByDay: protectedProcedure.query(async () => {
+	getRevenueByDay: protectedProcedure
+	.input(z.object({
+		month: z.number().optional().default(new Date().getMonth()),
+	}))
+	.query(async ({ input }) => {
+		const { month } = input;
 		const now = new Date();
-		const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-		const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+		const startOfMonth = new Date(now.getFullYear(), month, 1);
+		const endOfMonth = new Date(now.getFullYear(), month + 1, 0);
 
 		const revenueData = await db
 			.select({
@@ -222,7 +228,7 @@ export const dashboardRoute = router({
 			.from(orders)
 			.leftJoin(user, eq(orders.userId, user.id))
 			.where(eq(orders.status, "pending"))
-			.orderBy(desc(orders.createdAt))
+			.orderBy(asc(orders.createdAt))
 			.limit(5);
 
 		// Get first item for each order to show product name

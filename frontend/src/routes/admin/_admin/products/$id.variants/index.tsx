@@ -357,7 +357,7 @@ function RouteComponent() {
                         Cập nhật tồn kho
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem
+                      {/* <DropdownMenuItem
                         onClick={() => {
                           setVariantToDelete(v.id);
                           setDeleteDialogOpen(true);
@@ -365,7 +365,7 @@ function RouteComponent() {
                         className="text-red-600 gap-2"
                       >
                         <Trash2 className="h-4 w-4" /> Xóa
-                      </DropdownMenuItem>
+                      </DropdownMenuItem> */}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
