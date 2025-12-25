@@ -21,5 +21,5 @@ WORKDIR /app
 COPY --from=build /app/dist ./dist
 
 EXPOSE 3000
-
+ENV TZ=Asia/Ho_Chi_Minh
 CMD ["bun", "dist/app.js"]
